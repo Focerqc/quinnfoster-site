@@ -18,12 +18,13 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
 
   <!-- CSG for deboss boolean operations -->
   <script src="js/three-csg-bundle.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=2.9">
+  <link rel="stylesheet" href="css/styles.css?v=3.0">
 </head>
 <body>
 
@@ -266,6 +267,15 @@
                     </label>
                   </div>
 
+                  <!-- Wrap Logo Toggle -->
+                  <div class="control-group">
+                    <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--text-primary);">
+                      <input type="checkbox" id="toggleWrapLogo" checked>
+                      <span style="font-weight: 600;">Wrap Logo to Cylinder Surface (Curve)</span>
+                    </label>
+                    <p class="control-help" style="margin-top: 0.2rem; margin-left: 1.6rem; font-size: 0.75rem;">Uncheck to keep logo perfectly flat (best for Text STLs).</p>
+                  </div>
+
                   <!-- Logo Scale Slider -->
                   <div class="control-group">
                     <div class="control-label-row">
@@ -433,9 +443,14 @@
           <input type="range" id="textStlDepth" min="0.5" max="10" step="0.5" value="2.0" class="styled-slider">
         </div>
 
-        <button type="button" id="generateTextStlBtn" class="btn-primary" style="margin-top: 0.5rem; padding: 0.85rem; font-size: 0.95rem;">
-          Generate & Download STL
-        </button>
+        <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+          <button type="button" id="applyTextBtn" class="btn-primary" style="flex: 2; padding: 0.85rem; font-size: 0.95rem;">
+            Apply Text to Tube
+          </button>
+          <button type="button" id="generateTextStlBtn" class="btn-secondary" style="flex: 1; padding: 0.85rem; font-size: 0.85rem;">
+            Download STL
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -449,7 +464,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.9"></script>
+  <script src="js/experience2-generator.js?v=2.14"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

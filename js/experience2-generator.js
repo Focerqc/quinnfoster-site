@@ -21,6 +21,7 @@ class TubeGenerator {
       // Logo state
       logoEnabled: false,
       logoGeometry: null,     // THREE.BufferGeometry
+      wrapLogo: true,         // Wrap logo around cylinder curve (true) vs project flat (false)
       logoTheta: 0,           // Angle position on cylinder (radians)
       logoY: 0,               // Height position on cylinder (mm from center)
       logoScale: 16.0,        // Logo size in mm
@@ -501,13 +502,12 @@ class TubeGenerator {
 
     const isEmboss = (this.state.logoMode === 'emboss');
     const mat = new THREE.MeshStandardMaterial({
-      color: isEmboss ? 0xf97316 : 0xef4444,
+      color: isEmboss ? 0xf97316 : 0xef4444, // Orange for Emboss, Red/Crimson for Deboss
       emissive: isEmboss ? 0xc2410c : 0x991b1b,
-      emissiveIntensity: 0.5,
-      metalness: 0.5,
+      emissiveIntensity: 0.4,
+      metalness: 0.4,
       roughness: 0.3,
-      transparent: true,
-      opacity: 0.85,
+      transparent: false,
     });
 
     this.logoPreviewMesh = new THREE.Mesh(geo, mat);
@@ -720,12 +720,13 @@ class TubeGenerator {
       safeMaxCut = Math.max(innerR + 0.4, outerR - targetDepth); // Clamp before inner wall
     }
 
+    const wrapLogo = (this.state.wrapLogo !== undefined) ? this.state.wrapLogo : (document.getElementById('toggleWrapLogo')?.checked ?? true);
+
     for (let i = 0; i < posAttr.count; i++) {
       const x = posAttr.getX(i);
       const y = posAttr.getY(i);
       const z = posAttr.getZ(i);
 
-      const theta = x / outerR + this.state.logoTheta;
       let r;
       if (isEmboss) {
         // Base sits flush at outerR, top extends outward to outerR + targetDepth
@@ -738,16 +739,36 @@ class TubeGenerator {
           const topR = outerR + 0.6;
           r = safeMaxCut + normZ * (topR - safeMaxCut);
         } else {
-          // Preview mesh: Top sits flush at outerR, bottom cuts inward to outerR - targetDepth
-          r = outerR - (targetDepth / 2 - z);
+          // Visual Preview Mesh (Deboss mode): Raise visually slightly above cylinder skin (+0.08mm)
+          // so it renders as a crisp, solid 3D overlay with ZERO Z-fighting or clipping!
+          const visualHeight = Math.max(0.6, Math.min(1.2, targetDepth));
+          r = (outerR + 0.08) + (z + targetDepth / 2) * (visualHeight / targetDepth);
         }
       }
 
-      posAttr.setXYZ(i,
-        r * Math.sin(theta),
-        y + this.state.logoY,
-        r * Math.cos(theta)
-      );
+      if (wrapLogo) {
+        const theta = x / outerR + this.state.logoTheta;
+        posAttr.setXYZ(i,
+          r * Math.sin(theta),
+          y + this.state.logoY,
+          r * Math.cos(theta)
+        );
+      } else {
+        // Flat Projection
+        const x_local = x;
+        const y_local = y + this.state.logoY;
+        const z_local = r;
+
+        const sinT = Math.sin(this.state.logoTheta);
+        const cosT = Math.cos(this.state.logoTheta);
+
+        // Rotate (x, z) tangentially around the cylinder
+        posAttr.setXYZ(i,
+          x_local * cosT + z_local * sinT,
+          y_local,
+          -x_local * sinT + z_local * cosT
+        );
+      }
     }
     geo.computeVertexNormals();
     return geo;
@@ -1098,6 +1119,12 @@ class TubeGenerator {
       this.state.logoUseCSG = e.target.checked;
     });
 
+    // Toggle Wrap Logo Mode
+    bind('toggleWrapLogo', 'change', (e) => {
+      this.state.wrapLogo = e.target.checked;
+      this._updateLogoPreview();
+    });
+
     // Toggle Drag Mode
     bind('btnToggleDragMode', 'click', () => {
       this.setDragMode(!this.isDragModeActive);
@@ -1154,17 +1181,23 @@ class TubeGenerator {
       if(depthOut) depthOut.textContent = parseFloat(e.target.value).toFixed(1) + ' mm';
     });
 
+    const applyBtn = document.getElementById('applyTextBtn');
+
     if (generateBtn) {
-      generateBtn.addEventListener('click', () => this._generateTextStl());
+      generateBtn.addEventListener('click', () => this._generateTextStl('download'));
+    }
+    if (applyBtn) {
+      applyBtn.addEventListener('click', () => this._generateTextStl('apply'));
     }
   }
 
-  _generateTextStl() {
+  _generateTextStl(action = 'download') {
     const text = document.getElementById('textStlInput')?.value || 'Hello!';
     const size = parseFloat(document.getElementById('textStlSize')?.value || 20);
     const depth = parseFloat(document.getElementById('textStlDepth')?.value || 2.0);
 
-    const btn = document.getElementById('generateTextStlBtn');
+    const btnId = action === 'apply' ? 'applyTextBtn' : 'generateTextStlBtn';
+    const btn = document.getElementById(btnId);
     const originalText = btn.innerHTML;
     btn.innerHTML = `<span class="spinner-sm"></span> Generating...`;
     btn.disabled = true;
@@ -1177,9 +1210,9 @@ class TubeGenerator {
     }
 
     const loader = new THREE.FontLoader();
-    loader.load('fonts/helvetiker_bold.typeface.json', (font) => {
+    loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
       try {
-        const geometry = new THREE.TextGeometry(text, {
+        let geometry = new THREE.TextGeometry(text, {
           font: font,
           size: size,
           height: depth,
@@ -1195,13 +1228,39 @@ class TubeGenerator {
         const offsetZ = -0.5 * (bbox.max.z - bbox.min.z);
         geometry.translate(offsetX, offsetY, offsetZ);
 
-        // Convert to Mesh and Export
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const mesh = new THREE.Mesh(geometry, material);
+        if (THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeVertices) {
+          geometry = THREE.BufferGeometryUtils.mergeVertices(geometry);
+        }
 
-        if (THREE.STLExporter) {
-          const exporter = new THREE.STLExporter();
-          const stlString = exporter.parse(mesh);
+        if (action === 'apply') {
+          this.state.logoGeometry = geometry.clone();
+          this.state.logoEnabled = true;
+          this.state.logoScale = size; // Default scale to text size
+          
+          const wrapToggle = document.getElementById('toggleWrapLogo');
+          if (wrapToggle) {
+            wrapToggle.checked = true; // Auto wrap for text looks better and ensures proper CSG cuts
+            this.state.wrapLogo = true;
+          }
+          
+          this._updateLogoPreview();
+          this._showLogoControls(true);
+          
+          const nameEl = document.getElementById('logoFileName');
+          const detailsEl = document.getElementById('logoFileDetails');
+          if (nameEl) nameEl.textContent = `Text: "${text}"`;
+          if (detailsEl) detailsEl.style.display = 'block';
+
+          const modal = document.getElementById('textStlModal');
+          if (modal) modal.style.display = 'none';
+        } else {
+          // Convert to Mesh and Export
+          const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+          const mesh = new THREE.Mesh(geometry, material);
+
+          if (THREE.STLExporter) {
+            const exporter = new THREE.STLExporter();
+            const stlString = exporter.parse(mesh);
           const blob = new Blob([stlString], { type: 'text/plain' });
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
@@ -1210,12 +1269,13 @@ class TubeGenerator {
           a.download = `Text_${text.replace(/[^a-z0-9]/gi, '_')}.stl`;
           document.body.appendChild(a);
           a.click();
-          setTimeout(() => {
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }, 100);
-        } else {
-          alert('STLExporter is not loaded.');
+            setTimeout(() => {
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }, 100);
+          } else {
+            alert('STLExporter is not loaded.');
+          }
         }
       } catch (err) {
         console.error('Error generating text geometry:', err);
