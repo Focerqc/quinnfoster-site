@@ -990,6 +990,11 @@ class TubeGenerator {
       return;
     }
 
+    if (!this.state.logoEnabled || !this.state.logoGeometry) {
+      alert('Please apply text or select a logo first before building a 3D CSG preview!');
+      return;
+    }
+
     const btn = document.getElementById('btnPreviewCSG');
     const btnText = document.getElementById('btnPreviewCSGText');
 
@@ -1013,10 +1018,11 @@ class TubeGenerator {
         this.csgPreviewMesh = null;
       }
 
+      // Sleek polished dark-steel CAD material so solid debossed cuts contrast vividly
       const mat = new THREE.MeshStandardMaterial({
-        color: 0x94a3b8, // Satin aluminum / silver metallic
-        metalness: 0.35,
-        roughness: 0.35,
+        color: 0x475569,       // Dark slate / steel graphite tint
+        metalness: 0.65,       // Metallic polish for specular edge reflections
+        roughness: 0.25,
         side: THREE.DoubleSide
       });
 
@@ -1027,6 +1033,12 @@ class TubeGenerator {
       this.isCSGPreviewActive = true;
 
       if (btnText) btnText.textContent = '✏️ Exit CSG Preview (Edit Mode)';
+      if (btn) {
+        btn.style.background = 'rgba(239, 68, 68, 0.25)';
+        btn.style.borderColor = 'rgba(239, 68, 68, 0.6)';
+        btn.style.color = '#fca5a5';
+      }
+
       const notice = document.getElementById('csgPreviewNotice');
       if (notice) notice.style.display = 'flex';
 
@@ -1057,8 +1069,15 @@ class TubeGenerator {
 
     this.isCSGPreviewActive = false;
 
+    const btn = document.getElementById('btnPreviewCSG');
     const btnText = document.getElementById('btnPreviewCSGText');
     if (btnText) btnText.textContent = '✨ Preview Finished CSG';
+    if (btn) {
+      btn.style.background = 'rgba(99, 102, 241, 0.2)';
+      btn.style.borderColor = 'rgba(99, 102, 241, 0.5)';
+      btn.style.color = '#fff';
+    }
+
     const notice = document.getElementById('csgPreviewNotice');
     if (notice) notice.style.display = 'none';
   }
