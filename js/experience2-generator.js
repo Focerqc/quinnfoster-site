@@ -26,6 +26,7 @@ class TubeGenerator {
       logoY: 0,               // Height position on cylinder (mm from center)
       logoScale: 16.0,        // Logo size in mm
       logoDepth: 0.8,         // Deboss cut depth or Emboss height in mm
+      logoThroughCut: true,   // Deboss through-cut pierces wall completely
       logoRotateCoarse: 0,    // Coarse rotation (degrees)
       logoRotateFine: 0,      // Fine rotation offset (degrees)
       logoRotate: 0,          // Total in-plane rotation (degrees)
@@ -742,8 +743,11 @@ class TubeGenerator {
     } else {
       if (btnDeboss) btnDeboss.className = 'segmented-btn active-deboss';
       if (btnEmboss) btnEmboss.className = 'segmented-btn';
+      const isThroughCut = (this.state.logoThroughCut !== undefined)
+        ? this.state.logoThroughCut
+        : (document.getElementById('toggleThroughCut')?.checked ?? true);
       if (toggleThroughCutContainer) toggleThroughCutContainer.style.display = 'flex';
-      if (sliderContainer) sliderContainer.style.display = this.state.logoThroughCut ? 'none' : 'flex';
+      if (sliderContainer) sliderContainer.style.display = isThroughCut ? 'none' : 'flex';
       if (debossMethodGroup) debossMethodGroup.style.display = 'flex';
     }
 
@@ -766,8 +770,11 @@ class TubeGenerator {
     const targetSize = this.state.logoScale;
     const isEmboss = (this.state.logoMode === 'emboss');
     let targetDepth = this.state.logoDepth;
+    const isThroughCut = (this.state.logoThroughCut !== undefined)
+      ? this.state.logoThroughCut
+      : (document.getElementById('toggleThroughCut')?.checked ?? true);
 
-    if (this.state.logoThroughCut && !isEmboss) {
+    if (isThroughCut && !isEmboss) {
       targetDepth = (outerR - innerR) + 2.0; // Cut 2mm past inner wall to pierce cleanly
     }
 
@@ -782,7 +789,7 @@ class TubeGenerator {
     const posAttr = geo.attributes.position;
     
     let safeMaxCut;
-    if (this.state.logoThroughCut && !isEmboss) {
+    if (isThroughCut && !isEmboss) {
       safeMaxCut = Math.max(0, outerR - targetDepth); // Allow it to reach the void, but clamp at center
     } else {
       safeMaxCut = Math.max(innerR + 0.2, outerR - targetDepth); // Clamp inside wall
@@ -1335,6 +1342,15 @@ class TubeGenerator {
     });
 
     // Logo through cut toggle
+    const toggleThroughCut = document.getElementById('toggleThroughCut');
+    if (toggleThroughCut) {
+      this.state.logoThroughCut = toggleThroughCut.checked;
+      const sliderContainer = document.getElementById('depthSliderContainer');
+      if (sliderContainer) {
+        sliderContainer.style.display = this.state.logoThroughCut ? 'none' : 'flex';
+      }
+    }
+
     bind('toggleThroughCut', 'change', (e) => {
       this.state.logoThroughCut = e.target.checked;
       const sliderContainer = document.getElementById('depthSliderContainer');
