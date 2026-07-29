@@ -43,6 +43,10 @@ class TubeGenerator {
     this.logoHandleMesh = null;
     this.isDraggingLogo = false;
     this.isDragModeActive = false;
+    this.isCSGPreviewActive = false;
+    this.csgPreviewMesh = null;
+    this.currentFullLogoText = '';
+    this.isTextTruncated = true;
     this.raycaster = new THREE.Raycaster();
     this.mouse = new THREE.Vector2();
 
@@ -124,6 +128,8 @@ class TubeGenerator {
       this.controls.dampingFactor = 0.08;
       this.controls.minDistance = 5;
       this.controls.maxDistance = 500;
+      this.controls.minPolarAngle = 0.01;
+      this.controls.maxPolarAngle = Math.PI - 0.01;
     } else if (THREE.TrackballControls) {
       this.controls = new THREE.TrackballControls(this.camera, this.renderer.domElement);
       this.controls.rotateSpeed = 3.5;
@@ -279,6 +285,9 @@ class TubeGenerator {
 
   // ─── BUILD / REBUILD TUBE MESH ─────────────────────────────────
   _buildTube() {
+    if (this.isCSGPreviewActive) {
+      this.exitCSGPreview();
+    }
     // Remove old
     if (this.tubeMesh) {
       if (this.modelGroup) this.modelGroup.remove(this.tubeMesh);
@@ -319,10 +328,7 @@ class TubeGenerator {
     if (!file) return;
     const ext = file.name.split('.').pop().toLowerCase();
 
-    const nameEl = document.getElementById('logoFileName');
-    const detailsEl = document.getElementById('logoFileDetails');
-    if (nameEl) nameEl.textContent = file.name;
-    if (detailsEl) detailsEl.style.display = 'block';
+    this.setLogoTextDisplay(file.name);
 
     const reader = new FileReader();
 
@@ -334,6 +340,59 @@ class TubeGenerator {
       reader.onload = (e) => this._processImage(e.target.result);
       reader.readAsDataURL(file);
     }
+  }
+
+  // ─── TEXT TRUNCATION & REVEAL HANDLERS (>30 CHARS) ─────────────
+  setLogoTextDisplay(fullText) {
+    this.currentFullLogoText = fullText || '';
+    // Automatically toggle ON truncation anytime text is > 30 characters
+    if (this.currentFullLogoText.length > 30) {
+      this.isTextTruncated = true;
+    } else {
+      this.isTextTruncated = false;
+    }
+    this.updateLogoTextUI();
+  }
+
+  updateLogoTextUI() {
+    const nameEl = document.getElementById('logoFileName');
+    const detailsEl = document.getElementById('logoFileDetails');
+    const toggleBtn = document.getElementById('btnToggleTextReveal');
+
+    if (!detailsEl) return;
+
+    if (!this.currentFullLogoText) {
+      if (nameEl) nameEl.textContent = 'No file selected';
+      detailsEl.style.display = 'none';
+      if (toggleBtn) toggleBtn.style.display = 'none';
+      return;
+    }
+
+    detailsEl.style.display = 'block';
+
+    const textLen = this.currentFullLogoText.length;
+    const isLongText = textLen > 30;
+
+    if (isLongText && toggleBtn) {
+      toggleBtn.style.display = 'inline-flex';
+      toggleBtn.textContent = this.isTextTruncated ? `👁️ Show Full (${textLen} chars)` : '👁️ Truncate Text';
+      toggleBtn.title = this.isTextTruncated ? `Click to reveal full text (${textLen} characters)` : 'Hide text longer than 30 characters';
+    } else if (toggleBtn) {
+      toggleBtn.style.display = 'none';
+    }
+
+    if (nameEl) {
+      if (isLongText && this.isTextTruncated) {
+        nameEl.textContent = this.currentFullLogoText.substring(0, 30) + '...';
+      } else {
+        nameEl.textContent = this.currentFullLogoText;
+      }
+    }
+  }
+
+  toggleTextReveal() {
+    this.isTextTruncated = !this.isTextTruncated;
+    this.updateLogoTextUI();
   }
 
   _processImage(dataUrl) {
@@ -489,6 +548,9 @@ class TubeGenerator {
 
   // ─── LOGO PREVIEW (POSITIONED ON CYLINDER SURFACE) ─────────────
   _updateLogoPreview() {
+    if (this.isCSGPreviewActive) {
+      this.exitCSGPreview();
+    }
     if (this.logoPreviewMesh) {
       if (this.modelGroup) this.modelGroup.remove(this.logoPreviewMesh);
       else this.scene.remove(this.logoPreviewMesh);
@@ -821,6 +883,163 @@ class TubeGenerator {
     if (modal) modal.style.display = 'none';
   }
 
+  // ─── ASYNC NON-BLOCKING CSG GEOMETRY COMPUTATION ──────────────
+  async _computeCSGGeometry() {
+    const innerR = this.state.innerDiameter / 2;
+    const outerR = this.state.outerDiameter / 2;
+    const len = this.state.length;
+
+    const tubeGeo = this._buildCylinderGeo(innerR, outerR, len);
+    let exportGeo = tubeGeo;
+
+    if (this.state.logoEnabled && this.state.logoGeometry) {
+      this._updateProgressModal(25, 'Wrapping 3D cutter geometry on tube wall...');
+      await new Promise(r => setTimeout(r, 40));
+
+      const logoWrappedGeo = this._getWrappedLogoGeo();
+
+      if (logoWrappedGeo) {
+        if (this.state.logoMode === 'emboss') {
+          this._updateProgressModal(60, 'Fusing embossed 3D relief mesh...');
+          await new Promise(r => setTimeout(r, 40));
+          exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
+        } else {
+          let csgSuccess = false;
+          if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
+            try {
+              this._updateProgressModal(40, 'Building 3D CAD cutter geometry...');
+              await new Promise(r => setTimeout(r, 40));
+
+              const csgCutterGeo = this._getWrappedLogoGeo(true);
+
+              const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 64, 1);
+              const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
+
+              const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 64, 1);
+              const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
+
+              const cutMesh = new THREE.Mesh(csgCutterGeo);
+
+              solidOuterMesh.updateMatrixWorld();
+              innerCoreMesh.updateMatrixWorld();
+              cutMesh.updateMatrixWorld();
+
+              this._updateProgressModal(55, 'Executing 3D CSG deboss cut (yields to UI thread)...');
+              await new Promise(r => setTimeout(r, 60));
+
+              const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
+              const cutCsg = CSG.fromMesh(cutMesh, 1);
+              const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+
+              this._updateProgressModal(70, 'Subtracting cutter volume & carving deboss...');
+              await new Promise(r => setTimeout(r, 60));
+
+              const debossedSolidCsg = outerCsg.subtract(cutCsg);
+
+              this._updateProgressModal(85, 'Drilling inner bore and verifying manifold solid...');
+              await new Promise(r => setTimeout(r, 60));
+
+              const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+
+              const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
+              if (resultMesh && resultMesh.geometry) {
+                exportGeo = resultMesh.geometry;
+                csgSuccess = true;
+              }
+            } catch (csgErr) {
+              console.warn('CSG Solid CAD Boolean cut encountered error, falling back to recessed mesh fusion:', csgErr);
+            }
+          }
+
+          if (!csgSuccess) {
+            exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
+          }
+        }
+      }
+    }
+    return exportGeo;
+  }
+
+  // ─── IN-VIEWPORT CSG FINISHED RESULT PREVIEW ───────────────────
+  async toggleCSGPreview() {
+    if (this.isCSGPreviewActive) {
+      this.exitCSGPreview();
+      return;
+    }
+
+    const btn = document.getElementById('btnPreviewCSG');
+    const btnText = document.getElementById('btnPreviewCSGText');
+
+    if (btn) btn.classList.add('is-processing');
+    this._showProgressModal();
+    this._updateProgressModal(10, 'Building 3D CSG Solid Preview...');
+
+    try {
+      const csgGeo = await this._computeCSGGeometry();
+
+      // Hide live editing meshes
+      if (this.tubeMesh) this.tubeMesh.visible = false;
+      if (this.logoPreviewMesh) this.logoPreviewMesh.visible = false;
+      if (this.logoHandleMesh) this.logoHandleMesh.visible = false;
+
+      // Clean up previous preview if exists
+      if (this.csgPreviewMesh) {
+        if (this.modelGroup) this.modelGroup.remove(this.csgPreviewMesh);
+        else if (this.scene) this.scene.remove(this.csgPreviewMesh);
+        if (this.csgPreviewMesh.geometry) this.csgPreviewMesh.geometry.dispose();
+        this.csgPreviewMesh = null;
+      }
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: 0x94a3b8, // Satin aluminum / silver metallic
+        metalness: 0.35,
+        roughness: 0.35,
+        side: THREE.DoubleSide
+      });
+
+      this.csgPreviewMesh = new THREE.Mesh(csgGeo, mat);
+      if (this.modelGroup) this.modelGroup.add(this.csgPreviewMesh);
+      else this.scene.add(this.csgPreviewMesh);
+
+      this.isCSGPreviewActive = true;
+
+      if (btnText) btnText.textContent = '✏️ Exit CSG Preview (Edit Mode)';
+      const notice = document.getElementById('csgPreviewNotice');
+      if (notice) notice.style.display = 'flex';
+
+      this._updateProgressModal(100, 'Solid CSG Preview Ready!');
+      await new Promise(r => setTimeout(r, 200));
+    } catch (err) {
+      console.error('CSG Preview failed:', err);
+      alert('Could not generate CSG preview: ' + err.message);
+    } finally {
+      this._hideProgressModal();
+      if (btn) btn.classList.remove('is-processing');
+    }
+  }
+
+  exitCSGPreview() {
+    if (!this.isCSGPreviewActive) return;
+
+    if (this.csgPreviewMesh) {
+      if (this.modelGroup) this.modelGroup.remove(this.csgPreviewMesh);
+      else if (this.scene) this.scene.remove(this.csgPreviewMesh);
+      if (this.csgPreviewMesh.geometry) this.csgPreviewMesh.geometry.dispose();
+      this.csgPreviewMesh = null;
+    }
+
+    if (this.tubeMesh) this.tubeMesh.visible = true;
+    if (this.logoPreviewMesh) this.logoPreviewMesh.visible = true;
+    if (this.logoHandleMesh) this.logoHandleMesh.visible = true;
+
+    this.isCSGPreviewActive = false;
+
+    const btnText = document.getElementById('btnPreviewCSGText');
+    if (btnText) btnText.textContent = '✨ Preview Finished CSG';
+    const notice = document.getElementById('csgPreviewNotice');
+    if (notice) notice.style.display = 'none';
+  }
+
   // ─── ASYNC NON-BLOCKING STL EXPORT (BINARY) ───────────────────
   async exportSTL() {
     const btn = document.getElementById('downloadStlBtn');
@@ -831,82 +1050,13 @@ class TubeGenerator {
       btn.innerHTML = `<span class="spinner-sm"></span> Generating 3D STL File...`;
     }
 
+    this._showProgressModal();
+
     try {
       this._updateProgressModal(10, 'Initializing 3D CAD engine...');
       await new Promise(r => setTimeout(r, 40));
 
-      const innerR = this.state.innerDiameter / 2;
-      const outerR = this.state.outerDiameter / 2;
-      const len = this.state.length;
-
-      const tubeGeo = this._buildCylinderGeo(innerR, outerR, len);
-      let exportGeo = tubeGeo;
-
-      if (this.state.logoEnabled && this.state.logoGeometry) {
-        this._updateProgressModal(25, 'Wrapping 3D cutter geometry on tube wall...');
-        await new Promise(r => setTimeout(r, 40));
-
-        const logoWrappedGeo = this._getWrappedLogoGeo();
-
-        if (logoWrappedGeo) {
-          if (this.state.logoMode === 'emboss') {
-            this._updateProgressModal(60, 'Fusing embossed 3D relief mesh...');
-            await new Promise(r => setTimeout(r, 40));
-            exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
-          } else {
-            let csgSuccess = false;
-            if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
-              try {
-                this._updateProgressModal(40, 'Building 3D CAD cutter geometry...');
-                await new Promise(r => setTimeout(r, 40));
-
-                const csgCutterGeo = this._getWrappedLogoGeo(true);
-
-                const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 64, 1);
-                const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
-
-                const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 64, 1);
-                const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
-
-                const cutMesh = new THREE.Mesh(csgCutterGeo);
-
-                solidOuterMesh.updateMatrixWorld();
-                innerCoreMesh.updateMatrixWorld();
-                cutMesh.updateMatrixWorld();
-
-                this._updateProgressModal(55, 'Executing 3D CSG deboss cut (yields to UI thread)...');
-                await new Promise(r => setTimeout(r, 60));
-
-                const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
-                const cutCsg = CSG.fromMesh(cutMesh, 1);
-                const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
-
-                this._updateProgressModal(70, 'Subtracting cutter volume & carving deboss...');
-                await new Promise(r => setTimeout(r, 60));
-
-                const debossedSolidCsg = outerCsg.subtract(cutCsg);
-
-                this._updateProgressModal(85, 'Drilling inner bore and verifying manifold solid...');
-                await new Promise(r => setTimeout(r, 60));
-
-                const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
-
-                const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
-                if (resultMesh && resultMesh.geometry) {
-                  exportGeo = resultMesh.geometry;
-                  csgSuccess = true;
-                }
-              } catch (csgErr) {
-                console.warn('CSG Solid CAD Boolean cut encountered error, falling back to recessed mesh fusion:', csgErr);
-              }
-            }
-
-            if (!csgSuccess) {
-              exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
-            }
-          }
-        }
-      }
+      const exportGeo = await this._computeCSGGeometry();
 
       this._updateProgressModal(95, 'Compiling binary STL file buffer...');
       await new Promise(r => setTimeout(r, 40));
@@ -1123,27 +1273,27 @@ class TubeGenerator {
     // Reset camera
     bind('resetCameraBtn', 'click', () => this._resetCamera());
 
-    // 3D Navigation Rotation Pad Gizmo - Orbits Camera around target
-    const stepAngle = Math.PI / 8; // 22.5° step angle
+    // 3D Navigation Rotation Pad Gizmo - Orbits Camera smoothly using Spherical Coordinates
+    const stepAngle = Math.PI / 12; // 15° step angle
     const orbitCamera = (deltaHorizontal, deltaVertical) => {
       if (!this.camera || !this.controls) return;
       const target = this.controls.target || new THREE.Vector3(0, 0, 0);
 
-      if (deltaHorizontal !== 0) {
-        // Horizontal rotation around target Y-axis relative to current view position
-        const pos = this.camera.position.clone().sub(target);
-        pos.applyAxisAngle(new THREE.Vector3(0, 1, 0), deltaHorizontal);
-        this.camera.position.copy(target).add(pos);
-      }
+      const offset = this.camera.position.clone().sub(target);
+      let radius = offset.length();
+      if (radius < 0.001) radius = 50;
 
-      if (deltaVertical !== 0) {
-        // Vertical pitch relative to camera right vector
-        const pos = this.camera.position.clone().sub(target);
-        const right = new THREE.Vector3(1, 0, 0).applyQuaternion(this.camera.quaternion);
-        pos.applyAxisAngle(right, deltaVertical);
-        this.camera.position.copy(target).add(pos);
-      }
+      let theta = Math.atan2(offset.x, offset.z);
+      let phi = Math.acos(Math.min(Math.max(offset.y / radius, -1.0), 1.0));
 
+      theta += deltaHorizontal;
+      phi = Math.min(Math.max(phi + deltaVertical, 0.01), Math.PI - 0.01);
+
+      offset.x = radius * Math.sin(phi) * Math.sin(theta);
+      offset.y = radius * Math.cos(phi);
+      offset.z = radius * Math.sin(phi) * Math.cos(theta);
+
+      this.camera.position.copy(target).add(offset);
       this.camera.lookAt(target);
       if (this.controls.update) this.controls.update();
     };
@@ -1217,6 +1367,13 @@ class TubeGenerator {
       this.setDragMode(false);
     });
 
+    // CSG Solid Preview
+    bind('btnPreviewCSG', 'click', () => this.toggleCSGPreview());
+    bind('btnExitCsgPreview', 'click', () => this.exitCSGPreview());
+
+    // Text Truncation Reveal Toggle (>30 chars)
+    bind('btnToggleTextReveal', 'click', () => this.toggleTextReveal());
+
     // Remove logo
     bind('btnRemoveLogo', 'click', () => {
       this.setDragMode(false);
@@ -1234,10 +1391,7 @@ class TubeGenerator {
         this.logoHandleMesh = null;
       }
       this._showLogoControls(false);
-      const nameEl = document.getElementById('logoFileName');
-      const detailsEl = document.getElementById('logoFileDetails');
-      if (nameEl) nameEl.textContent = 'No file selected';
-      if (detailsEl) detailsEl.style.display = 'none';
+      this.setLogoTextDisplay('');
     });
   }
 
@@ -1282,6 +1436,25 @@ class TubeGenerator {
     if (btnLeft) btnLeft.addEventListener('click', () => setAlign('left'));
     if (btnCenter) btnCenter.addEventListener('click', () => setAlign('center'));
     if (btnRight) btnRight.addEventListener('click', () => setAlign('right'));
+
+    // Text input character counter & live auto-truncation badge
+    const textInput = document.getElementById('textStlInput');
+    const textLenOut = document.getElementById('textLengthReadout');
+    const textTruncBadge = document.getElementById('textTruncateBadge');
+
+    const updateTextModalCounter = () => {
+      if (!textInput) return;
+      const len = textInput.value.length;
+      if (textLenOut) textLenOut.textContent = `${len} char${len === 1 ? '' : 's'}`;
+      if (textTruncBadge) {
+        textTruncBadge.style.display = len > 30 ? 'inline' : 'none';
+      }
+    };
+
+    if (textInput) {
+      textInput.addEventListener('input', updateTextModalCounter);
+      updateTextModalCounter();
+    }
 
     const applyBtn = document.getElementById('applyTextBtn');
 
@@ -1396,10 +1569,7 @@ class TubeGenerator {
           this._updateLogoPreview();
           this._showLogoControls(true);
           
-          const nameEl = document.getElementById('logoFileName');
-          const detailsEl = document.getElementById('logoFileDetails');
-          if (nameEl) nameEl.textContent = `Text: "${text}"`;
-          if (detailsEl) detailsEl.style.display = 'block';
+          this.setLogoTextDisplay(`Text: "${text}"`);
 
           const modal = document.getElementById('textStlModal');
           if (modal) modal.style.display = 'none';
@@ -1481,10 +1651,7 @@ class TubeGenerator {
   }
 
   _loadLibraryPreset(type, url, title) {
-    const nameEl = document.getElementById('logoFileName');
-    const detailsEl = document.getElementById('logoFileDetails');
-    if (nameEl) nameEl.textContent = title || 'Library Item';
-    if (detailsEl) detailsEl.style.display = 'block';
+    this.setLogoTextDisplay(title || 'Library Item');
 
     if (type === 'stl' && url) {
       fetch(encodeURI(url))
@@ -1500,8 +1667,7 @@ class TubeGenerator {
           alert('Cannot open library files directly from your hard drive due to browser security (file:// protocol blocks fetching).\n\nPlease use the "Upload Logo" button instead and manually select your STL file.');
           
           // Clear loading state if necessary
-          const nameEl = document.getElementById('logoFileName');
-          if (nameEl) nameEl.textContent = 'No file selected';
+          this.setLogoTextDisplay('');
         });
     } else if (type === 'preset-qf') {
       const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">

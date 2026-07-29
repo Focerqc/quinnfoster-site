@@ -110,6 +110,13 @@
               <button type="button" id="btnExitDragMode" class="btn-exit-drag">Exit</button>
             </div>
 
+            <!-- CSG Preview Active Overlay Notice (Compact Bottom-Left Pill) -->
+            <div id="csgPreviewNotice" class="drag-mode-notice" style="display: none; background: rgba(99, 102, 241, 0.9); border-color: #818cf8;">
+              <span class="drag-pulse-dot" style="background: #a5b4fc; box-shadow: 0 0 8px #a5b4fc;"></span>
+              <span>✨ <strong>Solid CSG Preview Active</strong> (No Shadows)</span>
+              <button type="button" id="btnExitCsgPreview" class="btn-exit-drag" style="background: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.3);">Exit</button>
+            </div>
+
             <!-- 3D Navigation Rotation Pad Overlay -->
             <div class="view-nav-pad" id="viewNavPad">
               <button type="button" class="nav-arrow nav-up" id="btnNavUp" title="Tilt Up (Y-Axis)" aria-label="Tilt Up">
@@ -217,8 +224,16 @@
                       Create Text
                     </button>
                   </div>
-                  <div id="logoFileDetails" class="logo-file-details" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
-                    📁 <span id="logoFileName">No file selected</span>
+                  <div id="logoFileDetails" class="logo-file-details" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600; max-width: 100%; word-break: break-all; overflow-wrap: anywhere;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; max-width: 100%;">
+                      <div style="display: flex; align-items: center; gap: 0.35rem; min-width: 0; flex: 1; overflow: hidden;">
+                        <span style="flex-shrink: 0;">📁</span>
+                        <span id="logoFileName" style="word-break: break-all; overflow-wrap: anywhere; white-space: normal;">No file selected</span>
+                      </div>
+                      <button type="button" id="btnToggleTextReveal" class="btn-secondary" style="display: none; flex-shrink: 0; padding: 0.25rem 0.55rem; font-size: 0.75rem; font-weight: 700; background: rgba(16, 185, 129, 0.15); border-color: rgba(16, 185, 129, 0.35); color: #34d399; border-radius: 4px; cursor: pointer;" title="Toggle between truncated text preview and full text">
+                        👁️ Show Full
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -335,12 +350,20 @@
               </div>
 
               <!-- Action Bar -->
-              <div class="action-bar">
-                <button type="button" id="downloadStlBtn" class="btn-primary">
+              <div class="action-bar" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                <button type="button" id="btnPreviewCSG" class="btn-secondary" style="flex: 1; min-width: 170px; display: flex; align-items: center; justify-content: center; gap: 0.5rem; background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5); color: #fff; font-weight: 700; padding: 0.85rem;" title="Preview the finished debossed solid CAD model directly in the browser">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                  <span id="btnPreviewCSGText">✨ Preview Finished CSG</span>
+                </button>
+
+                <button type="button" id="downloadStlBtn" class="btn-primary" style="flex: 1; min-width: 170px;">
                   <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
-                  Download STL File (.stl)
+                  <span>Download STL File (.stl)</span>
                 </button>
               </div>
             </div>
@@ -450,6 +473,10 @@
         <div class="control-group">
           <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">Text to Render (Supports Multiline)</label>
           <textarea id="textStlInput" rows="3" style="width: 100%; padding: 0.75rem; background: var(--surface-light); border: 1px solid var(--surface-border); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem; font-family: var(--font-sans); resize: vertical;" placeholder="Type multiline text here...">Hello!</textarea>
+          <div id="textCharCounter" style="display: flex; justify-content: space-between; margin-top: 0.35rem; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted);">
+            <span id="textLengthReadout">6 chars</span>
+            <span id="textTruncateBadge" style="display: none; color: #34d399; font-weight: 600;">✨ Auto-Truncate >30 Chars Enabled</span>
+          </div>
         </div>
 
         <div class="control-group">
@@ -525,7 +552,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.19"></script>
+  <script src="js/experience2-generator.js?v=2.21"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
