@@ -915,60 +915,61 @@ class TubeGenerator {
               const vertCount = csgCutterGeo?.attributes?.position ? csgCutterGeo.attributes.position.count : 0;
               console.log(`[CSG Engine] Cutter mesh vertex count: ${vertCount}`);
 
-              // High-density polygon safety guard: if mesh exceeds 10,000 vertices, use fast recessed mesh fusion
-              if (vertCount > 10000) {
-                console.warn('[CSG Engine] Dense geometry (>10,000 verts). Using fast recessed mesh fusion for instant export.');
-                this._updateProgressModal(85, 'High-density geometry: using fast mesh fusion...');
+              // Safety guard: if mesh exceeds 1,800 vertices, use fast recessed mesh fusion to keep UI instant
+              if (vertCount > 1800) {
+                console.warn('[CSG Engine] High vertex count (>1,800 verts). Using fast recessed mesh fusion for instant export.');
+                this._updateProgressModal(85, 'Applying fast mesh fusion...');
                 await new Promise(r => setTimeout(r, 30));
               } else {
-                // Optimized 32 radial segments for CSG cutter cylinder
-                const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 32, 1);
-                const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
-
-                const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 32, 1);
-                const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
-
-                const cutMesh = new THREE.Mesh(csgCutterGeo);
-
-                solidOuterMesh.updateMatrixWorld();
-                innerCoreMesh.updateMatrixWorld();
-                cutMesh.updateMatrixWorld();
-
-                const startTime = Date.now();
-                const checkTimeout = () => {
-                  if (Date.now() - startTime > 6000) {
-                    throw new Error('CSG processing timeout (>6s), falling back to optimized mesh fusion');
-                  }
-                };
-
                 this._updateProgressModal(50, 'Converting cutter meshes to CSG BSP trees...');
                 await new Promise(r => setTimeout(r, 20));
-                checkTimeout();
 
-                const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
-                const cutCsg = CSG.fromMesh(cutMesh, 1);
-                const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+                // Hard 1.5s timeout wrapper so BSP CSG never hangs the browser UI loop
+                const runCsgAsync = () => new Promise((resolve, reject) => {
+                  try {
+                    const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 32, 1);
+                    const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
+                    const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 32, 1);
+                    const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
+                    const cutMesh = new THREE.Mesh(csgCutterGeo);
 
-                this._updateProgressModal(70, 'Executing CSG deboss subtraction...');
+                    solidOuterMesh.updateMatrixWorld();
+                    innerCoreMesh.updateMatrixWorld();
+                    cutMesh.updateMatrixWorld();
+
+                    const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
+                    const cutCsg = CSG.fromMesh(cutMesh, 1);
+                    const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+
+                    const debossedSolidCsg = outerCsg.subtract(cutCsg);
+                    const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+
+                    const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
+                    if (resultMesh && resultMesh.geometry) {
+                      resolve(resultMesh.geometry);
+                    } else {
+                      reject(new Error('CSG output geometry was empty'));
+                    }
+                  } catch (e) {
+                    reject(e);
+                  }
+                });
+
+                const timeoutPromise = new Promise((_, reject) => {
+                  setTimeout(() => reject(new Error('CSG processing timeout (1.5s limit)')), 1500);
+                });
+
+                this._updateProgressModal(75, 'Executing CSG deboss subtraction...');
                 await new Promise(r => setTimeout(r, 20));
-                checkTimeout();
 
-                const debossedSolidCsg = outerCsg.subtract(cutCsg);
-
-                this._updateProgressModal(85, 'Carving inner tube bore...');
-                await new Promise(r => setTimeout(r, 20));
-                checkTimeout();
-
-                const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
-
-                const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
-                if (resultMesh && resultMesh.geometry) {
-                  exportGeo = resultMesh.geometry;
+                const computedGeo = await Promise.race([runCsgAsync(), timeoutPromise]);
+                if (computedGeo) {
+                  exportGeo = computedGeo;
                   csgSuccess = true;
                 }
               }
             } catch (csgErr) {
-              console.warn('CSG Solid CAD Boolean cut warning:', csgErr.message || csgErr);
+              console.warn('CSG Solid CAD Boolean cut note:', csgErr.message || csgErr);
               this._updateProgressModal(90, 'Applying fast mesh fallback...');
               await new Promise(r => setTimeout(r, 30));
             }
@@ -987,11 +988,6 @@ class TubeGenerator {
   async toggleCSGPreview() {
     if (this.isCSGPreviewActive) {
       this.exitCSGPreview();
-      return;
-    }
-
-    if (!this.state.logoEnabled || !this.state.logoGeometry) {
-      alert('Please apply text or select a logo first before building a 3D CSG preview!');
       return;
     }
 
@@ -1562,7 +1558,7 @@ class TubeGenerator {
             font: font,
             size: size,
             height: depth,
-            curveSegments: 5,
+            curveSegments: 3,
             bevelEnabled: false
           });
           geometry.center();
@@ -1579,7 +1575,7 @@ class TubeGenerator {
               font: font,
               size: size,
               height: depth,
-              curveSegments: 5,
+              curveSegments: 3,
               bevelEnabled: false
             });
             g.computeBoundingBox();
