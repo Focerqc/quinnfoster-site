@@ -1013,12 +1013,34 @@ class TubeGenerator {
     // Initialize Text to STL Modal
     this._initTextStlModal();
 
-    // Logo scale
-    bind('inputLogoScale', 'input', (e) => {
-      this.state.logoScale = parseFloat(e.target.value);
+    // Logo scale percentage input handling
+    const updateLogoScaleFromPercent = (percentVal) => {
+      let percent = parseFloat(percentVal);
+      if (isNaN(percent) || percent <= 0) percent = 100;
+      this.state.logoScalePercent = percent;
+      this.state.logoScale = (percent / 100) * 16.0;
+      
+      const inputEl = document.getElementById('inputLogoScalePercent');
+      if (inputEl && parseFloat(inputEl.value) !== percent) {
+        inputEl.value = percent;
+      }
+      
       const readout = document.getElementById('readoutLogoScale');
-      if (readout) readout.textContent = `${this.state.logoScale.toFixed(1)} mm`;
+      if (readout) {
+        readout.textContent = `${percent.toFixed(0)}% (${this.state.logoScale.toFixed(1)} mm)`;
+      }
       this._updateLogoPreview();
+    };
+
+    bind('inputLogoScalePercent', 'input', (e) => updateLogoScaleFromPercent(e.target.value));
+    bind('inputLogoScalePercent', 'change', (e) => updateLogoScaleFromPercent(e.target.value));
+
+    // Scale preset buttons (100%, 500%, 1000%, 4000%)
+    document.querySelectorAll('.btn-scale-preset').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const val = e.currentTarget.getAttribute('data-scale');
+        if (val) updateLogoScaleFromPercent(val);
+      });
     });
 
     // Logo rotation slider & quick rotate 90 deg buttons
@@ -1168,11 +1190,14 @@ class TubeGenerator {
       this.state.logoEnabled = false;
       this.state.logoGeometry = null;
       if (this.logoPreviewMesh) {
-        this.scene.remove(this.logoPreviewMesh);
+        if (this.modelGroup) this.modelGroup.remove(this.logoPreviewMesh);
+        else if (this.scene) this.scene.remove(this.logoPreviewMesh);
+        if (this.logoPreviewMesh.geometry) this.logoPreviewMesh.geometry.dispose();
         this.logoPreviewMesh = null;
       }
       if (this.logoHandleMesh) {
-        this.scene.remove(this.logoHandleMesh);
+        if (this.modelGroup) this.modelGroup.remove(this.logoHandleMesh);
+        else if (this.scene) this.scene.remove(this.logoHandleMesh);
         this.logoHandleMesh = null;
       }
       this._showLogoControls(false);
@@ -1260,6 +1285,14 @@ class TubeGenerator {
           this.state.logoGeometry = geometry.clone();
           this.state.logoEnabled = true;
           this.state.logoScale = size; // Default scale to text size
+          const percent = Math.round((size / 16.0) * 100);
+          this.state.logoScalePercent = percent;
+
+          const scaleInput = document.getElementById('inputLogoScalePercent');
+          if (scaleInput) scaleInput.value = percent;
+
+          const readout = document.getElementById('readoutLogoScale');
+          if (readout) readout.textContent = `${percent}% (${size.toFixed(1)} mm)`;
           
           const wrapToggle = document.getElementById('toggleWrapLogo');
           if (wrapToggle) {

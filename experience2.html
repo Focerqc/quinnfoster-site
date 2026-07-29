@@ -24,7 +24,7 @@
   <script src="js/three-csg-bundle.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=3.0">
+  <link rel="stylesheet" href="css/styles.css?v=3.1">
 </head>
 <body>
 
@@ -276,13 +276,25 @@
                     <p class="control-help" style="margin-top: 0.2rem; margin-left: 1.6rem; font-size: 0.75rem;">Uncheck to keep logo perfectly flat (best for Text STLs).</p>
                   </div>
 
-                  <!-- Logo Scale Slider -->
+                  <!-- Logo / Text Scale Percentage Input -->
                   <div class="control-group">
                     <div class="control-label-row">
-                      <label for="inputLogoScale" style="font-size: 0.85rem;">Logo Scale Size</label>
-                      <span id="readoutLogoScale" class="badge-readout">16.0 mm</span>
+                      <label for="inputLogoScalePercent" style="font-size: 0.85rem; font-weight: 600;">Logo / Text Scale (%)</label>
+                      <span id="readoutLogoScale" class="badge-readout">100% (16.0 mm)</span>
                     </div>
-                    <input type="range" id="inputLogoScale" min="5.0" max="35.0" step="0.5" value="16.0" class="styled-slider">
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
+                      <div style="position: relative; flex: 1; display: flex; align-items: center;">
+                        <input type="number" id="inputLogoScalePercent" value="100" min="1" max="1000000" step="10" class="styled-number-input" placeholder="e.g. 100, 500, 4000" style="padding-right: 2rem;">
+                        <span style="position: absolute; right: 0.75rem; color: var(--accent-primary); font-weight: 700; font-family: var(--font-mono); pointer-events: none;">%</span>
+                      </div>
+                      <div style="display: flex; gap: 0.25rem;">
+                        <button type="button" class="btn-secondary btn-scale-preset" data-scale="100" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.12);" title="Standard 100% (16mm)">100%</button>
+                        <button type="button" class="btn-secondary btn-scale-preset" data-scale="500" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.12);" title="500% Scale">500%</button>
+                        <button type="button" class="btn-secondary btn-scale-preset" data-scale="1000" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.12);" title="1000% Scale">1000%</button>
+                        <button type="button" class="btn-secondary btn-scale-preset" data-scale="4000" style="padding: 0.35rem 0.5rem; font-size: 0.75rem; background: rgba(99, 102, 241, 0.12);" title="4000% Spiral Stress Test">4000%</button>
+                      </div>
+                    </div>
+                    <p class="control-help" style="margin-top: 0.25rem; font-size: 0.75rem;">Enter any percentage (100% = 16mm base). Perfect for long spiral messages across the tube!</p>
                   </div>
 
                   <!-- Logo / STL Rotation Controls -->
@@ -477,7 +489,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.16"></script>
+  <script src="js/experience2-generator.js?v=2.18"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

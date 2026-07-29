@@ -975,6 +975,35 @@ footer {
   background: var(--accent-secondary);
 }
 
+.styled-number-input {
+  width: 100%;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  padding: 0.45rem 0.65rem;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.styled-number-input:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.styled-number-input::-webkit-outer-spin-button,
+.styled-number-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.styled-number-input[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .button-toggle-group {
   display: grid;
   grid-template-columns: 1fr 1fr;
