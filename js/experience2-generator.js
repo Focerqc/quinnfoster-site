@@ -739,10 +739,12 @@ class TubeGenerator {
           const topR = outerR + 0.6;
           r = safeMaxCut + normZ * (topR - safeMaxCut);
         } else {
-          // Visual Preview Mesh (Deboss mode): Raise visually slightly above cylinder skin (+0.08mm)
-          // so it renders as a crisp, solid 3D overlay with ZERO Z-fighting or clipping!
-          const visualHeight = Math.max(0.6, Math.min(1.2, targetDepth));
-          r = (outerR + 0.08) + (z + targetDepth / 2) * (visualHeight / targetDepth);
+          // Visual Preview Mesh (Deboss mode): Phase -0.2mm into the tube wall and extend +0.45mm above surface
+          // so it visibly cuts into the part while remaining 100% crisp and readable!
+          const topDist = outerR + 0.45;
+          const botDist = outerR - 0.20;
+          const normZ = (z + targetDepth / 2) / targetDepth; // 0 to 1
+          r = botDist + normZ * (topDist - botDist);
         }
       }
 
@@ -1019,6 +1021,32 @@ class TubeGenerator {
       this._updateLogoPreview();
     });
 
+    // Logo rotation slider & quick rotate 90 deg buttons
+    bind('inputLogoRotate', 'input', (e) => {
+      this.state.logoRotate = parseFloat(e.target.value);
+      const readout = document.getElementById('readoutLogoRotate');
+      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      this._updateLogoPreview();
+    });
+
+    bind('btnRotateCCW', 'click', () => {
+      this.state.logoRotate = (this.state.logoRotate - 90 + 360) % 360;
+      const slider = document.getElementById('inputLogoRotate');
+      const readout = document.getElementById('readoutLogoRotate');
+      if (slider) slider.value = this.state.logoRotate;
+      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      this._updateLogoPreview();
+    });
+
+    bind('btnRotateCW', 'click', () => {
+      this.state.logoRotate = (this.state.logoRotate + 90) % 360;
+      const slider = document.getElementById('inputLogoRotate');
+      const readout = document.getElementById('readoutLogoRotate');
+      if (slider) slider.value = this.state.logoRotate;
+      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      this._updateLogoPreview();
+    });
+
     // Logo depth
     bind('inputLogoDepth', 'input', (e) => {
       this.state.logoDepth = parseFloat(e.target.value);
@@ -1227,10 +1255,6 @@ class TubeGenerator {
         const offsetY = -0.5 * (bbox.max.y - bbox.min.y);
         const offsetZ = -0.5 * (bbox.max.z - bbox.min.z);
         geometry.translate(offsetX, offsetY, offsetZ);
-
-        if (THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeVertices) {
-          geometry = THREE.BufferGeometryUtils.mergeVertices(geometry);
-        }
 
         if (action === 'apply') {
           this.state.logoGeometry = geometry.clone();

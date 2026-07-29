@@ -285,6 +285,19 @@
                     <input type="range" id="inputLogoScale" min="5.0" max="35.0" step="0.5" value="16.0" class="styled-slider">
                   </div>
 
+                  <!-- Logo / STL Rotation Controls -->
+                  <div class="control-group">
+                    <div class="control-label-row">
+                      <label for="inputLogoRotate" style="font-size: 0.85rem;">In-Plane STL Rotation</label>
+                      <span id="readoutLogoRotate" class="badge-readout">0°</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.2rem;">
+                      <input type="range" id="inputLogoRotate" min="0" max="360" step="5" value="0" class="styled-slider" style="flex: 1;">
+                      <button type="button" id="btnRotateCCW" class="btn-secondary" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.12);" title="Rotate 90° Counter-Clockwise">↺ -90°</button>
+                      <button type="button" id="btnRotateCW" class="btn-secondary" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.12);" title="Rotate 90° Clockwise">↻ +90°</button>
+                    </div>
+                  </div>
+
                   <!-- Logo Depth / Height Slider -->
                   <div class="control-group" id="logoDepthGroup">
                     <div id="toggleThroughCutContainer" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
@@ -464,7 +477,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.14"></script>
+  <script src="js/experience2-generator.js?v=2.16"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
