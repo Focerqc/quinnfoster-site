@@ -217,7 +217,7 @@
                       Create Text
                     </button>
                   </div>
-                  <div id="logoFileDetails" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
+                  <div id="logoFileDetails" class="logo-file-details" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
                     📁 <span id="logoFileName">No file selected</span>
                   </div>
                 </div>
@@ -448,8 +448,23 @@
 
       <div style="padding: 1rem 0; display: flex; flex-direction: column; gap: 1rem;">
         <div class="control-group">
-          <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">Text to Render</label>
-          <input type="text" id="textStlInput" value="Hello!" style="width: 100%; padding: 0.75rem; background: var(--surface-light); border: 1px solid var(--surface-border); border-radius: 6px; color: var(--text-primary); font-size: 1rem;" placeholder="Type something...">
+          <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">Text to Render (Supports Multiline)</label>
+          <textarea id="textStlInput" rows="3" style="width: 100%; padding: 0.75rem; background: var(--surface-light); border: 1px solid var(--surface-border); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem; font-family: var(--font-sans); resize: vertical;" placeholder="Type multiline text here...">Hello!</textarea>
+        </div>
+
+        <div class="control-group">
+          <label style="font-weight: 600; font-size: 0.85rem; color: var(--text-primary); margin-bottom: 0.4rem; display: block;">Text Alignment</label>
+          <div class="segmented-control" id="textAlignGroup">
+            <button type="button" id="btnAlignLeft" class="segmented-btn" title="Left Align Multiline Text">
+              Left
+            </button>
+            <button type="button" id="btnAlignCenter" class="segmented-btn active-deboss" title="Center Align Multiline Text">
+              Center
+            </button>
+            <button type="button" id="btnAlignRight" class="segmented-btn" title="Right Align Multiline Text">
+              Right
+            </button>
+          </div>
         </div>
 
         <div class="control-group">
@@ -480,6 +495,27 @@
     </div>
   </div>
 
+  <!-- STL Generation Progress Modal -->
+  <div id="stlProgressModal" class="modal-overlay" style="display: none; z-index: 10000;">
+    <div class="modal-card" style="max-width: 440px; text-align: center; padding: 2rem 1.5rem;">
+      <div style="margin-bottom: 1.25rem;">
+        <div class="brand-badge" style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; font-size: 1.4rem;">⚙️</div>
+        <h3 id="progressModalTitle" style="font-size: 1.2rem; margin-bottom: 0.35rem; color: var(--text-primary);">Generating 3D STL Model</h3>
+        <p id="progressModalStatus" style="font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono);">Initializing CAD geometry engine...</p>
+      </div>
+
+      <!-- Progress Bar Track -->
+      <div style="background: rgba(255, 255, 255, 0.08); border-radius: 999px; height: 10px; overflow: hidden; width: 100%; margin-bottom: 0.75rem; border: 1px solid var(--surface-border);">
+        <div id="progressBarFill" style="background: var(--accent-gradient); width: 5%; height: 100%; border-radius: 999px; transition: width 0.3s ease;"></div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
+        <span id="progressPercentReadout">5%</span>
+        <span>Non-Blocking CAD Pipeline</span>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <div class="container footer-content">
       <div class="footer-text">
@@ -489,7 +525,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.18"></script>
+  <script src="js/experience2-generator.js?v=2.19"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

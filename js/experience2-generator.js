@@ -30,6 +30,7 @@ class TubeGenerator {
       logoRotate: 0,          // In-plane rotation (degrees)
       logoMode: 'deboss',     // 'deboss' (cut inward) or 'emboss' (extrude outward)
       logoUseCSG: true,       // Use true Boolean CSG cut (vs fallback mesh overlap)
+      textAlign: 'center',    // 'left', 'center', 'right' for multiline text
     };
 
     this.scene = null;
@@ -802,8 +803,26 @@ class TubeGenerator {
     return mergedGeo;
   }
 
-  // ─── ASYNC CRASH-FREE STL EXPORT (BINARY) ─────────────────────
-  exportSTL() {
+  // ─── PROGRESS MODAL HELPERS ───────────────────────────────────
+  _updateProgressModal(percent, statusText) {
+    const modal = document.getElementById('stlProgressModal');
+    const fill = document.getElementById('progressBarFill');
+    const status = document.getElementById('progressModalStatus');
+    const readout = document.getElementById('progressPercentReadout');
+
+    if (modal) modal.style.display = 'flex';
+    if (fill) fill.style.width = `${percent}%`;
+    if (status) status.textContent = statusText;
+    if (readout) readout.textContent = `${percent}%`;
+  }
+
+  _hideProgressModal() {
+    const modal = document.getElementById('stlProgressModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  // ─── ASYNC NON-BLOCKING STL EXPORT (BINARY) ───────────────────
+  async exportSTL() {
     const btn = document.getElementById('downloadStlBtn');
     const originalContent = btn ? btn.innerHTML : '';
 
@@ -812,95 +831,109 @@ class TubeGenerator {
       btn.innerHTML = `<span class="spinner-sm"></span> Generating 3D STL File...`;
     }
 
-    // Yield control to UI event loop so loading spinner updates before heavy math
-    setTimeout(() => {
-      try {
-        const innerR = this.state.innerDiameter / 2;
-        const outerR = this.state.outerDiameter / 2;
-        const len = this.state.length;
+    try {
+      this._updateProgressModal(10, 'Initializing 3D CAD engine...');
+      await new Promise(r => setTimeout(r, 40));
 
-        const tubeGeo = this._buildCylinderGeo(innerR, outerR, len);
-        let exportGeo = tubeGeo;
+      const innerR = this.state.innerDiameter / 2;
+      const outerR = this.state.outerDiameter / 2;
+      const len = this.state.length;
 
-        if (this.state.logoEnabled && this.state.logoGeometry) {
-          const logoWrappedGeo = this._getWrappedLogoGeo();
+      const tubeGeo = this._buildCylinderGeo(innerR, outerR, len);
+      let exportGeo = tubeGeo;
 
-          if (logoWrappedGeo) {
-            if (this.state.logoMode === 'emboss') {
-              // Emboss mode (Extrude Outward): Merge raised logo directly with tube geometry (Instant & 100% crash-proof!)
-              exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
-            } else {
-              // Deboss mode (Cut Inward): 2-Stage Solid CAD CSG Boolean pipeline
-              // Stage 1: (SolidOuterCylinder - LogoCut) -> Produces solid cylinder with capped deboss cavities
-              // Stage 2: (SolidDebossedCylinder - InnerCoreHole) -> Punches 16.2mm inner bore cleanly without missing faces
-              let csgSuccess = false;
-              if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
-                try {
-                  const csgCutterGeo = this._getWrappedLogoGeo(true); // Precision cutter tool
+      if (this.state.logoEnabled && this.state.logoGeometry) {
+        this._updateProgressModal(25, 'Wrapping 3D cutter geometry on tube wall...');
+        await new Promise(r => setTimeout(r, 40));
 
-                  // Solid outer cylinder (no inner hole yet)
-                  const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 64, 1);
-                  const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
+        const logoWrappedGeo = this._getWrappedLogoGeo();
 
-                  // Inner core hole cutter (slightly longer to clip ends cleanly)
-                  const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 64, 1);
-                  const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
+        if (logoWrappedGeo) {
+          if (this.state.logoMode === 'emboss') {
+            this._updateProgressModal(60, 'Fusing embossed 3D relief mesh...');
+            await new Promise(r => setTimeout(r, 40));
+            exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
+          } else {
+            let csgSuccess = false;
+            if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
+              try {
+                this._updateProgressModal(40, 'Building 3D CAD cutter geometry...');
+                await new Promise(r => setTimeout(r, 40));
 
-                  // Logo cutter tool
-                  const cutMesh = new THREE.Mesh(csgCutterGeo);
+                const csgCutterGeo = this._getWrappedLogoGeo(true);
 
-                  solidOuterMesh.updateMatrixWorld();
-                  innerCoreMesh.updateMatrixWorld();
-                  cutMesh.updateMatrixWorld();
+                const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 64, 1);
+                const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
 
-                  const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
-                  const cutCsg = CSG.fromMesh(cutMesh, 1);
-                  const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+                const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 64, 1);
+                const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
 
-                  // Stage 1: Carve deboss into solid outer cylinder
-                  const debossedSolidCsg = outerCsg.subtract(cutCsg);
-                  // Stage 2: Drill inner core bore
-                  const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+                const cutMesh = new THREE.Mesh(csgCutterGeo);
 
-                  const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
-                  if (resultMesh && resultMesh.geometry) {
-                    exportGeo = resultMesh.geometry;
-                    csgSuccess = true;
-                  }
-                } catch (csgErr) {
-                  console.warn('CSG Solid CAD Boolean cut encountered error, falling back to recessed mesh fusion:', csgErr);
+                solidOuterMesh.updateMatrixWorld();
+                innerCoreMesh.updateMatrixWorld();
+                cutMesh.updateMatrixWorld();
+
+                this._updateProgressModal(55, 'Executing 3D CSG deboss cut (yields to UI thread)...');
+                await new Promise(r => setTimeout(r, 60));
+
+                const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
+                const cutCsg = CSG.fromMesh(cutMesh, 1);
+                const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+
+                this._updateProgressModal(70, 'Subtracting cutter volume & carving deboss...');
+                await new Promise(r => setTimeout(r, 60));
+
+                const debossedSolidCsg = outerCsg.subtract(cutCsg);
+
+                this._updateProgressModal(85, 'Drilling inner bore and verifying manifold solid...');
+                await new Promise(r => setTimeout(r, 60));
+
+                const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+
+                const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
+                if (resultMesh && resultMesh.geometry) {
+                  exportGeo = resultMesh.geometry;
+                  csgSuccess = true;
                 }
+              } catch (csgErr) {
+                console.warn('CSG Solid CAD Boolean cut encountered error, falling back to recessed mesh fusion:', csgErr);
               }
+            }
 
-              if (!csgSuccess) {
-                // Fallback: Merge recessed mesh cleanly into tube export
-                exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
-              }
+            if (!csgSuccess) {
+              exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
             }
           }
         }
-
-        // Generate binary STL blob
-        const stlData = this._geometryToSTL(exportGeo);
-        const blob = new Blob([stlData], { type: 'application/octet-stream' });
-        const modeName = this.state.logoMode === 'emboss' ? 'Embossed' : 'Debossed';
-        const fileName = `Tube_16mm_${modeName}_${this.state.length.toFixed(0)}mm.stl`;
-
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = fileName;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      } catch (err) {
-        console.error('Export STL failed:', err);
-        alert('Could not export STL file: ' + err.message);
-      } finally {
-        if (btn) {
-          btn.classList.remove('is-processing');
-          btn.innerHTML = originalContent;
-        }
       }
-    }, 60);
+
+      this._updateProgressModal(95, 'Compiling binary STL file buffer...');
+      await new Promise(r => setTimeout(r, 40));
+
+      const stlData = this._geometryToSTL(exportGeo);
+      const blob = new Blob([stlData], { type: 'application/octet-stream' });
+      const modeName = this.state.logoMode === 'emboss' ? 'Embossed' : 'Debossed';
+      const fileName = `Tube_16mm_${modeName}_${this.state.length.toFixed(0)}mm.stl`;
+
+      this._updateProgressModal(100, '3D STL File Ready! Downloading...');
+      await new Promise(r => setTimeout(r, 300));
+
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = fileName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (err) {
+      console.error('Export STL failed:', err);
+      alert('Could not export STL file: ' + err.message);
+    } finally {
+      this._hideProgressModal();
+      if (btn) {
+        btn.classList.remove('is-processing');
+        btn.innerHTML = originalContent;
+      }
+    }
   }
 
   _geometryToSTL(geometry) {
@@ -1208,7 +1241,7 @@ class TubeGenerator {
     });
   }
 
-  // ─── TEXT TO STL GENERATOR ──────────────────────────────────────────────
+  // ─── TEXT TO STL GENERATOR (MULTILINE & ALIGNMENT SUPPORT) ───────────
   _initTextStlModal() {
     const modal = document.getElementById('textStlModal');
     const openBtn = document.getElementById('btnOpenTextModal');
@@ -1234,6 +1267,22 @@ class TubeGenerator {
       if(depthOut) depthOut.textContent = parseFloat(e.target.value).toFixed(1) + ' mm';
     });
 
+    // Text Alignment Segmented Controls
+    const btnLeft = document.getElementById('btnAlignLeft');
+    const btnCenter = document.getElementById('btnAlignCenter');
+    const btnRight = document.getElementById('btnAlignRight');
+
+    const setAlign = (align) => {
+      this.state.textAlign = align;
+      if (btnLeft) btnLeft.className = align === 'left' ? 'segmented-btn active-deboss' : 'segmented-btn';
+      if (btnCenter) btnCenter.className = align === 'center' ? 'segmented-btn active-deboss' : 'segmented-btn';
+      if (btnRight) btnRight.className = align === 'right' ? 'segmented-btn active-deboss' : 'segmented-btn';
+    };
+
+    if (btnLeft) btnLeft.addEventListener('click', () => setAlign('left'));
+    if (btnCenter) btnCenter.addEventListener('click', () => setAlign('center'));
+    if (btnRight) btnRight.addEventListener('click', () => setAlign('right'));
+
     const applyBtn = document.getElementById('applyTextBtn');
 
     if (generateBtn) {
@@ -1251,35 +1300,79 @@ class TubeGenerator {
 
     const btnId = action === 'apply' ? 'applyTextBtn' : 'generateTextStlBtn';
     const btn = document.getElementById(btnId);
-    const originalText = btn.innerHTML;
-    btn.innerHTML = `<span class="spinner-sm"></span> Generating...`;
-    btn.disabled = true;
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+      btn.innerHTML = `<span class="spinner-sm"></span> Generating...`;
+      btn.disabled = true;
+    }
 
     if (!THREE.FontLoader || !THREE.TextGeometry) {
       alert('TextGeometry or FontLoader is not loaded. Make sure the Three.js plugins are included.');
-      btn.innerHTML = originalText;
-      btn.disabled = false;
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
       return;
     }
 
     const loader = new THREE.FontLoader();
     loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
       try {
-        let geometry = new THREE.TextGeometry(text, {
-          font: font,
-          size: size,
-          height: depth,
-          curveSegments: 12,
-          bevelEnabled: false
-        });
+        const lines = text.split('\n');
+        const align = this.state.textAlign || 'center';
+        let geometry;
 
-        // Center the geometry
-        geometry.computeBoundingBox();
-        const bbox = geometry.boundingBox;
-        const offsetX = -0.5 * (bbox.max.x - bbox.min.x);
-        const offsetY = -0.5 * (bbox.max.y - bbox.min.y);
-        const offsetZ = -0.5 * (bbox.max.z - bbox.min.z);
-        geometry.translate(offsetX, offsetY, offsetZ);
+        if (lines.length === 1) {
+          geometry = new THREE.TextGeometry(text, {
+            font: font,
+            size: size,
+            height: depth,
+            curveSegments: 12,
+            bevelEnabled: false
+          });
+          geometry.center();
+        } else {
+          // Multiline text rendering & alignment (Left, Center, Right)
+          const lineGeos = [];
+          const lineSpacing = size * 1.35;
+          const lineBoxes = [];
+          let maxLineWidth = 0;
+
+          lines.forEach(lineStr => {
+            const str = lineStr.length > 0 ? lineStr : ' ';
+            const g = new THREE.TextGeometry(str, {
+              font: font,
+              size: size,
+              height: depth,
+              curveSegments: 12,
+              bevelEnabled: false
+            });
+            g.computeBoundingBox();
+            const w = g.boundingBox.max.x - g.boundingBox.min.x;
+            if (w > maxLineWidth) maxLineWidth = w;
+            lineBoxes.push({ geo: g, width: w });
+          });
+
+          const numLines = lines.length;
+          lineBoxes.forEach((item, idx) => {
+            const lineGeo = item.geo;
+            let xOff = 0;
+            if (align === 'center') {
+              xOff = -0.5 * item.width;
+            } else if (align === 'right') {
+              xOff = maxLineWidth / 2 - item.width;
+            } else { // left
+              xOff = -maxLineWidth / 2;
+            }
+
+            const yOff = (numLines - 1 - idx) * lineSpacing - 0.5 * (numLines - 1) * lineSpacing;
+            lineGeo.translate(xOff, yOff, -0.5 * depth);
+            lineGeos.push(lineGeo);
+          });
+
+          geometry = this._mergeBufferGeometries(lineGeos);
+          geometry.center();
+        }
 
         if (action === 'apply') {
           this.state.logoGeometry = geometry.clone();
