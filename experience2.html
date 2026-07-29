@@ -315,13 +315,23 @@
                   <!-- Logo / STL Rotation Controls -->
                   <div class="control-group">
                     <div class="control-label-row">
-                      <label for="inputLogoRotate" style="font-size: 0.85rem;">In-Plane STL Rotation</label>
-                      <span id="readoutLogoRotate" class="badge-readout">0°</span>
+                      <label for="inputLogoRotate" style="font-size: 0.85rem;">In-Plane STL Rotation (Coarse)</label>
+                      <span id="readoutLogoRotate" class="badge-readout">0.00°</span>
                     </div>
                     <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.2rem;">
-                      <input type="range" id="inputLogoRotate" min="0" max="360" step="5" value="0" class="styled-slider" style="flex: 1;">
+                      <input type="range" id="inputLogoRotate" min="0" max="360" step="1" value="0" class="styled-slider" style="flex: 1;">
                       <button type="button" id="btnRotateCCW" class="btn-secondary" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.12);" title="Rotate 90° Counter-Clockwise">↺ -90°</button>
                       <button type="button" id="btnRotateCW" class="btn-secondary" style="width: auto; padding: 0.35rem 0.6rem; font-size: 0.8rem; background: rgba(99, 102, 241, 0.12);" title="Rotate 90° Clockwise">↻ +90°</button>
+                    </div>
+
+                    <!-- Fine Rotation Adjustment -->
+                    <div class="control-label-row" style="margin-top: 0.6rem;">
+                      <label for="inputLogoRotateFine" style="font-size: 0.8rem; color: var(--text-muted);">Fine Rotation (Sub-Degree Offset)</label>
+                      <span id="readoutLogoRotateFine" class="badge-readout" style="font-size: 0.75rem; background: rgba(52, 211, 153, 0.15); color: #34d399;">+0.00°</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.2rem;">
+                      <input type="range" id="inputLogoRotateFine" min="-1" max="1" step="0.01" value="0" class="styled-slider" style="flex: 1;">
+                      <button type="button" id="btnResetRotateFine" class="btn-secondary" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.75rem; background: rgba(255, 255, 255, 0.05);" title="Reset Fine Rotation">Reset</button>
                     </div>
                   </div>
 
@@ -475,7 +485,6 @@
           <textarea id="textStlInput" rows="3" style="width: 100%; padding: 0.75rem; background: var(--surface-light); border: 1px solid var(--surface-border); border-radius: 6px; color: var(--text-primary); font-size: 0.95rem; font-family: var(--font-sans); resize: vertical;" placeholder="Type multiline text here...">Hello!</textarea>
           <div id="textCharCounter" style="display: flex; justify-content: space-between; margin-top: 0.35rem; font-size: 0.78rem; font-family: var(--font-mono); color: var(--text-muted);">
             <span id="textLengthReadout">6 chars</span>
-            <span id="textTruncateBadge" style="display: none; color: #34d399; font-weight: 600;">✨ Auto-Truncate >30 Chars Enabled</span>
           </div>
         </div>
 
@@ -552,7 +561,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience2-generator.js?v=2.21"></script>
+  <script src="js/experience2-generator.js?v=2.24"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

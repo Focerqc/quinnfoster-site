@@ -26,8 +26,9 @@ class TubeGenerator {
       logoY: 0,               // Height position on cylinder (mm from center)
       logoScale: 16.0,        // Logo size in mm
       logoDepth: 0.8,         // Deboss cut depth or Emboss height in mm
-      logoThroughCut: true,   // Cut all the way through the wall for deboss
-      logoRotate: 0,          // In-plane rotation (degrees)
+      logoRotateCoarse: 0,    // Coarse rotation (degrees)
+      logoRotateFine: 0,      // Fine rotation offset (degrees)
+      logoRotate: 0,          // Total in-plane rotation (degrees)
       logoMode: 'deboss',     // 'deboss' (cut inward) or 'emboss' (extrude outward)
       logoUseCSG: true,       // Use true Boolean CSG cut (vs fallback mesh overlap)
       textAlign: 'center',    // 'left', 'center', 'right' for multiline text
@@ -894,60 +895,82 @@ class TubeGenerator {
 
     if (this.state.logoEnabled && this.state.logoGeometry) {
       this._updateProgressModal(25, 'Wrapping 3D cutter geometry on tube wall...');
-      await new Promise(r => setTimeout(r, 40));
+      await new Promise(r => setTimeout(r, 20));
 
       const logoWrappedGeo = this._getWrappedLogoGeo();
 
       if (logoWrappedGeo) {
         if (this.state.logoMode === 'emboss') {
           this._updateProgressModal(60, 'Fusing embossed 3D relief mesh...');
-          await new Promise(r => setTimeout(r, 40));
+          await new Promise(r => setTimeout(r, 20));
           exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
         } else {
           let csgSuccess = false;
           if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
             try {
               this._updateProgressModal(40, 'Building 3D CAD cutter geometry...');
-              await new Promise(r => setTimeout(r, 40));
+              await new Promise(r => setTimeout(r, 20));
 
               const csgCutterGeo = this._getWrappedLogoGeo(true);
+              const vertCount = csgCutterGeo?.attributes?.position ? csgCutterGeo.attributes.position.count : 0;
+              console.log(`[CSG Engine] Cutter mesh vertex count: ${vertCount}`);
 
-              const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 64, 1);
-              const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
+              // High-density polygon safety guard: if mesh exceeds 10,000 vertices, use fast recessed mesh fusion
+              if (vertCount > 10000) {
+                console.warn('[CSG Engine] Dense geometry (>10,000 verts). Using fast recessed mesh fusion for instant export.');
+                this._updateProgressModal(85, 'High-density geometry: using fast mesh fusion...');
+                await new Promise(r => setTimeout(r, 30));
+              } else {
+                // Optimized 32 radial segments for CSG cutter cylinder
+                const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 32, 1);
+                const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
 
-              const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 64, 1);
-              const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
+                const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 32, 1);
+                const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
 
-              const cutMesh = new THREE.Mesh(csgCutterGeo);
+                const cutMesh = new THREE.Mesh(csgCutterGeo);
 
-              solidOuterMesh.updateMatrixWorld();
-              innerCoreMesh.updateMatrixWorld();
-              cutMesh.updateMatrixWorld();
+                solidOuterMesh.updateMatrixWorld();
+                innerCoreMesh.updateMatrixWorld();
+                cutMesh.updateMatrixWorld();
 
-              this._updateProgressModal(55, 'Executing 3D CSG deboss cut (yields to UI thread)...');
-              await new Promise(r => setTimeout(r, 60));
+                const startTime = Date.now();
+                const checkTimeout = () => {
+                  if (Date.now() - startTime > 6000) {
+                    throw new Error('CSG processing timeout (>6s), falling back to optimized mesh fusion');
+                  }
+                };
 
-              const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
-              const cutCsg = CSG.fromMesh(cutMesh, 1);
-              const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
+                this._updateProgressModal(50, 'Converting cutter meshes to CSG BSP trees...');
+                await new Promise(r => setTimeout(r, 20));
+                checkTimeout();
 
-              this._updateProgressModal(70, 'Subtracting cutter volume & carving deboss...');
-              await new Promise(r => setTimeout(r, 60));
+                const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
+                const cutCsg = CSG.fromMesh(cutMesh, 1);
+                const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
 
-              const debossedSolidCsg = outerCsg.subtract(cutCsg);
+                this._updateProgressModal(70, 'Executing CSG deboss subtraction...');
+                await new Promise(r => setTimeout(r, 20));
+                checkTimeout();
 
-              this._updateProgressModal(85, 'Drilling inner bore and verifying manifold solid...');
-              await new Promise(r => setTimeout(r, 60));
+                const debossedSolidCsg = outerCsg.subtract(cutCsg);
 
-              const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+                this._updateProgressModal(85, 'Carving inner tube bore...');
+                await new Promise(r => setTimeout(r, 20));
+                checkTimeout();
 
-              const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
-              if (resultMesh && resultMesh.geometry) {
-                exportGeo = resultMesh.geometry;
-                csgSuccess = true;
+                const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
+
+                const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
+                if (resultMesh && resultMesh.geometry) {
+                  exportGeo = resultMesh.geometry;
+                  csgSuccess = true;
+                }
               }
             } catch (csgErr) {
-              console.warn('CSG Solid CAD Boolean cut encountered error, falling back to recessed mesh fusion:', csgErr);
+              console.warn('CSG Solid CAD Boolean cut warning:', csgErr.message || csgErr);
+              this._updateProgressModal(90, 'Applying fast mesh fallback...');
+              await new Promise(r => setTimeout(r, 30));
             }
           }
 
@@ -1226,29 +1249,54 @@ class TubeGenerator {
       });
     });
 
-    // Logo rotation slider & quick rotate 90 deg buttons
+    // Logo rotation slider (Coarse & Fine) & quick rotate 90 deg buttons
+    const updateLogoRotateReadout = () => {
+      this.state.logoRotate = (this.state.logoRotateCoarse || 0) + (this.state.logoRotateFine || 0);
+      const readoutCoarse = document.getElementById('readoutLogoRotate');
+      const readoutFine = document.getElementById('readoutLogoRotateFine');
+      if (readoutCoarse) {
+        readoutCoarse.textContent = `${this.state.logoRotate.toFixed(2)}°`;
+      }
+      if (readoutFine) {
+        const fineVal = this.state.logoRotateFine || 0;
+        const sign = fineVal > 0 ? '+' : '';
+        readoutFine.textContent = `${sign}${fineVal.toFixed(2)}°`;
+      }
+    };
+
     bind('inputLogoRotate', 'input', (e) => {
-      this.state.logoRotate = parseFloat(e.target.value);
-      const readout = document.getElementById('readoutLogoRotate');
-      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      this.state.logoRotateCoarse = parseFloat(e.target.value);
+      updateLogoRotateReadout();
+      this._updateLogoPreview();
+    });
+
+    bind('inputLogoRotateFine', 'input', (e) => {
+      this.state.logoRotateFine = parseFloat(e.target.value);
+      updateLogoRotateReadout();
+      this._updateLogoPreview();
+    });
+
+    bind('btnResetRotateFine', 'click', () => {
+      this.state.logoRotateFine = 0;
+      const fineSlider = document.getElementById('inputLogoRotateFine');
+      if (fineSlider) fineSlider.value = 0;
+      updateLogoRotateReadout();
       this._updateLogoPreview();
     });
 
     bind('btnRotateCCW', 'click', () => {
-      this.state.logoRotate = (this.state.logoRotate - 90 + 360) % 360;
+      this.state.logoRotateCoarse = ((this.state.logoRotateCoarse || 0) - 90 + 360) % 360;
       const slider = document.getElementById('inputLogoRotate');
-      const readout = document.getElementById('readoutLogoRotate');
-      if (slider) slider.value = this.state.logoRotate;
-      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      if (slider) slider.value = this.state.logoRotateCoarse;
+      updateLogoRotateReadout();
       this._updateLogoPreview();
     });
 
     bind('btnRotateCW', 'click', () => {
-      this.state.logoRotate = (this.state.logoRotate + 90) % 360;
+      this.state.logoRotateCoarse = ((this.state.logoRotateCoarse || 0) + 90) % 360;
       const slider = document.getElementById('inputLogoRotate');
-      const readout = document.getElementById('readoutLogoRotate');
-      if (slider) slider.value = this.state.logoRotate;
-      if (readout) readout.textContent = `${this.state.logoRotate.toFixed(0)}°`;
+      if (slider) slider.value = this.state.logoRotateCoarse;
+      updateLogoRotateReadout();
       this._updateLogoPreview();
     });
 
@@ -1437,18 +1485,14 @@ class TubeGenerator {
     if (btnCenter) btnCenter.addEventListener('click', () => setAlign('center'));
     if (btnRight) btnRight.addEventListener('click', () => setAlign('right'));
 
-    // Text input character counter & live auto-truncation badge
+    // Text input character counter
     const textInput = document.getElementById('textStlInput');
     const textLenOut = document.getElementById('textLengthReadout');
-    const textTruncBadge = document.getElementById('textTruncateBadge');
 
     const updateTextModalCounter = () => {
       if (!textInput) return;
       const len = textInput.value.length;
       if (textLenOut) textLenOut.textContent = `${len} char${len === 1 ? '' : 's'}`;
-      if (textTruncBadge) {
-        textTruncBadge.style.display = len > 30 ? 'inline' : 'none';
-      }
     };
 
     if (textInput) {
@@ -1488,8 +1532,7 @@ class TubeGenerator {
       return;
     }
 
-    const loader = new THREE.FontLoader();
-    loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+    const buildTextWithFont = (font) => {
       try {
         const lines = text.split('\n');
         const align = this.state.textAlign || 'center';
@@ -1500,7 +1543,7 @@ class TubeGenerator {
             font: font,
             size: size,
             height: depth,
-            curveSegments: 12,
+            curveSegments: 5,
             bevelEnabled: false
           });
           geometry.center();
@@ -1517,7 +1560,7 @@ class TubeGenerator {
               font: font,
               size: size,
               height: depth,
-              curveSegments: 12,
+              curveSegments: 5,
               bevelEnabled: false
             });
             g.computeBoundingBox();
@@ -1601,17 +1644,31 @@ class TubeGenerator {
         console.error('Error generating text geometry:', err);
         alert('Failed to generate text geometry.');
       }
+    };
+    const runGenerator = (font) => {
+      buildTextWithFont(font);
+      if (btn) {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    };
 
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }, 
-    undefined, 
-    (err) => {
-      console.error('Error loading font:', err);
-      alert('Failed to load font. Check console.');
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    });
+    if (this.cachedFont) {
+      runGenerator(this.cachedFont);
+    } else {
+      const loader = new THREE.FontLoader();
+      loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_bold.typeface.json', (font) => {
+        this.cachedFont = font;
+        runGenerator(font);
+      }, undefined, (err) => {
+        console.error('Error loading font:', err);
+        alert('Failed to load font. Check console.');
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      });
+    }
   }
   _initLibraryModal() {
     const modal = document.getElementById('stlLibraryModal');
