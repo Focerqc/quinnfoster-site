@@ -987,6 +987,9 @@ class TubeGenerator {
     // Initialize STL & Logo Library Modal
     this._initLibraryModal();
 
+    // Initialize Text to STL Modal
+    this._initTextStlModal();
+
     // Logo scale
     bind('inputLogoScale', 'input', (e) => {
       this.state.logoScale = parseFloat(e.target.value);
@@ -1125,7 +1128,111 @@ class TubeGenerator {
     });
   }
 
-  // ─── BUILT-IN STL & LOGO LIBRARY HANDLERS ─────────────────────────
+  // ─── TEXT TO STL GENERATOR ──────────────────────────────────────────────
+  _initTextStlModal() {
+    const modal = document.getElementById('textStlModal');
+    const openBtn = document.getElementById('btnOpenTextModal');
+    const closeBtn = document.getElementById('closeTextModalBtn');
+    const generateBtn = document.getElementById('generateTextStlBtn');
+
+    if (openBtn && modal) openBtn.addEventListener('click', () => modal.style.display = 'flex');
+    if (closeBtn && modal) closeBtn.addEventListener('click', () => modal.style.display = 'none');
+    if (modal) modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.style.display = 'none';
+    });
+
+    // Inputs
+    const sizeInput = document.getElementById('textStlSize');
+    const sizeOut = document.getElementById('textStlSizeOut');
+    if (sizeInput) sizeInput.addEventListener('input', (e) => {
+      if(sizeOut) sizeOut.textContent = e.target.value + ' mm';
+    });
+
+    const depthInput = document.getElementById('textStlDepth');
+    const depthOut = document.getElementById('textStlDepthOut');
+    if (depthInput) depthInput.addEventListener('input', (e) => {
+      if(depthOut) depthOut.textContent = parseFloat(e.target.value).toFixed(1) + ' mm';
+    });
+
+    if (generateBtn) {
+      generateBtn.addEventListener('click', () => this._generateTextStl());
+    }
+  }
+
+  _generateTextStl() {
+    const text = document.getElementById('textStlInput')?.value || 'Hello!';
+    const size = parseFloat(document.getElementById('textStlSize')?.value || 20);
+    const depth = parseFloat(document.getElementById('textStlDepth')?.value || 2.0);
+
+    const btn = document.getElementById('generateTextStlBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<span class="spinner-sm"></span> Generating...`;
+    btn.disabled = true;
+
+    if (!THREE.FontLoader || !THREE.TextGeometry) {
+      alert('TextGeometry or FontLoader is not loaded. Make sure the Three.js plugins are included.');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+      return;
+    }
+
+    const loader = new THREE.FontLoader();
+    loader.load('fonts/helvetiker_bold.typeface.json', (font) => {
+      try {
+        const geometry = new THREE.TextGeometry(text, {
+          font: font,
+          size: size,
+          height: depth,
+          curveSegments: 12,
+          bevelEnabled: false
+        });
+
+        // Center the geometry
+        geometry.computeBoundingBox();
+        const bbox = geometry.boundingBox;
+        const offsetX = -0.5 * (bbox.max.x - bbox.min.x);
+        const offsetY = -0.5 * (bbox.max.y - bbox.min.y);
+        const offsetZ = -0.5 * (bbox.max.z - bbox.min.z);
+        geometry.translate(offsetX, offsetY, offsetZ);
+
+        // Convert to Mesh and Export
+        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const mesh = new THREE.Mesh(geometry, material);
+
+        if (THREE.STLExporter) {
+          const exporter = new THREE.STLExporter();
+          const stlString = exporter.parse(mesh);
+          const blob = new Blob([stlString], { type: 'text/plain' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = `Text_${text.replace(/[^a-z0-9]/gi, '_')}.stl`;
+          document.body.appendChild(a);
+          a.click();
+          setTimeout(() => {
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+          }, 100);
+        } else {
+          alert('STLExporter is not loaded.');
+        }
+      } catch (err) {
+        console.error('Error generating text geometry:', err);
+        alert('Failed to generate text geometry.');
+      }
+
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }, 
+    undefined, 
+    (err) => {
+      console.error('Error loading font:', err);
+      alert('Failed to load font. Check console.');
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    });
+  }
   _initLibraryModal() {
     const modal = document.getElementById('stlLibraryModal');
     const openBtn = document.getElementById('btnOpenLibrary');
