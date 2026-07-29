@@ -568,10 +568,14 @@ class TubeGenerator {
     const mat = new THREE.MeshStandardMaterial({
       color: isEmboss ? 0xf97316 : 0xef4444, // Orange for Emboss, Red/Crimson for Deboss
       emissive: isEmboss ? 0xc2410c : 0x991b1b,
-      emissiveIntensity: 0.4,
-      metalness: 0.4,
+      emissiveIntensity: 0.45,
+      metalness: 0.3,
       roughness: 0.3,
       transparent: false,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      depthTest: true,
     });
 
     this.logoPreviewMesh = new THREE.Mesh(geo, mat);
@@ -682,7 +686,7 @@ class TubeGenerator {
     };
 
     canvas.addEventListener('pointerdown', (e) => {
-      if (!this.state.logoEnabled || !this.isDragModeActive) return;
+      if (!this.state.logoEnabled || !this.isDragModeActive || this.isCSGPreviewActive) return;
       if (e.button !== 0) return; // left click only
 
       this.isDraggingLogo = true;
@@ -692,7 +696,7 @@ class TubeGenerator {
     });
 
     canvas.addEventListener('pointermove', (e) => {
-      if (!this.isDragModeActive || !this.state.logoEnabled) return;
+      if (!this.isDragModeActive || !this.state.logoEnabled || this.isCSGPreviewActive) return;
 
       if (this.isDraggingLogo || (e.buttons === 1)) {
         this.isDraggingLogo = true;
@@ -781,7 +785,7 @@ class TubeGenerator {
     if (this.state.logoThroughCut && !isEmboss) {
       safeMaxCut = Math.max(0, outerR - targetDepth); // Allow it to reach the void, but clamp at center
     } else {
-      safeMaxCut = Math.max(innerR + 0.4, outerR - targetDepth); // Clamp before inner wall
+      safeMaxCut = Math.max(innerR + 0.2, outerR - targetDepth); // Clamp inside wall
     }
 
     const wrapLogo = (this.state.wrapLogo !== undefined) ? this.state.wrapLogo : (document.getElementById('toggleWrapLogo')?.checked ?? true);
@@ -790,25 +794,20 @@ class TubeGenerator {
       const x = posAttr.getX(i);
       const y = posAttr.getY(i);
       const z = posAttr.getZ(i);
+      const normZ = Math.min(1, Math.max(0, (z + targetDepth / 2) / targetDepth)); // 0 (bottom/back) to 1 (top/front)
 
       let r;
       if (isEmboss) {
-        // Base sits flush at outerR, top extends outward to outerR + targetDepth
-        r = outerR + (z + targetDepth / 2);
+        // EMBOSS (Raised Extrude): Base sits slightly embedded (-0.05mm), top extends outward (+targetDepth)
+        r = (outerR - 0.05) + normZ * (targetDepth + 0.05);
       } else {
         if (forCsgCutter) {
-          // CSG Cutter tool: extend top slightly outside outerR (+0.6mm) to clip skin cleanly
-          // and clamp bottom so it never pierces inner wall
-          const normZ = (z + targetDepth / 2) / targetDepth; // 0 to 1
+          // CSG Cutter tool: Top extends past outer skin (+0.6mm) to slice skin cleanly, bottom reaches safeMaxCut
           const topR = outerR + 0.6;
           r = safeMaxCut + normZ * (topR - safeMaxCut);
         } else {
-          // Visual Preview Mesh (Deboss mode): Phase -0.2mm into the tube wall and extend +0.45mm above surface
-          // so it visibly cuts into the part while remaining 100% crisp and readable!
-          const topDist = outerR + 0.45;
-          const botDist = outerR - 0.20;
-          const normZ = (z + targetDepth / 2) / targetDepth; // 0 to 1
-          r = botDist + normZ * (topDist - botDist);
+          // DEBOSS (Recessed Cut): Top sits flush at outerR (+0.05mm), bottom penetrates INWARD to safeMaxCut
+          r = safeMaxCut + normZ * (outerR + 0.05 - safeMaxCut);
         }
       }
 
@@ -842,22 +841,31 @@ class TubeGenerator {
 
   // ─── HELPER: MERGE BUFFER GEOMETRIES ───────────────────────────
   _mergeBufferGeometries(geometries) {
+    const validGeos = (geometries || []).filter(g => g && (g.isBufferGeometry || g.attributes?.position));
+    if (validGeos.length === 0) return new THREE.BufferGeometry();
+    if (validGeos.length === 1) return validGeos[0].clone();
+
     if (THREE.BufferGeometryUtils && THREE.BufferGeometryUtils.mergeBufferGeometries) {
-      return THREE.BufferGeometryUtils.mergeBufferGeometries(geometries, false);
+      const merged = THREE.BufferGeometryUtils.mergeBufferGeometries(validGeos, false);
+      if (merged) return merged;
     }
 
-    const nonIndexedList = geometries.map(g => g.index ? g.toNonIndexed() : g.clone());
+    const nonIndexedList = validGeos.map(g => g.index ? g.toNonIndexed() : g.clone());
     let totalVerts = 0;
     nonIndexedList.forEach(g => {
-      totalVerts += g.attributes.position.count;
+      if (g.attributes && g.attributes.position) {
+        totalVerts += g.attributes.position.count;
+      }
     });
 
     const mergedPositions = new Float32Array(totalVerts * 3);
     let offset = 0;
     nonIndexedList.forEach(g => {
-      const pos = g.attributes.position.array;
-      mergedPositions.set(pos, offset);
-      offset += pos.length;
+      if (g.attributes && g.attributes.position) {
+        const pos = g.attributes.position.array;
+        mergedPositions.set(pos, offset);
+        offset += pos.length;
+      }
     });
 
     const mergedGeo = new THREE.BufferGeometry();
@@ -867,13 +875,38 @@ class TubeGenerator {
   }
 
   // ─── PROGRESS MODAL HELPERS ───────────────────────────────────
+  _startProgressTimer() {
+    if (this.progressTimerInterval) clearInterval(this.progressTimerInterval);
+    this.progressStartTime = Date.now();
+    const timerReadout = document.getElementById('progressTimerReadout');
+    if (timerReadout) timerReadout.textContent = '⏱️ Elapsed: 0.0s';
+
+    this.progressTimerInterval = setInterval(() => {
+      if (!this.progressStartTime) return;
+      const elapsed = ((Date.now() - this.progressStartTime) / 1000).toFixed(1);
+      if (timerReadout) timerReadout.textContent = `⏱️ Elapsed: ${elapsed}s`;
+    }, 100);
+  }
+
+  _showProgressModal() {
+    const modal = document.getElementById('stlProgressModal');
+    if (modal) modal.style.display = 'flex';
+    this._startProgressTimer();
+  }
+
   _updateProgressModal(percent, statusText) {
     const modal = document.getElementById('stlProgressModal');
     const fill = document.getElementById('progressBarFill');
     const status = document.getElementById('progressModalStatus');
     const readout = document.getElementById('progressPercentReadout');
 
-    if (modal) modal.style.display = 'flex';
+    if (modal && modal.style.display === 'none') {
+      modal.style.display = 'flex';
+    }
+    if (!this.progressStartTime) {
+      this._startProgressTimer();
+    }
+
     if (fill) fill.style.width = `${percent}%`;
     if (status) status.textContent = statusText;
     if (readout) readout.textContent = `${percent}%`;
@@ -882,6 +915,11 @@ class TubeGenerator {
   _hideProgressModal() {
     const modal = document.getElementById('stlProgressModal');
     if (modal) modal.style.display = 'none';
+    if (this.progressTimerInterval) {
+      clearInterval(this.progressTimerInterval);
+      this.progressTimerInterval = null;
+    }
+    this.progressStartTime = null;
   }
 
   // ─── ASYNC NON-BLOCKING CSG GEOMETRY COMPUTATION ──────────────
@@ -894,84 +932,50 @@ class TubeGenerator {
     let exportGeo = tubeGeo;
 
     if (this.state.logoEnabled && this.state.logoGeometry) {
-      this._updateProgressModal(25, 'Wrapping 3D cutter geometry on tube wall...');
-      await new Promise(r => setTimeout(r, 20));
+      this._updateProgressModal(30, 'Processing 3D CAD geometry...');
+      await new Promise(r => setTimeout(r, 10));
 
       const logoWrappedGeo = this._getWrappedLogoGeo();
 
       if (logoWrappedGeo) {
         if (this.state.logoMode === 'emboss') {
-          this._updateProgressModal(60, 'Fusing embossed 3D relief mesh...');
-          await new Promise(r => setTimeout(r, 20));
+          this._updateProgressModal(80, 'Fusing embossed 3D relief mesh...');
+          await new Promise(r => setTimeout(r, 10));
           exportGeo = this._mergeBufferGeometries([tubeGeo, logoWrappedGeo]);
         } else {
           let csgSuccess = false;
           if (this.state.logoUseCSG && typeof CSG !== 'undefined') {
             try {
-              this._updateProgressModal(40, 'Building 3D CAD cutter geometry...');
-              await new Promise(r => setTimeout(r, 20));
+              this._updateProgressModal(50, 'Executing 3D Boolean CAD cut...');
+              await new Promise(r => setTimeout(r, 10));
 
               const csgCutterGeo = this._getWrappedLogoGeo(true);
-              const vertCount = csgCutterGeo?.attributes?.position ? csgCutterGeo.attributes.position.count : 0;
-              console.log(`[CSG Engine] Cutter mesh vertex count: ${vertCount}`);
+              if (csgCutterGeo) {
+                const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 32, 1);
+                const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
+                const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 32, 1);
+                const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
+                const cutMesh = new THREE.Mesh(csgCutterGeo);
 
-              // Safety guard: if mesh exceeds 1,800 vertices, use fast recessed mesh fusion to keep UI instant
-              if (vertCount > 1800) {
-                console.warn('[CSG Engine] High vertex count (>1,800 verts). Using fast recessed mesh fusion for instant export.');
-                this._updateProgressModal(85, 'Applying fast mesh fusion...');
-                await new Promise(r => setTimeout(r, 30));
-              } else {
-                this._updateProgressModal(50, 'Converting cutter meshes to CSG BSP trees...');
-                await new Promise(r => setTimeout(r, 20));
+                solidOuterMesh.updateMatrixWorld();
+                innerCoreMesh.updateMatrixWorld();
+                cutMesh.updateMatrixWorld();
 
-                // Hard 1.5s timeout wrapper so BSP CSG never hangs the browser UI loop
-                const runCsgAsync = () => new Promise((resolve, reject) => {
-                  try {
-                    const solidOuterGeo = new THREE.CylinderGeometry(outerR, outerR, len, 32, 1);
-                    const solidOuterMesh = new THREE.Mesh(solidOuterGeo);
-                    const innerCoreGeo = new THREE.CylinderGeometry(innerR, innerR, len + 4, 32, 1);
-                    const innerCoreMesh = new THREE.Mesh(innerCoreGeo);
-                    const cutMesh = new THREE.Mesh(csgCutterGeo);
+                const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
+                const cutCsg = CSG.fromMesh(cutMesh, 1);
+                const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
 
-                    solidOuterMesh.updateMatrixWorld();
-                    innerCoreMesh.updateMatrixWorld();
-                    cutMesh.updateMatrixWorld();
+                const debossedSolidCsg = outerCsg.subtract(cutCsg);
+                const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
 
-                    const outerCsg = CSG.fromMesh(solidOuterMesh, 0);
-                    const cutCsg = CSG.fromMesh(cutMesh, 1);
-                    const innerCsg = CSG.fromMesh(innerCoreMesh, 2);
-
-                    const debossedSolidCsg = outerCsg.subtract(cutCsg);
-                    const finalTubeCsg = debossedSolidCsg.subtract(innerCsg);
-
-                    const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
-                    if (resultMesh && resultMesh.geometry) {
-                      resolve(resultMesh.geometry);
-                    } else {
-                      reject(new Error('CSG output geometry was empty'));
-                    }
-                  } catch (e) {
-                    reject(e);
-                  }
-                });
-
-                const timeoutPromise = new Promise((_, reject) => {
-                  setTimeout(() => reject(new Error('CSG processing timeout (1.5s limit)')), 1500);
-                });
-
-                this._updateProgressModal(75, 'Executing CSG deboss subtraction...');
-                await new Promise(r => setTimeout(r, 20));
-
-                const computedGeo = await Promise.race([runCsgAsync(), timeoutPromise]);
-                if (computedGeo) {
-                  exportGeo = computedGeo;
+                const resultMesh = CSG.toMesh(finalTubeCsg, solidOuterMesh.matrix);
+                if (resultMesh && resultMesh.geometry) {
+                  exportGeo = resultMesh.geometry;
                   csgSuccess = true;
                 }
               }
             } catch (csgErr) {
-              console.warn('CSG Solid CAD Boolean cut note:', csgErr.message || csgErr);
-              this._updateProgressModal(90, 'Applying fast mesh fallback...');
-              await new Promise(r => setTimeout(r, 30));
+              console.warn('CSG Boolean cut note:', csgErr.message || csgErr);
             }
           }
 
@@ -1001,10 +1005,12 @@ class TubeGenerator {
     try {
       const csgGeo = await this._computeCSGGeometry();
 
-      // Hide live editing meshes
+      // Hide live editing meshes and automatically turn OFF Drag Mode
       if (this.tubeMesh) this.tubeMesh.visible = false;
       if (this.logoPreviewMesh) this.logoPreviewMesh.visible = false;
       if (this.logoHandleMesh) this.logoHandleMesh.visible = false;
+
+      this.setDragMode(false); // Automatically disable Drag Mode for smooth 3D CAD inspection
 
       // Clean up previous preview if exists
       if (this.csgPreviewMesh) {
@@ -1092,12 +1098,12 @@ class TubeGenerator {
 
     try {
       this._updateProgressModal(10, 'Initializing 3D CAD engine...');
-      await new Promise(r => setTimeout(r, 40));
+      await new Promise(r => setTimeout(r, 20));
 
       const exportGeo = await this._computeCSGGeometry();
 
       this._updateProgressModal(95, 'Compiling binary STL file buffer...');
-      await new Promise(r => setTimeout(r, 40));
+      await new Promise(r => setTimeout(r, 20));
 
       const stlData = this._geometryToSTL(exportGeo);
       const blob = new Blob([stlData], { type: 'application/octet-stream' });
@@ -1105,13 +1111,18 @@ class TubeGenerator {
       const fileName = `Tube_16mm_${modeName}_${this.state.length.toFixed(0)}mm.stl`;
 
       this._updateProgressModal(100, '3D STL File Ready! Downloading...');
-      await new Promise(r => setTimeout(r, 300));
+      await new Promise(r => setTimeout(r, 150));
 
       const link = document.createElement('a');
+      link.style.display = 'none';
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
+      document.body.appendChild(link);
       link.click();
-      URL.revokeObjectURL(link.href);
+      setTimeout(() => {
+        if (link.parentNode) link.parentNode.removeChild(link);
+        URL.revokeObjectURL(link.href);
+      }, 150);
     } catch (err) {
       console.error('Export STL failed:', err);
       alert('Could not export STL file: ' + err.message);
