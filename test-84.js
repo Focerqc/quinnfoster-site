@@ -1,0 +1,1 @@
+const THREE = require('./three.js'); global.THREE = THREE; require('./STLLoader.js'); const buffer = new ArrayBuffer(84); try { const loader = new THREE.STLLoader(); const geo = loader.parse(buffer); console.log('Geometry:', geo.attributes.position.count); } catch (e) { console.log('THROWN:', e); }

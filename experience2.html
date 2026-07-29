@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Experience 2 - Parametric 16mm Audio Tube Sleeve & Logo Deboss STL Generator | Quinn Foster">
+  <title>Experience 2 — Interactive STL Generator | Quinn Foster</title>
+
+  <!-- Preconnect Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Three.js 3D Engine & CDN Plugins -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/TrackballControls.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+
+  <!-- CSG for deboss boolean operations -->
+  <script src="js/three-csg-bundle.js"></script>
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css?v=2.9">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-badge">QF</div>
+        <span>Quinn Foster</span>
+      </a>
+
+      <nav class="nav-tabs" id="navTabs">
+        <a href="index.html" class="tab-btn">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Bio
+        </a>
+        <a href="experience1.html" class="tab-btn">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+          </svg>
+          Legacy Generator
+        </a>
+        <a href="experience2.html" class="tab-btn active">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+          </svg>
+          Experience 2 (New)
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="section-header">
+      <div class="section-header-text">
+        <h2>Experience 2 — Clean 16mm Sleeve & Logo Deboss Generator</h2>
+        <p>Direct 3D parametric CAD engine with interactive drag-to-position custom logo debossing.</p>
+      </div>
+    </div>
+
+    <div class="experience-card stl-generator-container">
+      <div class="stl-generator-wrapper">
+        
+        <!-- Left Pane: 3D Viewport -->
+        <div class="viewport-pane">
+          <div class="viewport-header">
+            <div class="viewport-badge">
+              <span class="pulse-dot"></span>
+              3D Live Preview & Drag Workspace
+            </div>
+            <div class="viewport-actions" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+              <div id="viewportDimensionBox" style="display: flex; align-items: center; gap: 0.4rem; background: rgba(0, 0, 0, 0.3); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 0.25rem 0.6rem; font-size: 0.85rem; color: var(--text-secondary);" title="Adjust Side-by-Side Viewport Width (View A)">
+                <label id="viewportDimensionLabel" for="viewportWidthInput" style="font-weight: 600; font-size: 0.8rem; color: var(--text-muted);">Width:</label>
+                <input type="number" id="viewportWidthInput" min="300" max="900" step="10" value="480" style="width: 62px; background: rgba(255, 255, 255, 0.08); border: 1px solid var(--surface-border); color: #fff; border-radius: 4px; padding: 0.2rem 0.4rem; font-size: 0.85rem; font-family: var(--font-mono); text-align: center;">
+                <span style="font-size: 0.75rem; color: var(--text-muted);">px</span>
+              </div>
+              <button id="toggleLayoutBtn" class="btn-secondary" style="font-size: 0.95rem; padding: 0.55rem 1.0rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(99, 102, 241, 0.2); border-color: rgba(99, 102, 241, 0.5); color: var(--text-primary); font-weight: 700;" title="Toggle View A / View B Layout">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <span id="layoutBtnText">View A (Side-by-Side) • Switch to View B</span>
+              </button>
+              <button id="resetCameraBtn" class="btn-secondary" style="font-size: 0.95rem; padding: 0.55rem 1.0rem; display: flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.08); border-color: var(--surface-border); color: var(--text-secondary); font-weight: 600;" title="Reset Camera View">
+                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Reset Camera</span>
+              </button>
+            </div>
+          </div>
+          <div id="viewport" class="canvas-container" style="position: relative;">
+            <div id="viewportLoading" class="viewport-loading">
+              <div class="spinner"></div>
+              <span>Initializing CAD Engine...</span>
+            </div>
+
+            <!-- Drag Mode Active Overlay Notice (Compact Bottom-Left Pill) -->
+            <div id="dragModeNotice" class="drag-mode-notice" style="display: none;">
+              <span class="drag-pulse-dot"></span>
+              <span>🎯 <strong>Drag Mode Active</strong></span>
+              <button type="button" id="btnExitDragMode" class="btn-exit-drag">Exit</button>
+            </div>
+
+            <!-- 3D Navigation Rotation Pad Overlay -->
+            <div class="view-nav-pad" id="viewNavPad">
+              <button type="button" class="nav-arrow nav-up" id="btnNavUp" title="Tilt Up (Y-Axis)" aria-label="Tilt Up">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
+                </svg>
+              </button>
+              <button type="button" class="nav-arrow nav-down" id="btnNavDown" title="Tilt Down (Y-Axis)" aria-label="Tilt Down">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              <button type="button" class="nav-arrow nav-left" id="btnNavLeft" title="Spin Left (X-Axis)" aria-label="Spin Left">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button type="button" class="nav-arrow nav-right" id="btnNavRight" title="Spin Right (X-Axis)" aria-label="Spin Right">
+                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <button type="button" class="nav-center" id="btnNavCenter" title="Center View" aria-label="Center View">
+                <span class="nav-core"></span>
+              </button>
+            </div>
+          </div>
+          <div class="viewport-footer">
+            <span><strong style="color: var(--accent-primary);">Camera Navigation:</strong> Drag / Pad Orbits View</span>
+            <span><strong style="color: #38bdf8;">🎯 Drag STL Mode:</strong> Lock Camera & Position Model</span>
+          </div>
+        </div>
+
+        <!-- Right Pane: Controls Panel -->
+        <div class="controls-pane">
+          <div class="controls-header">
+            <h3>Tube Parameter Settings</h3>
+            <span class="preset-badge">16mm Fit</span>
+          </div>
+
+          <form id="stlControlForm" onsubmit="event.preventDefault();">
+
+            <div class="params-top-row">
+              <!-- Setting A: Inner Diameter (Locked) -->
+              <div class="control-group locked-group param-card">
+                <div class="control-label-row">
+                  <label><span class="setting-tag">Setting A</span> Inner Diameter (ID)</label>
+                  <span class="badge-locked">16.2 mm (Tolerance Fit)</span>
+                </div>
+                <p class="control-help">Calibrated for 16mm audio glass tubes (0.2mm print margin).</p>
+              </div>
+
+              <!-- Setting B: Outer Diameter Slider -->
+              <div class="control-group param-card">
+                <div class="control-label-row">
+                  <label for="inputOD"><span class="setting-tag">Setting B</span> Outer Diameter (OD)</label>
+                  <span id="readoutOD" class="badge-readout">21.0 mm</span>
+                </div>
+                <input type="range" id="inputOD" min="18.0" max="30.0" step="0.5" value="21.0" class="styled-slider">
+                <p class="control-help">Wall Thickness: <strong id="readoutWall" style="color: var(--accent-teal);">2.40 mm</strong></p>
+              </div>
+
+              <!-- Setting C: Sleeve Length Slider -->
+              <div class="control-group param-card">
+                <div class="control-label-row">
+                  <label for="inputLength"><span class="setting-tag">Setting C</span> Sleeve Length</label>
+                  <span id="readoutLength" class="badge-readout">100 mm</span>
+                </div>
+                <input type="range" id="inputLength" min="40.0" max="200.0" step="1.0" value="100.0" class="styled-slider">
+              </div>
+            </div>
+
+            <div class="params-bottom-row">
+              <!-- Setting D: Custom Logo / Deboss Section -->
+              <div class="control-group logo-section-card param-card" style="padding: 1.2rem; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--surface-border); border-radius: var(--radius-md);">
+                <div class="control-label-row" style="margin-bottom: 0.75rem;">
+                  <label style="font-weight: 700; color: var(--accent-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="setting-tag">Setting D</span> Custom Logo / Deboss
+                  </label>
+                </div>
+
+                <!-- Upload & Library Buttons Row -->
+                <div class="control-group">
+                  <input type="file" id="inputLogoFile" accept=".stl,.png,.jpg,.jpeg,.svg,.webp" style="display: none;">
+                  <div class="logo-btn-group" style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
+                    <button type="button" class="btn-secondary" id="btnBrowseLogo" style="flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; gap: 0.4rem; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: var(--text-primary); font-size: 0.88rem; font-weight: 700; padding: 0.65rem 0.85rem; white-space: nowrap;">
+                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Upload Logo (Image or STL)
+                    </button>
+                    <button type="button" class="btn-secondary" id="btnOpenLibrary" style="flex: 0 0 auto; width: auto; display: flex; justify-content: center; align-items: center; gap: 0.35rem; background: rgba(14, 165, 233, 0.12); border-color: rgba(14, 165, 233, 0.35); color: #38bdf8; font-weight: 600; font-size: 0.8rem; padding: 0.55rem 0.85rem; white-space: nowrap;" title="Select from built-in STL & Logo library">
+                      <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="flex-shrink: 0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                      </svg>
+                      Open Library
+                    </button>
+                  </div>
+                  <div id="logoFileDetails" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
+                    📁 <span id="logoFileName">No file selected</span>
+                  </div>
+                </div>
+
+                <!-- Logo Fine-Tune Controls (Visible after upload) -->
+                <div id="logoControlsActive" style="display: none; flex-direction: column; gap: 0.85rem; margin-top: 1rem; padding-top: 0.85rem; border-top: 1px dashed var(--surface-border);">
+                  
+                  <!-- Drag Mode Toggle Card -->
+                  <div class="drag-toggle-card" id="dragToggleCard">
+                    <div class="drag-toggle-info">
+                      <div class="drag-toggle-title">
+                        <span>🎯</span> Position / Drag STL Mode
+                      </div>
+                      <div class="drag-toggle-desc">
+                        Locks camera & displays 3D grab handle dot on model
+                      </div>
+                    </div>
+                    <button type="button" id="btnToggleDragMode" class="btn-drag-toggle">
+                      <span id="btnDragToggleText">Drag Mode: OFF</span>
+                    </button>
+                  </div>
+
+                  <!-- Logo Feature Mode Segmented Toggle (Deboss Cut vs Emboss Extrude) -->
+                  <div class="control-group">
+                    <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.35rem; display: block;">
+                      Logo 3D Style (Cut vs Extrude)
+                    </label>
+                    <div class="segmented-control">
+                      <button type="button" id="btnModeDeboss" class="segmented-btn active-deboss" title="Cut logo inward into the tube wall (Recessed Engraved)">
+                        🔻 Cut (Deboss)
+                      </button>
+                      <button type="button" id="btnModeEmboss" class="segmented-btn" title="Extrude logo outward off the tube wall (Raised Emboss)">
+                        🔺 Extrude (Emboss)
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- NEW: Boolean Cut Method Toggle (Only visible in Deboss mode) -->
+                  <div class="control-group" id="debossMethodGroup" style="display: flex; flex-direction: column; gap: 0.4rem; padding: 0.6rem; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 6px;">
+                    <label style="font-size: 0.82rem; font-weight: 700; color: #fca5a5;">Export Troubleshooting</label>
+                    <label style="display: flex; align-items: flex-start; gap: 0.4rem; font-size: 0.75rem; cursor: pointer; color: var(--text-secondary); line-height: 1.4;">
+                      <input type="checkbox" id="toggleCSG" checked style="margin-top: 2px;">
+                      <span>
+                        <strong style="color: #f87171;">Perfect Clean Cut (Recommended)</strong><br>
+                        (Uncheck this if exporting your custom STL makes the tube disappear or glitch out)
+                      </span>
+                    </label>
+                  </div>
+
+                  <!-- Logo Scale Slider -->
+                  <div class="control-group">
+                    <div class="control-label-row">
+                      <label for="inputLogoScale" style="font-size: 0.85rem;">Logo Scale Size</label>
+                      <span id="readoutLogoScale" class="badge-readout">16.0 mm</span>
+                    </div>
+                    <input type="range" id="inputLogoScale" min="5.0" max="35.0" step="0.5" value="16.0" class="styled-slider">
+                  </div>
+
+                  <!-- Logo Depth / Height Slider -->
+                  <div class="control-group" id="logoDepthGroup">
+                    <div id="toggleThroughCutContainer" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                      <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-primary);">Deboss Cut Depth</label>
+                      <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; cursor: pointer; color: var(--accent-teal);">
+                        <input type="checkbox" id="toggleThroughCut" checked>
+                        <span style="font-weight: 600;">Through-Cut (Pierces Wall)</span>
+                      </label>
+                    </div>
+                    <div id="depthSliderContainer" style="display: none; flex-direction: column; gap: 0.4rem;">
+                      <div class="control-label-row">
+                        <label for="inputLogoDepth" id="labelLogoDepth" style="font-size: 0.85rem;">Custom Depth / Height</label>
+                        <span id="readoutLogoDepth" class="badge-readout">0.8 mm</span>
+                      </div>
+                      <input type="range" id="inputLogoDepth" min="0.2" max="5.0" step="0.1" value="0.8" class="styled-slider">
+                    </div>
+                  </div>
+
+                  <button type="button" id="btnRemoveLogo" class="btn-secondary" style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.3); color: #f87171; margin-top: 0.5rem;">
+                    Remove Logo
+                  </button>
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="action-bar">
+                <button type="button" id="downloadStlBtn" class="btn-primary">
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                  Download STL File (.stl)
+                </button>
+              </div>
+            </div>
+
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- Built-in STL & Logo Library Modal -->
+  <div id="stlLibraryModal" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h3>STL & Logo Library</h3>
+          <p>Select a built-in STL mesh or preset emblem to test out logo debossing on your tube.</p>
+        </div>
+        <button type="button" id="closeLibraryModalBtn" class="modal-close-btn" aria-label="Close Library">
+          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="library-grid">
+        <!-- Item 1: output.stl -->
+        <div class="library-card" data-url="logo and STL library/STL/output.stl" data-type="stl" data-title="output.stl">
+          <div class="library-card-icon stl-badge">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+          </div>
+          <div class="library-card-content">
+            <h4>output.stl</h4>
+            <span class="library-tag tag-stl">Built-in STL Mesh</span>
+            <p>Parametric CAD mesh stored in the STL library folder.</p>
+          </div>
+          <button type="button" class="btn-primary card-select-btn">Select STL</button>
+        </div>
+
+        <!-- Item 2: QF Monogram -->
+        <div class="library-card" data-type="preset-qf" data-title="QF Monogram Logo">
+          <div class="library-card-icon img-badge">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <div class="library-card-content">
+            <h4>QF Monogram</h4>
+            <span class="library-tag tag-preset">Preset Emblem</span>
+            <p>Quinn Foster branded monogram vector heightmap.</p>
+          </div>
+          <button type="button" class="btn-primary card-select-btn">Select Logo</button>
+        </div>
+
+        <!-- Item 3: Audio Tube Emblem -->
+        <div class="library-card" data-type="preset-audio" data-title="Audio Valve Emblem">
+          <div class="library-card-icon img-badge">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
+            </svg>
+          </div>
+          <div class="library-card-content">
+            <h4>Audio Valve Emblem</h4>
+            <span class="library-tag tag-preset">Preset Emblem</span>
+            <p>Classic vacuum audio graphic for sleeve debossing.</p>
+          </div>
+          <button type="button" class="btn-primary card-select-btn">Select Logo</button>
+        </div>
+
+        <!-- Item 4: Geometric Crest -->
+        <div class="library-card" data-type="preset-star" data-title="Geometric Star Crest">
+          <div class="library-card-icon img-badge">
+            <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+            </svg>
+          </div>
+          <div class="library-card-content">
+            <h4>Geometric Star Crest</h4>
+            <span class="library-tag tag-preset">Preset Emblem</span>
+            <p>5-point precision star badge heightmap graphic.</p>
+          </div>
+          <button type="button" class="btn-primary card-select-btn">Select Logo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-text">
+        © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script src="js/experience2-generator.js?v=2.9"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
