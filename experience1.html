@@ -3,47 +3,22 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 1 - 3D STL Generator for 16mm Audio Glass Tube Sleeves | Quinn Foster">
-  <title>Experience 1 — STL Generator | Quinn Foster</title>
+  <meta name="description" content="Experience 1 — Beginner 16mm Glass Tube Sleeve Generator | Quinn Foster">
+  <title>Experience 1 — Beginner Sleeve Suite | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Three.js 3D Engine & CDN Plugins -->
+  <!-- Three.js 3D Engine & Exporters -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-  
-  <!-- OpenType.js for clean text vector paths -->
-  <script src="https://cdn.jsdelivr.net/npm/opentype.js@1.3.4/dist/opentype.min.js"></script>
-
-  <!-- CSG for deboss boolean operations -->
-  <script src="js/three-csg-bundle.js"></script>
-
-  <!-- Manifold3D WebAssembly CAD Engine -->
-  <script src="https://cdn.jsdelivr.net/npm/manifold-3d@2.5.1/manifold.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=1.9">
+  <link rel="stylesheet" href="css/styles.css?v=3.6">
 </head>
 <body>
-
-  <!-- Top Global URL Header Bar -->
-  <div class="site-topbar">
-    <div class="container topbar-container">
-      <button type="button" class="topbar-copy-btn" id="topbarCopyUrlBtn" title="Copy Current URL">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        <span>Copy URL</span>
-      </button>
-      <input type="text" class="topbar-url-input" id="topbarUrlInput" readonly aria-label="Current Page URL">
-    </div>
-  </div>
 
   <!-- Navigation Bar -->
   <header class="navbar">
@@ -64,7 +39,7 @@
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
-          Experience 1
+          Experience 1 (Beginner)
         </a>
         <a href="experience2.html" class="tab-btn">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -76,13 +51,19 @@
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
-          Experience 3 (Beginner)
+          Experience 3 (Intermediate)
         </a>
         <a href="experience4.html" class="tab-btn">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
           </svg>
           Experience 4 (Expert)
+        </a>
+        <a href="experience6.html" class="tab-btn">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+          </svg>
+          Experience 6 (GeoNodes Voxel)
         </a>
       </nav>
 
@@ -94,62 +75,12 @@
     </div>
   </header>
 
+  <!-- Main Container -->
   <main class="container">
-    <div class="section-header section-header-with-presets">
+    <div class="section-header">
       <div class="section-header-text">
-        <h2>Experience 1 — STL Generator</h2>
-        <p>Parametric 3D generator for custom protective display sleeves tailored for 16mm straight glass tubes.</p>
-      </div>
-
-      <!-- Quick Preset Examples -->
-      <div class="preset-cards-container">
-        <button type="button" class="preset-card-btn" id="presetStandardLattice" title="Standard 100mm Lattice Sleeve">
-          <div class="preset-card-icon">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
-          </div>
-          <div class="preset-card-info">
-            <span class="preset-card-title">Standard Lattice</span>
-            <span class="preset-card-sub">100mm • Lattice</span>
-          </div>
-        </button>
-
-        <button type="button" class="preset-card-btn" id="presetCompactSlots" title="Compact 80mm Dual Slot Sleeve">
-          <div class="preset-card-icon">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4v16M15 4v16" />
-            </svg>
-          </div>
-          <div class="preset-card-info">
-            <span class="preset-card-title">Compact Slots</span>
-            <span class="preset-card-sub">80mm • Dual Slots</span>
-          </div>
-        </button>
-
-        <button type="button" class="preset-card-btn" id="presetLongDebossed" title="Extended 120mm Debossed Sleeve">
-          <div class="preset-card-icon">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-          </div>
-          <div class="preset-card-info">
-            <span class="preset-card-title">Extended Debossed</span>
-            <span class="preset-card-sub">120mm • Debossed</span>
-          </div>
-        </button>
-
-        <button type="button" class="preset-card-btn" id="presetSolidArmor" title="Heavy Duty Solid Sleeve">
-          <div class="preset-card-icon">
-            <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-            </svg>
-          </div>
-          <div class="preset-card-info">
-            <span class="preset-card-title">Solid Armor</span>
-            <span class="preset-card-sub">100mm • Solid OD 24</span>
-          </div>
-        </button>
+        <h2>Experience 1 — Beginner Sleeve Generator</h2>
+        <p>Simplified 16mm glass tube protective sleeve CAD engine with quick controls for beginners.</p>
       </div>
     </div>
 
@@ -161,348 +92,66 @@
           <div class="viewport-header">
             <div class="viewport-badge">
               <span class="pulse-dot"></span>
-              3D Live Preview
+              3D Live Preview Workspace
             </div>
-            <div class="viewport-actions">
-              <button id="resetCameraBtn" class="btn-icon" title="Reset View">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-              <button id="toggleGlassBtn" class="btn-icon active" title="Toggle Reference Glass Tube">
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
+            <div class="viewport-actions" style="display: flex; gap: 0.5rem; align-items: center;">
+              <button id="resetCameraBtn" class="btn-secondary" style="font-size: 0.85rem; padding: 0.45rem 0.8rem;" title="Reset Camera View">
+                🔄 Reset Camera
               </button>
             </div>
           </div>
-          <div id="canvasContainer" class="canvas-container">
+          <div id="viewport" class="canvas-container" style="position: relative;">
             <div id="viewportLoading" class="viewport-loading">
               <div class="spinner"></div>
-              <span>Initializing 3D Viewport...</span>
+              <span>Initializing CAD Engine...</span>
             </div>
-          </div>
-          <div class="viewport-footer">
-            <span><strong style="color: var(--accent-primary);">Left Drag:</strong> Rotate (360°)</span>
-            <span><strong style="color: var(--accent-primary);">Right Drag:</strong> Pan</span>
-            <span><strong style="color: var(--accent-primary);">Scroll:</strong> Zoom</span>
           </div>
         </div>
 
-        <!-- Right Pane: Controls Panel -->
+        <!-- Right Pane: Control Panel -->
         <div class="controls-pane">
-          <div class="controls-header">
-            <h3>Sleeve Parameters</h3>
-            <span class="preset-badge">16mm Tube Spec</span>
+          <div class="control-section">
+            <h3 class="section-title">⚙️ Sleeve Dimensions</h3>
+            
+            <div class="control-group">
+              <label>Inner Diameter (Fits 16mm Glass Tube):</label>
+              <div class="readonly-badge">16.2 mm (Fixed Clearance Fit)</div>
+            </div>
+
+            <div class="control-group">
+              <label for="outerDiameter">Outer Diameter: <span id="outerDiameterVal">21.0</span> mm</label>
+              <input type="range" id="outerDiameter" min="18.0" max="26.0" step="0.2" value="21.0">
+            </div>
+
+            <div class="control-group">
+              <label for="tubeLength">Sleeve Length: <span id="tubeLengthVal">100.0</span> mm</label>
+              <input type="range" id="tubeLength" min="40.0" max="140.0" step="1.0" value="100.0">
+            </div>
           </div>
 
-          <form id="stlControlForm" onsubmit="event.preventDefault();">
-
-            <!-- Locked Inner Diameter -->
-            <div class="control-group locked-group">
-              <div class="control-label-row">
-                <label>Inner Diameter (ID)</label>
-                <span class="badge-locked">16.2 mm (Locked Fit)</span>
-              </div>
-              <p class="control-help">Specifically calibrated for 16mm straight glass tubes with 0.2mm print tolerance.</p>
-            </div>
-
-            <!-- Outer Diameter Slider -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputOD">Outer Diameter (OD)</label>
-                <span id="readoutOD" class="badge-readout">21.0 mm</span>
-              </div>
-              <input type="range" id="inputOD" min="18.0" max="30.0" step="0.5" value="21.0" class="styled-slider">
-              <p class="control-help">Overall sleeve outer diameter (Wall thickness auto-calculates).</p>
-            </div>
-
-            <!-- Glass Tube Length Slider -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputGlassLength">Glass Tube Length</label>
-                <span id="readoutGlassLength" class="badge-readout">100.0 mm</span>
-              </div>
-              <input type="range" id="inputGlassLength" min="50.0" max="200.0" step="1.0" value="100.0" class="styled-slider">
-              <p class="control-help">Set the exact length of your pre-cut audio glass tube.</p>
-
-              <!-- Calculated Sleeve Print Height Readout -->
-              <div style="background: rgba(255, 255, 255, 0.025); border: 1px solid var(--surface-border); border-radius: var(--radius-sm); padding: 0.6rem 0.75rem; margin-top: 0.25rem;">
-                <div class="control-label-row">
-                  <span style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600;">Sleeve Length (3D Print Height)</span>
-                  <span id="readoutLength" class="badge-readout" style="font-size: 0.8rem; background: rgba(245, 158, 11, 0.12); color: var(--accent-amber); border-color: rgba(245, 158, 11, 0.3);">101.0 mm (1.0mm lip added below automatically)</span>
-                </div>
-                <input type="range" id="inputLength" min="51.0" max="201.0" step="1.0" value="101.0" class="styled-slider" disabled style="opacity: 0.5; cursor: not-allowed; margin-top: 0.4rem;">
-                <p class="control-help" id="sleeveLengthHelp" style="margin-top: 4px; color: var(--text-secondary);">
-                  Automatically calculated as Glass Tube Length + 1.0mm bottom retainer lip.
-                </p>
-              </div>
-            </div>
-
-            <!-- Glass Tube Offset / Alignment Slider -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputGlassOffset">Glass Tube Offset (Slide Test)</label>
-                <span id="readoutGlassOffset" class="badge-readout">0.0 mm (Seated)</span>
-              </div>
-              <input type="range" id="inputGlassOffset" min="0.0" max="110.0" step="1.0" value="0.0" class="styled-slider">
-              <p class="control-help" style="margin-top: 4px;">Slide offset to visualize sliding sleeve on/off the glass tube (0mm hit bottom lip up to full tube length + 10mm).</p>
-            </div>
-
-            <!-- Window Pattern Dropdown -->
-            <div class="control-group">
-              <label for="selectWindow">Viewing Window Cutouts</label>
-              <select id="selectWindow" class="styled-input">
-                <option value="solid">Solid Sleeve</option>
-                <option value="slotted">Dual Slots</option>
-                <option value="lattice" selected>Lattice</option>
-                <option value="ports">Ports</option>
-              </select>
-            </div>
-
-            <!-- Custom Engraving Text Input -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputText">Custom Engraving Text</label>
-                <span class="badge-subtle">3D Engraved</span>
-              </div>
-              <input type="text" id="inputText" placeholder="e.g. QUINN FOSTER AUDIO" value="QUINN FOSTER" maxlength="24" class="styled-input">
-            </div>
-            <!-- Text Engraving Style Options -->
-            <div class="control-group">
-              <label>Text Engraving Style</label>
-              <div class="button-toggle-group" style="grid-template-columns: 1fr 1fr;">
-                <button type="button" class="toggle-btn" data-engravestyle="debossed">Cut-In (Debossed)</button>
-                <button type="button" class="toggle-btn active" data-engravestyle="embossed">Raised (Embossed)</button>
-              </div>
-            </div>
-
-            <!-- Raised Text Height Slider -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputDepth" id="labelDepth">Raised Text Height</label>
-                <span id="readoutDepth" class="badge-readout">0.8 mm</span>
-              </div>
-              <input type="range" id="inputDepth" min="0.2" max="1.6" step="0.1" value="0.8" class="styled-slider">
-              <p class="control-help" id="helpDepth" style="margin-top: 4px;">Adjust how far 3D text extends outward from the sleeve wall.</p>
-            </div>
-
-            <!-- Character Spacing Slider -->
-            <div class="control-group">
-              <div class="control-label-row">
-                <label for="inputCharSpacing">Character Spacing</label>
-                <span id="readoutCharSpacing" class="badge-readout">1.0x</span>
-              </div>
-              <input type="range" id="inputCharSpacing" min="0.5" max="2.5" step="0.1" value="1.0" class="styled-slider">
-              <p class="control-help" style="margin-top: 4px;">Adjust tightness or spread between 3D text characters.</p>
-            </div>
-
-            <!-- Text Wrap Style Options -->
-            <div class="control-group">
-              <label>Text Layout / Wrap Style</label>
-              <div class="button-toggle-group" style="grid-template-columns: 1fr 1fr 1fr;">
-                <button type="button" class="toggle-btn" data-textstyle="ring">Ring</button>
-                <button type="button" class="toggle-btn" data-textstyle="vertical">Vertical</button>
-                <button type="button" class="toggle-btn active" data-textstyle="spiral">Spiral</button>
-              </div>
-            </div>
-
-            <!-- Text Backing Border Toggle -->
-            <div class="control-group checkbox-group">
-              <label class="toggle-switch">
-                <input type="checkbox" id="inputTextBacking" checked>
-                <span class="slider-round"></span>
-              </label>
-              <div>
-                <label for="inputTextBacking" style="cursor: pointer; font-weight: 600;">Text Backing Border</label>
-                <p class="control-help" style="margin-top: 2px;">Generates solid backing geometry behind text to prevent window cutouts from severing letters.</p>
-              </div>
-            </div>
-
-            <!-- Bottom Retainer Lip Toggle -->
-            <div class="control-group checkbox-group">
-              <label class="toggle-switch">
-                <input type="checkbox" id="inputLip" checked>
-                <span class="slider-round"></span>
-              </label>
-              <div>
-                <label for="inputLip" style="cursor: pointer; font-weight: 600;">Bottom Retainer Lip</label>
-                <p class="control-help" style="margin-top: 2px;">Adds a 1.0mm inward bottom stop ring to hold tube in place.</p>
-              </div>
-            </div>
-
-            <!-- Auto-Adjust Sleeve Length for Lip Toggle -->
-            <div class="control-group checkbox-group" style="margin-top: -0.5rem; margin-left: 0.5rem; padding-left: 0.75rem; border-left: 2px solid var(--accent-primary);">
-              <label class="toggle-switch">
-                <input type="checkbox" id="inputAutoLipOffset" checked>
-                <span class="slider-round"></span>
-              </label>
-              <div>
-                <label for="inputAutoLipOffset" style="cursor: pointer; font-weight: 600;">Auto-Adjust Sleeve Length for Lip</label>
-                <p class="control-help" style="margin-top: 2px;">Automatically adds 1.0mm to 3D sleeve length for bottom retainer lip.</p>
-              </div>
-            </div>
-
-            <!-- Custom Logo / Emblem Section -->
-            <div class="control-group logo-section-card" style="margin-top: 1rem; padding: 1rem; background: rgba(255, 255, 255, 0.025); border: 1px solid var(--surface-border); border-radius: var(--radius-md);">
-              <div class="control-label-row" style="margin-bottom: 0.5rem;">
-                <label style="font-weight: 700; color: var(--accent-primary); font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem;">
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Custom Logo / Emblem
-                </label>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="inputLogoToggle">
-                  <span class="slider-round"></span>
-                </label>
-              </div>
-
-              <!-- Logo Controls Container (Visible when toggle enabled) -->
-              <div id="logoControlsContainer" style="display: none; flex-direction: column; gap: 0.85rem; margin-top: 0.5rem; padding-top: 0.75rem; border-top: 1px dashed var(--surface-border);">
-                
-                <!-- File Upload Button & Dropzone -->
-                <div class="control-group">
-                  <label style="font-size: 0.85rem;">Upload Logo File (.stl, .dxf, image)</label>
-                  <div class="logo-file-upload-box" id="logoUploadBox">
-                    <input type="file" id="inputLogoFile" accept=".stl,.dxf,.png,.jpg,.jpeg,.svg,.webp" style="display: none;">
-                    <button type="button" class="btn-secondary" id="btnBrowseLogo" style="opacity: 1; cursor: pointer; background: rgba(99, 102, 241, 0.12); border-color: rgba(99, 102, 241, 0.3); color: var(--text-primary);">
-                      <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                      </svg>
-                      Choose File (STL / DXF / Image)
-                    </button>
-                    <div id="logoFileDetails" class="logo-file-details" style="display: none; margin-top: 0.4rem; font-size: 0.8rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
-                      📁 <span id="logoFileName">No file selected</span>
-                    </div>
-                    <p class="control-help" style="margin-top: 4px; font-size: 0.78rem;">
-                      Upload an <strong>STL</strong>, <strong>DXF</strong> vector, or <strong>Image</strong> (converted into 3D lithograph heightmap).
-                    </p>
-                  </div>
-                </div>
-
-                <!-- Position Preset Toggle -->
-                <div class="control-group">
-                  <label style="font-size: 0.85rem;">Logo Position</label>
-                  <div class="button-toggle-group" style="grid-template-columns: 1fr 1fr 1fr;">
-                    <button type="button" class="toggle-btn" data-logopos="top">Top</button>
-                    <button type="button" class="toggle-btn active" data-logopos="center">Center</button>
-                    <button type="button" class="toggle-btn" data-logopos="bottom">Bottom</button>
-                  </div>
-                </div>
-
-                <!-- Rotation Angle Slider -->
-                <div class="control-group">
-                  <div class="control-label-row">
-                    <label for="inputLogoAngle" style="font-size: 0.85rem;">Sleeve Facing Angle</label>
-                    <span id="readoutLogoAngle" class="badge-readout">0°</span>
-                  </div>
-                  <input type="range" id="inputLogoAngle" min="0" max="360" step="5" value="0" class="styled-slider">
-                </div>
-
-                <!-- Orientation, Rotate & Flip Controls -->
-                <div class="control-group">
-                  <label style="font-size: 0.85rem;">Orientation, Rotation & Flip</label>
-                  <div class="button-toggle-group" style="grid-template-columns: 1fr 1fr 1fr 1fr;">
-                    <button type="button" class="toggle-btn" id="btnLogoRotateCCW" title="Rotate 90° Counter-Clockwise">↺ 90°</button>
-                    <button type="button" class="toggle-btn" id="btnLogoRotateCW" title="Rotate 90° Clockwise">↻ 90°</button>
-                    <button type="button" class="toggle-btn" id="btnLogoFlipH">Flip H</button>
-                    <button type="button" class="toggle-btn" id="btnLogoFlipV">Flip V</button>
-                  </div>
-                </div>
-
-                <!-- Logo Size / Scale Slider -->
-                <div class="control-group">
-                  <div class="control-label-row">
-                    <label for="inputLogoScale" style="font-size: 0.85rem;">Logo Size (Scale)</label>
-                    <span id="readoutLogoScale" class="badge-readout">16.0 mm</span>
-                  </div>
-                  <input type="range" id="inputLogoScale" min="5.0" max="35.0" step="0.5" value="16.0" class="styled-slider">
-                </div>
-
-                <!-- Logo Height / Extrusion Depth Slider -->
-                <div class="control-group">
-                  <div class="control-label-row">
-                    <label for="inputLogoDepth" style="font-size: 0.85rem;">Logo Extrusion / Relief</label>
-                    <span id="readoutLogoDepth" class="badge-readout">0.8 mm</span>
-                  </div>
-                  <input type="range" id="inputLogoDepth" min="0.2" max="2.5" step="0.1" value="0.8" class="styled-slider">
-                </div>
-
-                <!-- Lithograph Invert Toggle (Image Mode) -->
-                <div class="control-group checkbox-group" id="logoInvertGroup" style="margin-top: 0.2rem;">
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="inputLogoInvert">
-                    <span class="slider-round"></span>
-                  </label>
-                  <div>
-                    <label for="inputLogoInvert" style="cursor: pointer; font-weight: 600; font-size: 0.85rem;">Invert Image Lithograph</label>
-                    <p class="control-help" style="margin-top: 2px; font-size: 0.78rem;">Invert light vs dark pixel heightmap (makes dark pixels raised instead of light).</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-            <!-- Action Bar -->
-            <div class="action-bar" style="display: flex; flex-direction: column; gap: 0.75rem;">
-              <button type="button" id="downloadStlBtn" class="btn-primary">
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                </svg>
-                Download STL File (.stl)
-              </button>
-
-              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;">
-                <button type="button" id="saveProjectBtn" class="btn-secondary" style="background: rgba(99, 102, 241, 0.1); border-color: rgba(99, 102, 241, 0.3); color: var(--text-primary);" title="Save all parameters and logo graphics to a downloadable .json file">
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                  </svg>
-                  Save Project Draft
-                </button>
-
-                <button type="button" id="importProjectBtn" class="btn-secondary" style="background: rgba(20, 184, 166, 0.1); border-color: rgba(20, 184, 166, 0.3); color: var(--accent-teal);" title="Load project settings & logo from a .json file">
-                  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
-                  Import Project Draft
-                </button>
-                <input type="file" id="inputProjectFile" accept=".json" style="display: none;">
-              </div>
-
-              <button type="button" id="exportStepBtn" class="btn-secondary" title="B-Rep STEP Export engine is under development for Phase 2." disabled>
-                <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                </svg>
-                Export STEP File (.step)
-                <span class="badge-coming-soon">Phase 2</span>
-              </button>
-            </div>
-
-          </form>
+          <!-- Section: Export -->
+          <div class="control-section export-section">
+            <button id="exportStlBtn" class="btn-primary btn-large">
+              📥 Export 3D Printable STL
+            </button>
+          </div>
         </div>
 
       </div>
     </div>
   </main>
 
+  <!-- Footer -->
   <footer>
     <div class="container footer-content">
       <div class="footer-text">
         © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
       </div>
-      <div class="social-links">
-        <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub">
-          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        </a>
-      </div>
     </div>
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/three-csg-bundle.js"></script>
-  <script src="js/stl-generator.js?v=1.1"></script>
+  <script src="js/experience1-generator.js?v=3.6"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>
