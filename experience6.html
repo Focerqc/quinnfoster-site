@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=4.4">
+  <link rel="stylesheet" href="css/styles.css?v=4.6">
 </head>
 <body>
 
@@ -110,7 +110,29 @@
             </div>
           </div>
 
-          <div id="viewport" class="viewport-canvas-container">
+          <div id="viewport" class="viewport-canvas-container canvas-container" style="position: relative;">
+            <!-- Viewport Floating Quick Controls Overlay (Reset, +, -) -->
+            <div class="viewport-floating-controls">
+              <button id="btnViewportReset" class="btn-viewport-control" title="Reset Viewport Camera">
+                <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Reset</span>
+              </button>
+
+              <button id="btnViewportZoomIn" class="btn-viewport-control btn-viewport-circle" title="Zoom In (+)">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m-8-8h16" />
+                </svg>
+              </button>
+
+              <button id="btnViewportZoomOut" class="btn-viewport-control btn-viewport-circle" title="Zoom Out (-)">
+                <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+                </svg>
+              </button>
+            </div>
+
             <div id="viewportLoading" class="viewport-loading">
               <div class="spinner"></div>
               <div>Compiling Procedural AI Voxel Cylinder...</div>
@@ -176,42 +198,104 @@
             <h3 class="section-title">🤖 3D Pattern Presets & AI Co-Pilot Hub</h3>
             <p class="section-desc">Click any preset to preview it live in 3D & copy its prompt for ChatGPT/Claude, or fine-tune sliders below!</p>
 
-            <!-- Interactive 3D Pattern Gallery -->
-            <div class="copilot-presets-label">Click a Preset to Preview Live in 3D & Copy AI Prompt:</div>
-            <div class="prompt-preset-list">
-              <button class="prompt-card-btn active" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
-                ⭐ Star & Cross Lattice
-              </button>
-              <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
-                🐉 Dragon Scale Armor
-              </button>
-              <button class="prompt-card-btn" data-preset="voronoi" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
-                🧬 Biomechanical Spine
-              </button>
-              <button class="prompt-card-btn" data-preset="cyber" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
-                ⚡ Cyber Barcode Stream
-              </button>
-              <button class="prompt-card-btn" data-preset="waves" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
-                🌊 Japanese Wave Ripple
-              </button>
-              <button class="prompt-card-btn" data-preset="knurl" data-prompt-text="Design a diamond knurling grip texture with raised 4-sided pyramid tiles separated by deep tactile V-grooves.">
-                💎 Diamond Pyramid Knurl
-              </button>
-              <button class="prompt-card-btn" data-preset="flutes" data-prompt-text="Design helical spiral flutes with 8 twisting grooves wrapping around the cylinder at a 45 degree angle.">
-                🌀 Helical Spiral Flutes
-              </button>
-              <button class="prompt-card-btn" data-preset="weave" data-prompt-text="Design a carbon fiber micro-weave lattice with alternating checkerboard depth offsets for high-friction grip.">
-                🕸️ Micro-Weave Carbon
-              </button>
-              <button class="prompt-card-btn" data-preset="lotus" data-prompt-text="Design an organic lotus flower petal ripple wrapping radially around the sleeve.">
-                🌸 Lotus Petal Ripple
-              </button>
-              <button class="prompt-card-btn" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
-                🧱 Brick Lattice
-              </button>
-              <button class="prompt-card-btn" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
-                🌪️ Turbulence Fluid
-              </button>
+            <!-- Interactive 3D Pattern Gallery Folders -->
+            <div class="copilot-presets-label">Select Preset Category or Folder:</div>
+            
+            <div class="preset-folders-container">
+              
+              <!-- Folder 1: basic examples -->
+              <div class="preset-folder-card collapsed" id="folderBasicExamples">
+                <button type="button" class="preset-folder-header" id="headerBasicExamples" aria-expanded="false" title="Click to expand/collapse basic examples folder">
+                  <div class="folder-header-left">
+                    <span class="folder-icon">📁</span>
+                    <span class="folder-title">basic examples</span>
+                    <span class="folder-count-badge">11 Presets</span>
+                  </div>
+                  <div class="folder-header-right">
+                    <span class="folder-toggle-text">▼ Expand</span>
+                  </div>
+                </button>
+
+                <div class="prompt-preset-list">
+                  <!-- 4 Options Showing Initially -->
+                  <button class="prompt-card-btn active" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
+                    ⭐ Star & Cross Lattice
+                  </button>
+                  <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
+                    🐉 Dragon Scale Armor
+                  </button>
+                  <button class="prompt-card-btn" data-preset="voronoi" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
+                    🧬 Biomechanical Spine
+                  </button>
+                  <button class="prompt-card-btn" data-preset="cyber" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
+                    ⚡ Cyber Barcode Stream
+                  </button>
+
+                  <!-- 7 Additional Presets (Revealed on Dropdown Expand) -->
+                  <button class="prompt-card-btn extra-preset" data-preset="waves" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
+                    🌊 Japanese Wave Ripple
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="knurl" data-prompt-text="Design a diamond knurling grip texture with raised 4-sided pyramid tiles separated by deep tactile V-grooves.">
+                    💎 Diamond Pyramid Knurl
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="flutes" data-prompt-text="Design helical spiral flutes with 8 twisting grooves wrapping around the cylinder at a 45 degree angle.">
+                    🌀 Helical Spiral Flutes
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="weave" data-prompt-text="Design a carbon fiber micro-weave lattice with alternating checkerboard depth offsets for high-friction grip.">
+                    🕸️ Micro-Weave Carbon
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="lotus" data-prompt-text="Design an organic lotus flower petal ripple wrapping radially around the sleeve.">
+                    🌸 Lotus Petal Ripple
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
+                    🧱 Brick Lattice
+                  </button>
+                  <button class="prompt-card-btn extra-preset" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
+                    🌪️ Turbulence Fluid
+                  </button>
+                </div>
+
+                <button type="button" class="btn-folder-toggle" id="toggleBasicExamples">
+                  <span class="toggle-icon">▼</span>
+                  <span class="toggle-label">Expand basic examples (7 more)</span>
+                </button>
+              </div>
+
+              <!-- Folder 2: fosterqc -->
+              <div class="preset-folder-card collapsed" id="folderFosterQC">
+                <button type="button" class="preset-folder-header" id="headerFosterQC" aria-expanded="false" title="Click to expand/collapse fosterqc custom presets folder">
+                  <div class="folder-header-left">
+                    <span class="folder-icon" style="color: #38bdf8;">📂</span>
+                    <span class="folder-title">fosterqc</span>
+                    <span class="folder-count-badge custom-badge">Customized</span>
+                  </div>
+                  <div class="folder-header-right">
+                    <span class="folder-toggle-text">▼ Expand</span>
+                  </div>
+                </button>
+
+                <div class="prompt-preset-list">
+                  <!-- 4 Custom Options Showing Initially -->
+                  <button class="prompt-card-btn fosterqc-btn" data-preset="custom1" data-prompt-text="Customized FosterQC Preset #1: Star & Hex Hybrid Grid with 6-fold radial symmetry.">
+                    ✨ fosterqc Custom #1
+                  </button>
+                  <button class="prompt-card-btn fosterqc-btn" data-preset="custom2" data-prompt-text="Customized FosterQC Preset #2: Flame Cyber Wave Grid with alternating depth levels.">
+                    🔥 fosterqc Custom #2
+                  </button>
+                  <button class="prompt-card-btn fosterqc-btn" data-preset="custom3" data-prompt-text="Customized FosterQC Preset #3: Diamond Spiral Vortex with twisting tactile grooves.">
+                    💎 fosterqc Custom #3
+                  </button>
+                  <button class="prompt-card-btn fosterqc-btn" data-preset="custom4" data-prompt-text="Customized FosterQC Preset #4: Precision Target Ribs with alternating cut/emboss bands.">
+                    🎯 fosterqc Custom #4
+                  </button>
+                </div>
+
+                <button type="button" class="btn-folder-toggle" id="toggleFosterQC">
+                  <span class="toggle-icon">▼</span>
+                  <span class="toggle-label">Expand fosterqc folder</span>
+                </button>
+              </div>
+
             </div>
 
             <!-- Fine-Tuning Sliders -->
@@ -341,7 +425,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience6-generator.js?v=4.4"></script>
+  <script src="js/experience6-generator.js?v=4.6"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

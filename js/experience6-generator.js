@@ -520,6 +520,30 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             }
             break;
 
+          case 'custom1':
+            const c1_cellX = (symCol % 6) - 3;
+            const c1_cellY = (r % 8) - 4;
+            const c1_dist = Math.sqrt(c1_cellX * c1_cellX + c1_cellY * c1_cellY);
+            v = (c1_dist < 2.0) ? 0.95 * contrast : -0.6 * contrast;
+            break;
+
+          case 'custom2':
+            const c2_wave = Math.sin(twistedAngle * 10 + normY * 30) * Math.cos(symCol * 0.3);
+            v = Math.tanh(c2_wave * contrast * 2.0);
+            break;
+
+          case 'custom3':
+            const c3_spiral = twistedAngle * 8 + normY * Math.PI * 10;
+            const c3_cross = Math.sin(twistedAngle * 8 - normY * Math.PI * 10);
+            v = Math.max(-0.5, Math.sin(c3_spiral) * c3_cross * 1.5 * contrast);
+            break;
+
+          case 'custom4':
+            const c4_rib = Math.sin(normY * Math.PI * 16);
+            const c4_radial = Math.cos(twistedAngle * 6);
+            v = (c4_rib * c4_radial > 0.1) ? 0.9 * contrast : -0.7 * contrast;
+            break;
+
           case 'cyber':
             const n1 = this._simplexNoise2D(symCol * scale, r * scale + seed);
             const n2 = Math.sin(twistedAngle * 6 + normY * 16);
@@ -994,6 +1018,8 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       });
     }
 
+    this._initPresetFolderToggles();
+
     const presetCards = document.querySelectorAll('.prompt-card-btn, .preset-chip');
     presetCards.forEach(card => {
       card.addEventListener('click', () => {
@@ -1100,6 +1126,94 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     if (btnResetView) {
       btnResetView.addEventListener('click', () => this._resetCamera());
     }
+
+    const btnViewportReset = document.getElementById('btnViewportReset');
+    if (btnViewportReset) {
+      btnViewportReset.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this._resetCamera();
+      });
+      btnViewportReset.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+
+    const btnViewportZoomIn = document.getElementById('btnViewportZoomIn');
+    if (btnViewportZoomIn) {
+      btnViewportZoomIn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.zoomIn();
+      });
+      btnViewportZoomIn.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+
+    const btnViewportZoomOut = document.getElementById('btnViewportZoomOut');
+    if (btnViewportZoomOut) {
+      btnViewportZoomOut.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.zoomOut();
+      });
+      btnViewportZoomOut.addEventListener('mousedown', (e) => e.stopPropagation());
+    }
+  }
+
+  _initPresetFolderToggles() {
+    const folders = [
+      {
+        cardId: 'folderBasicExamples',
+        headerId: 'headerBasicExamples',
+        toggleBtnId: 'toggleBasicExamples',
+        extraCount: 7,
+        name: 'basic examples'
+      },
+      {
+        cardId: 'folderFosterQC',
+        headerId: 'headerFosterQC',
+        toggleBtnId: 'toggleFosterQC',
+        extraCount: 0,
+        name: 'fosterqc'
+      }
+    ];
+
+    folders.forEach(folder => {
+      const card = document.getElementById(folder.cardId);
+      const header = document.getElementById(folder.headerId);
+      const toggleBtn = document.getElementById(folder.toggleBtnId);
+
+      if (!card) return;
+
+      const toggleFolder = () => {
+        const isCollapsed = card.classList.contains('collapsed');
+        card.classList.toggle('collapsed', !isCollapsed);
+
+        const nowCollapsed = card.classList.contains('collapsed');
+        if (header) {
+          header.setAttribute('aria-expanded', !nowCollapsed);
+          const toggleText = header.querySelector('.folder-toggle-text');
+          if (toggleText) {
+            toggleText.textContent = nowCollapsed ? '▼ Expand' : '▲ Collapse';
+          }
+        }
+
+        if (toggleBtn) {
+          const toggleIcon = toggleBtn.querySelector('.toggle-icon');
+          const toggleLabel = toggleBtn.querySelector('.toggle-label');
+
+          if (nowCollapsed) {
+            if (toggleIcon) toggleIcon.textContent = '▼';
+            if (toggleLabel) {
+              toggleLabel.textContent = folder.extraCount > 0 
+                ? `Expand ${folder.name} (${folder.extraCount} more)`
+                : `Expand ${folder.name} folder`;
+            }
+          } else {
+            if (toggleIcon) toggleIcon.textContent = '▲';
+            if (toggleLabel) toggleLabel.textContent = `Collapse ${folder.name}`;
+          }
+        }
+      };
+
+      if (header) header.addEventListener('click', toggleFolder);
+      if (toggleBtn) toggleBtn.addEventListener('click', toggleFolder);
+    });
   }
 
   _bindInput(id, callback) {
@@ -1159,6 +1273,36 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       this.controls.target.set(0, 0, 0);
       this.controls.update();
     }
+  }
+
+  zoomIn(factor = 0.8) {
+    if (!this.camera || !this.controls) return;
+    const target = this.controls.target;
+    const pos = this.camera.position;
+    const offset = new THREE.Vector3().subVectors(pos, target);
+    
+    const minDist = this.controls.minDistance || 20;
+    const currentDist = offset.length();
+    const newDist = Math.max(minDist, currentDist * factor);
+    
+    offset.setLength(newDist);
+    pos.copy(target).add(offset);
+    this.controls.update();
+  }
+
+  zoomOut(factor = 1.25) {
+    if (!this.camera || !this.controls) return;
+    const target = this.controls.target;
+    const pos = this.camera.position;
+    const offset = new THREE.Vector3().subVectors(pos, target);
+    
+    const maxDist = this.controls.maxDistance || 300;
+    const currentDist = offset.length();
+    const newDist = Math.min(maxDist, currentDist * factor);
+    
+    offset.setLength(newDist);
+    pos.copy(target).add(offset);
+    this.controls.update();
   }
 
   _onResize() {
