@@ -1,0 +1,13 @@
+{
+  "name": "quinnfoster-site",
+  "version": "1.0.0",
+  "description": "Quinn Foster personal website and 3D STL experience hub",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
+  "keywords": [],
+  "author": "Quinn Foster",
+  "license": "ISC"
+}

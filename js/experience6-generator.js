@@ -2,11 +2,11 @@
  * Experience 6 — Personal AI Chatbot Co-Pilot Driven 16mm Cylinder Generator
  * Powered by Three.js, Procedural Math Engines, AI JSON Array Parsers & Binary STL Exporter
  * 
- * Geometry Engine Fixes:
- * - Bilinear smoothstep heightmap interpolation for 100% solid, watertight manifold geometry (no torn faces).
- * - THREE.DoubleSide rendering for zero backface black-hole artifacts.
- * - Solid 0.6mm wall safety thickness clamp for breach-free cuts.
- * - Solid bottom retainer lip stop ring.
+ * Features:
+ * - Smoothstep End-Cap Rim Tapering: 100% smooth, flat, solid collar rims at top and bottom (zero spiky fins or missing faces).
+ * - Bilinear Heightmap Interpolation: Watertight, continuous 3D manifold geometry.
+ * - Expanded Procedural Presets: Stars, Cyber, Voronoi, Knurl, Waves, Scales, Flutes, Weave, Turbulence, Lotus, Bricks.
+ * - DoubleSide PBR rendering for zero backface black-hole visual glitches.
  */
 
 class PixelSleeveGenerator {
@@ -29,13 +29,13 @@ class PixelSleeveGenerator {
       voxelShape: 'chisel',   // 'block', 'chisel', 'knurl', 'hex', 'smooth'
       
       // Retainer Lip
-      lipRetainer: true,     // Bottom stop ring
+      lipRetainer: false,    // Bottom stop ring (Default: OFF)
       lipThickness: 1.2,     // mm
       lipBore: 14.5,         // Inner stop diameter mm
       
       // AI Procedural Engine
       aiPrompt: 'Alternating Star & Cross Geometric Lattice',
-      patternPreset: 'stars',// 'stars', 'cyber', 'voronoi', 'knurl', 'waves', 'scales', 'flutes', 'weave', 'turbulence'
+      patternPreset: 'stars',// 'stars', 'cyber', 'voronoi', 'knurl', 'waves', 'scales', 'flutes', 'weave', 'turbulence', 'lotus', 'bricks'
       noiseScale: 0.12,
       noiseContrast: 1.2,
       radialSymmetry: 4,     // 4-fold radial symmetry default for clean star patterns
@@ -45,6 +45,8 @@ class PixelSleeveGenerator {
       // Display & Visual Modes
       showGlassTube: true,
       geoNodesMode: false,   // Blender Geometry Nodes Scatter Mode
+      facetedShading: true,  // High-Visibility CAD Faceted Shading Mode (Default: ON)
+      isRotatedHorizontal: false, // 90° Orientation Toggle (Default: Vertical)
       materialStyle: 'titanium'
     };
 
@@ -80,8 +82,8 @@ class PixelSleeveGenerator {
     this.generateAIPattern(this.state.patternPreset);
     
     this._initUI();
+    this.toggleOrientation(false);
     this._animate();
-    this._resetCamera();
     
     // Hide loading screen
     const loader = document.getElementById('viewportLoading');
@@ -107,17 +109,19 @@ class PixelSleeveGenerator {
     this.scene = new THREE.Scene();
     this.modelGroup = new THREE.Group();
     this.geoNodesGroup = new THREE.Group();
+    this.glassGroup = new THREE.Group();
     this.scene.add(this.modelGroup);
     this.scene.add(this.geoNodesGroup);
+    this.scene.add(this.glassGroup);
 
     this.camera = new THREE.PerspectiveCamera(42, w / h, 1, 1000);
-    this.camera.position.set(45, 35, 75);
+    this.camera.position.set(40, 10, 140);
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
     this.renderer.setSize(w, h);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.25;
+    this.renderer.toneMappingExposure = 1.35;
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -126,21 +130,33 @@ class PixelSleeveGenerator {
   }
 
   _initLighting() {
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    // 1. Sky & Ground Hemisphere Ambient Light
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 1.1);
+    this.scene.add(hemiLight);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     this.scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight1.position.set(60, 80, 50);
-    dirLight1.castShadow = true;
-    this.scene.add(dirLight1);
+    // 2. Main Key Light (Front-Right Top)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyLight.position.set(45, 60, 50);
+    keyLight.castShadow = true;
+    this.scene.add(keyLight);
 
-    const dirLight2 = new THREE.DirectionalLight(0x38bdf8, 0.85);
-    dirLight2.position.set(-60, -30, -50);
-    this.scene.add(dirLight2);
+    // 3. Front-Left Fill Light
+    const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.9);
+    fillLight.position.set(-50, 30, 40);
+    this.scene.add(fillLight);
 
-    const dirLight3 = new THREE.DirectionalLight(0xc084fc, 0.65);
-    dirLight3.position.set(0, 50, -80);
-    this.scene.add(dirLight3);
+    // 4. Top-Back Rim Accent Light
+    const rimLight = new THREE.DirectionalLight(0xffffff, 1.2);
+    rimLight.position.set(0, 70, -60);
+    this.scene.add(rimLight);
+
+    // 5. Bottom Bounce Light (Illuminates bottom rim & endstop lip)
+    const bottomLight = new THREE.DirectionalLight(0xe2e8f0, 0.7);
+    bottomLight.position.set(0, -60, 40);
+    this.scene.add(bottomLight);
   }
 
   _initControls() {
@@ -291,9 +307,14 @@ class PixelSleeveGenerator {
           <button id="btnCopyImgClipboard" class="btn-primary">
             📋 Copy Image to Clipboard
           </button>
-          <button id="btnDownloadImg" class="btn-secondary">
-            📥 Download PNG
-          </button>
+          <div style="display:flex; gap:0.4rem;">
+            <button id="btnDownloadImg" class="btn-secondary" style="flex:1;">
+              📥 Download PNG
+            </button>
+            <button id="btnDownloadJSON" class="btn-secondary" style="flex:1;">
+              📄 Download JSON
+            </button>
+          </div>
           <button id="btnCopyVisionPrompt" class="btn-secondary">
             🤖 Copy AI Vision Feedback Prompt
           </button>
@@ -314,7 +335,6 @@ class PixelSleeveGenerator {
             new ClipboardItem({ [blob.type]: blob })
           ]).then(() => {
             this._showParseStatus("📋 3D Snapshot Image copied to Clipboard! Paste into ChatGPT / Claude.");
-            alert("Image copied to clipboard! You can now paste (Ctrl+V) directly into ChatGPT or Claude.");
           }).catch(err => {
             console.warn("ClipboardItem fallback:", err);
             this._downloadPNG(dataURL);
@@ -323,13 +343,14 @@ class PixelSleeveGenerator {
     };
 
     document.getElementById('btnDownloadImg').onclick = () => this._downloadPNG(dataURL);
+    document.getElementById('btnDownloadJSON').onclick = () => this._downloadJSON();
 
     document.getElementById('btnCopyVisionPrompt').onclick = () => {
       const visionPrompt = `Here is a 3D snapshot of my current 16mm glass tube sleeve design (${this.state.gridCols}x${this.state.gridRows} grid).
 Please analyze this 3D image and give me specific feedback and recommendations to improve the aesthetics, grip texture, or depth contrast.
 Return updated JSON float array if recommending changes!`;
       navigator.clipboard.writeText(visionPrompt).then(() => {
-        alert("AI Vision Prompt copied to clipboard! Attach it alongside your image in ChatGPT / Claude.");
+        this._showParseStatus("🤖 AI Vision Prompt copied to clipboard!");
       });
     };
   }
@@ -339,6 +360,29 @@ Return updated JSON float array if recommending changes!`;
     link.href = dataURL;
     link.download = `sleeve_3d_snapshot_${this.state.gridCols}x${this.state.gridRows}.png`;
     link.click();
+  }
+
+  _downloadJSON() {
+    const cols = this.state.gridCols;
+    const rows = this.state.gridRows;
+    const exportArr = [];
+
+    for (let r = 0; r < rows; r++) {
+      const rowArr = [];
+      for (let c = 0; c < cols; c++) {
+        rowArr.push(Number(this.depthMatrix[c][r].toFixed(2)));
+      }
+      exportArr.push(rowArr);
+    }
+
+    const jsonStr = JSON.stringify(exportArr, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `sleeve_heightmap_${cols}x${rows}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    this._showParseStatus("📄 Downloaded sleeve heightmap JSON file!");
   }
 
   // ─── AI CHATBOT CO-PILOT INTEGRATION SUITE ────────────────────────
@@ -527,6 +571,20 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             const t2 = this._simplexNoise2D(symCol * scale * 4 + 100, r * scale * 4 + seed);
             v = (t1 * 0.7 + t2 * 0.3) * contrast;
             break;
+
+          case 'lotus':
+            const lotusAngle = twistedAngle * 8.0;
+            const lotusY = normY * Math.PI * 12.0;
+            v = Math.sin(lotusAngle) * Math.cos(lotusY) + Math.cos(lotusAngle * 0.5);
+            v = Math.tanh(v * contrast);
+            break;
+
+          case 'bricks':
+            const brickR = Math.floor(normY * 24);
+            const shift = (brickR % 2 === 0) ? 0 : 0.5;
+            const brickC = Math.floor(((symCol / cols) + shift) * 16) % 16;
+            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 0.9 * contrast : -0.6 * contrast;
+            break;
         }
 
         this.depthMatrix[c][r] = Math.max(-1.0, Math.min(1.0, v));
@@ -581,7 +639,14 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       const obj = this.geoNodesGroup.children.pop();
       if (obj.geometry) obj.geometry.dispose();
     }
+    if (this.glassGroup) {
+      while (this.glassGroup.children.length > 0) {
+        const obj = this.glassGroup.children.pop();
+        if (obj.geometry) obj.geometry.dispose();
+      }
+    }
 
+    // 1. Create Sleeve Mesh
     const sleeveGeom = this._createSleeveGeometry();
     const sleeveMat = this._getMaterial(this.state.materialStyle);
     this.sleeveMesh = new THREE.Mesh(sleeveGeom, sleeveMat);
@@ -589,24 +654,84 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     this.sleeveMesh.receiveShadow = true;
     this.modelGroup.add(this.sleeveMesh);
 
+    const L = this.state.length;
+    const R_in = this.state.innerDiameter / 2.0;
+
+    // 2. Bottom Retainer Endstop Lip (if toggled on)
+    if (this.state.lipRetainer) {
+      const R_lip = (this.state.lipBore || 14.5) / 2.0;
+      const lipH = this.state.lipThickness || 1.2;
+
+      const lipShape = new THREE.Shape();
+      lipShape.absarc(0, 0, R_in + 0.05, 0, Math.PI * 2, false);
+      const lipHole = new THREE.Path();
+      lipHole.absarc(0, 0, R_lip, 0, Math.PI * 2, true);
+      lipShape.holes.push(lipHole);
+
+      const lipGeo = new THREE.ExtrudeGeometry(lipShape, {
+        depth: lipH,
+        bevelEnabled: false,
+        curveSegments: 48
+      });
+      const lipMesh = new THREE.Mesh(lipGeo, sleeveMat);
+      lipMesh.rotation.x = -Math.PI / 2;
+      lipMesh.position.y = -L / 2.0;
+      lipMesh.castShadow = true;
+      lipMesh.receiveShadow = true;
+      this.modelGroup.add(lipMesh);
+    }
+
+    // 3. Realistic 16mm Glass Tube Reference
     if (this.state.showGlassTube) {
-      const glassGeom = new THREE.CylinderGeometry(
-        8.0, 8.0, this.state.length + 20, 32, 1, false
-      );
+      const glassLen = L + 20.0;
+      const glassOuterR = 8.0; // 16mm OD
+      const glassInnerR = 6.8; // 13.6mm ID
+
+      const glassShape = new THREE.Shape();
+      glassShape.absarc(0, 0, glassOuterR, 0, Math.PI * 2, false);
+      const glassHole = new THREE.Path();
+      glassHole.absarc(0, 0, glassInnerR, 0, Math.PI * 2, true);
+      glassShape.holes.push(glassHole);
+
+      const glassGeom = new THREE.ExtrudeGeometry(glassShape, {
+        depth: glassLen,
+        bevelEnabled: true,
+        bevelSegments: 2,
+        bevelSize: 0.2,
+        bevelThickness: 0.2,
+        curveSegments: 48
+      });
+      glassGeom.center();
+
       const glassMat = new THREE.MeshPhysicalMaterial({
-        color: 0xe0f2fe,
-        transmission: 0.92,
-        opacity: 1,
+        color: 0x7dd3fc,
         transparent: true,
-        roughness: 0.05,
-        ior: 1.5,
-        thickness: 1.5,
+        opacity: 0.70,
+        roughness: 0.12,
+        metalness: 0.05,
+        transmission: 0.45,
+        ior: 1.52,
+        reflectivity: 0.95,
         clearcoat: 1.0,
         side: THREE.DoubleSide
       });
       this.glassMesh = new THREE.Mesh(glassGeom, glassMat);
-      this.modelGroup.add(this.glassMesh);
+      this.glassMesh.rotation.x = -Math.PI / 2;
+
+      // Align glass tube bottom: sits on top of endstop if toggled ON (-L/2 + lipThickness), else flush at bottom (-L/2)
+      const lipH = this.state.lipRetainer ? (this.state.lipThickness || 1.2) : 0.0;
+      const bottomY = -L / 2.0 + lipH;
+      const glassY = bottomY + glassLen / 2.0;
+
+      this.glassMesh.position.set(0, glassY, 0);
+      this.glassGroup.add(this.glassMesh);
     }
+
+    // Apply orientation rotation (0° vertical vs 90° horizontal)
+    const targetAngle = this.state.isRotatedHorizontal ? Math.PI / 2 : 0;
+    if (this.modelGroup) this.modelGroup.rotation.z = targetAngle;
+    if (this.glassGroup) this.glassGroup.rotation.z = targetAngle;
+    if (this.geoNodesGroup) this.geoNodesGroup.rotation.z = targetAngle;
 
     if (this.state.geoNodesMode) {
       this._updateGeoNodesScatter();
@@ -630,20 +755,31 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     const vertices = [];
     const indices = [];
     const uvs = [];
+    const colors = [];
 
     const halfL = L / 2.0;
 
-    // 1. Build Outer Surface Grid Vertices with Bilinear Smoothstep Sampling
+    // 1. Build Outer Surface Grid Vertices with Depth-based Ambient Occlusion Tinting & End Taper
     for (let r = 0; r <= rows; r++) {
       const normY = r / rows;
       const y = normY * L - halfL;
+
+      // Smooth End-Cap Rim Taper: 0.0 at top/bottom rims, 1.0 inside
+      let endTaper = 1.0;
+      const taperMargin = 2; // top 2 and bottom 2 rows taper smoothly to 0
+      if (r < taperMargin) {
+        endTaper = r / taperMargin;
+      } else if (r > rows - taperMargin) {
+        endTaper = (rows - r) / taperMargin;
+      }
+      endTaper = endTaper * endTaper * (3.0 - 2.0 * endTaper); // smoothstep
 
       for (let c = 0; c <= cols; c++) {
         const normX = c / cols;
         const angle = normX * Math.PI * 2.0;
 
-        // Bilinear smooth heightmap sampling
-        const depthVal = this._sampleDepthMatrix(c, r);
+        // Bilinear smooth heightmap sampling multiplied by endTaper
+        const depthVal = this._sampleDepthMatrix(c, r) * endTaper;
         
         let deltaR = 0;
         if (depthVal > 0) {
@@ -658,6 +794,21 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
         vertices.push(x, y, z);
         uvs.push(normX, normY);
+
+        // Depth Ambient Occlusion & Facet Contrast Color:
+        // Cut inward (+depthVal): dark shadow contrast inside cuts
+        // Extrude outward (-depthVal): bright highlight contrast on scale ridges
+        let factor = 1.0;
+        if (depthVal > 0) {
+          factor = 1.0 - depthVal * 0.40; // Darker shadow inside cut grooves
+        } else if (depthVal < 0) {
+          factor = 1.0 + Math.abs(depthVal) * 0.25; // Bright specular highlight on ridges
+        }
+
+        const cr = Math.min(1.0, 0.62 * factor);
+        const cg = Math.min(1.0, 0.68 * factor);
+        const cb = Math.min(1.0, 0.76 * factor);
+        colors.push(cr, cg, cb);
       }
     }
 
@@ -685,6 +836,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
         vertices.push(x, y, z);
         uvs.push(c / cols, r / rows);
+        colors.push(0.42, 0.48, 0.55); // Inner bore slate gray
       }
     }
 
@@ -701,7 +853,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       }
     }
 
-    // 3. Top Ring Cap (Closed Solid Ring)
+    // 3. Top Ring Cap (Closed Solid Ring - Outward Normal +Y)
     const topOuterStart = rows * (cols + 1);
     const topInnerStart = innerStartIdx + rows * (cols + 1);
     for (let c = 0; c < cols; c++) {
@@ -710,11 +862,11 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       const i1 = topInnerStart + c;
       const i2 = i1 + 1;
 
-      indices.push(o1, o2, i1);
-      indices.push(o2, i2, i1);
+      indices.push(o1, i1, o2);
+      indices.push(o2, i1, i2);
     }
 
-    // 4. Bottom Ring Cap (Closed Solid Ring with Retainer Lip Stop)
+    // 4. Bottom Ring Cap (Closed Solid Ring - Outward Normal -Y)
     const botOuterStart = 0;
     const botInnerStart = innerStartIdx;
     for (let c = 0; c < cols; c++) {
@@ -723,13 +875,14 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       const i1 = botInnerStart + c;
       const i2 = i1 + 1;
 
-      indices.push(o1, i1, o2);
-      indices.push(o2, i1, i2);
+      indices.push(o1, o2, i1);
+      indices.push(o2, i2, i1);
     }
 
     const geom = new THREE.BufferGeometry();
     geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
     geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     geom.setIndex(indices);
     geom.computeVertexNormals();
 
@@ -775,28 +928,32 @@ My Design Request: ${customText || this.state.aiPrompt}`;
   }
 
   _getMaterial(style) {
-    const matOpts = { side: THREE.DoubleSide };
+    const matOpts = { 
+      side: THREE.DoubleSide, 
+      vertexColors: true, 
+      flatShading: this.state.facetedShading 
+    };
 
     switch (style) {
       case 'anodized':
-        return new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.25, metalness: 0.85, ...matOpts });
+        return new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.28, metalness: 0.65, ...matOpts });
       case 'neon':
-        return new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.1, metalness: 0.9, emissive: 0x0369a1, emissiveIntensity: 0.2, ...matOpts });
+        return new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.15, metalness: 0.6, emissive: 0x0369a1, emissiveIntensity: 0.25, ...matOpts });
       case 'emerald':
-        return new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.3, metalness: 0.7, ...matOpts });
+        return new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3, metalness: 0.6, ...matOpts });
       case 'copper':
-        return new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.95, ...matOpts });
+        return new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.22, metalness: 0.85, ...matOpts });
       case 'titanium':
       default:
-        return new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.35, metalness: 0.8, ...matOpts });
+        return new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.35, metalness: 0.45, ...matOpts });
     }
   }
 
   exportSTL() {
-    if (!this.sleeveMesh || !this.sleeveMesh.geometry) return;
+    if (!this.modelGroup || this.modelGroup.children.length === 0) return;
 
     const exporter = new THREE.STLExporter();
-    const stlData = exporter.parse(this.sleeveMesh, { binary: true });
+    const stlData = exporter.parse(this.modelGroup, { binary: true });
 
     const blob = new Blob([stlData], { type: 'application/octet-stream' });
     const link = document.createElement('a');
@@ -837,13 +994,25 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       });
     }
 
-    const promptCards = document.querySelectorAll('.prompt-card-btn');
-    promptCards.forEach(card => {
+    const presetCards = document.querySelectorAll('.prompt-card-btn, .preset-chip');
+    presetCards.forEach(card => {
       card.addEventListener('click', () => {
-        const text = card.getAttribute('data-prompt-text');
+        presetCards.forEach(b => b.classList.remove('active'));
+        card.classList.add('active');
+
+        const presetKey = card.getAttribute('data-preset') || 'stars';
+        const promptText = card.getAttribute('data-prompt-text') || '';
         const inputEl = document.getElementById('aiJsonInput');
-        if (inputEl) inputEl.value = text;
-        this.copyChatbotSystemPrompt(text);
+        
+        if (inputEl && promptText) {
+          inputEl.value = promptText;
+        }
+
+        this.state.patternPreset = presetKey;
+        this.generateAIPattern(presetKey);
+
+        // Copy system prompt for AI chatbot with clear status
+        this.copyChatbotSystemPrompt(promptText || presetKey);
       });
     });
 
@@ -869,17 +1038,6 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         this.generateAIPattern(this.state.patternPreset);
       });
     }
-
-    const presetBtns = document.querySelectorAll('.preset-chip');
-    presetBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        presetBtns.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const preset = btn.getAttribute('data-preset');
-        this.state.patternPreset = preset;
-        this.generateAIPattern(preset);
-      });
-    });
 
     const btnInvert = document.getElementById('btnInvertDepths');
     if (btnInvert) {
@@ -908,6 +1066,29 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         this.state.showGlassTube = e.target.checked;
         this.updateMesh();
       });
+    }
+
+    const lipToggle = document.getElementById('toggleLipRetainer');
+    if (lipToggle) {
+      lipToggle.checked = this.state.lipRetainer;
+      lipToggle.addEventListener('change', (e) => {
+        this.state.lipRetainer = e.target.checked;
+        this.updateMesh();
+      });
+    }
+
+    const facetedToggle = document.getElementById('toggleFacetedShading');
+    if (facetedToggle) {
+      facetedToggle.checked = this.state.facetedShading;
+      facetedToggle.addEventListener('change', (e) => {
+        this.state.facetedShading = e.target.checked;
+        this.updateMesh();
+      });
+    }
+
+    const btnRotateOrient = document.getElementById('btnToggleOrientation');
+    if (btnRotateOrient) {
+      btnRotateOrient.addEventListener('click', () => this.toggleOrientation());
     }
 
     const btnSTL = document.getElementById('btnExportSTL');
@@ -943,9 +1124,38 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     if (dimsEl) dimsEl.textContent = `16.2mm ID × ${this.state.outerDiameter}mm OD × ${this.state.length}mm L`;
   }
 
+  toggleOrientation(forceState = null) {
+    if (typeof forceState === 'boolean') {
+      this.state.isRotatedHorizontal = forceState;
+    } else {
+      this.state.isRotatedHorizontal = !this.state.isRotatedHorizontal;
+    }
+
+    const isHoriz = this.state.isRotatedHorizontal;
+    const targetAngle = isHoriz ? Math.PI / 2 : 0;
+
+    if (this.modelGroup) this.modelGroup.rotation.z = targetAngle;
+    if (this.glassGroup) this.glassGroup.rotation.z = targetAngle;
+    if (this.geoNodesGroup) this.geoNodesGroup.rotation.z = targetAngle;
+
+    const btnRotate = document.getElementById('btnToggleOrientation');
+    if (btnRotate) {
+      btnRotate.textContent = isHoriz ? '🔄 Rotate to Vertical (0°)' : '📐 Vertical View (0°)';
+      btnRotate.title = isHoriz ? 'Click to set 3D view to upright Vertical orientation (0°)' : 'Click to rotate 3D view 90° Horizontal';
+      btnRotate.classList.toggle('active', !isHoriz);
+    }
+
+    this._resetCamera();
+  }
+
   _resetCamera() {
     if (this.camera && this.controls) {
-      this.camera.position.set(45, 35, 75);
+      if (this.state && this.state.isRotatedHorizontal) {
+        this.camera.position.set(0, 35, 135);
+      } else {
+        // Upright Vertical orientation camera positioning
+        this.camera.position.set(35, 12, 130);
+      }
       this.controls.target.set(0, 0, 0);
       this.controls.update();
     }

@@ -26,7 +26,7 @@ class STLGenerator {
       engraveDepth: 0.8,    // Depth/Height in mm
       charSpacing: 1.0,     // Character Spacing Multiplier (0.5x to 2.5x)
       windowType: "lattice",// 'lattice', 'slotted', 'ports', 'solid'
-      lipRetainer: true,    // Bottom lip stop ring (1.0mm thickness)
+      lipRetainer: false,   // Bottom lip stop ring (Default: OFF)
       autoLipOffset: true,  // Auto-adjust tube height/position for retainer lip
       showGlassTube: true,  // Visual reference glass tube toggle
       cutoutOriginY: 0.0,
@@ -659,7 +659,7 @@ class STLGenerator {
     const innerR = 6.8;
     const glassLen = this.state.glassLength || 100.0;
     const sleeveLen = this.state.length || 100.0;
-    const lipH = (this.state.lipRetainer && this.state.autoLipOffset) ? 1.0 : 0.0;
+    const lipH = this.state.lipRetainer ? 1.0 : 0.0;
 
     const seatedY = (-sleeveLen / 2 + lipH) + (glassLen / 2);
     const glassY = seatedY + (this.state.glassOffset || 0.0);

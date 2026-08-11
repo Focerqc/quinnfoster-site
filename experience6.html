@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=3.6">
+  <link rel="stylesheet" href="css/styles.css?v=4.4">
 </head>
 <body>
 
@@ -39,7 +39,7 @@
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
-          Experience 1
+          Experience 1 (Beginner)
         </a>
         <a href="experience2.html" class="tab-btn">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +51,7 @@
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
-          Experience 3 (Beginner)
+          Experience 3 (Intermediate)
         </a>
         <a href="experience4.html" class="tab-btn">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -87,7 +87,44 @@
     <div class="experience-card stl-generator-container">
       <div class="stl-generator-wrapper grid-experience-6">
         
-        <!-- Left Controls Pane -->
+        <!-- 3D Viewport Pane (Left on Desktop, Top on Mobile) -->
+        <div class="viewport-pane">
+          <div class="viewport-header">
+            <div class="viewport-badge">
+              <span class="pulse-dot"></span>
+              Blender GeoNodes Style AI Co-Pilot Engine
+            </div>
+            
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <button id="btnToggleOrientation" class="btn-secondary btn-small active" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Click to rotate 3D view 90° Horizontal">
+                📐 Vertical View (0°)
+              </button>
+
+              <button id="btnTakeAIScreenshot" class="btn-secondary btn-small" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); color:#38bdf8; font-weight:700;" title="Take 3D Viewport Snapshot for AI Chatbot Feedback">
+                📸 Take AI Snapshot
+              </button>
+              
+              <div id="meshDimensionsDisplay" class="mesh-dims-tag">
+                16.2mm ID × 22.0mm OD × 90.0mm L
+              </div>
+            </div>
+          </div>
+
+          <div id="viewport" class="viewport-canvas-container">
+            <div id="viewportLoading" class="viewport-loading">
+              <div class="spinner"></div>
+              <div>Compiling Procedural AI Voxel Cylinder...</div>
+            </div>
+          </div>
+
+          <div class="viewport-footer-stats">
+            <div>Vertices: <strong id="vertexCountDisplay">0</strong></div>
+            <div>Triangles: <strong id="triangleCountDisplay">0</strong></div>
+            <div>Fit: <strong>Standard 16mm Glass Tube</strong></div>
+          </div>
+        </div>
+
+        <!-- Controls Pane & AI Co-Pilot Hub (Right on Desktop, Below Viewport on Mobile) -->
         <div class="controls-pane exp6-controls">
           
           <!-- Section 1: Dimensions & Resolution -->
@@ -134,45 +171,94 @@
             </div>
           </div>
 
-          <!-- Section 2: Personal AI Chatbot Co-Pilot Hub -->
+          <!-- Section 2: 3D Pattern Presets & AI Co-Pilot Hub -->
           <div class="control-section ai-copilot-card">
-            <h3 class="section-title">🤖 Personal AI Chatbot Co-Pilot Hub</h3>
-            <p class="section-desc">1. Copy prompt system instruction → 2. Paste to ChatGPT/Claude → 3. Paste output array back below!</p>
+            <h3 class="section-title">🤖 3D Pattern Presets & AI Co-Pilot Hub</h3>
+            <p class="section-desc">Click any preset to preview it live in 3D & copy its prompt for ChatGPT/Claude, or fine-tune sliders below!</p>
 
-            <!-- 1-Click Copy System Prompt -->
-            <div class="ai-prompt-copy-box">
-              <button id="btnCopySystemPrompt" class="btn-primary btn-ai" style="width:100%;">
-                📋 1. Copy System Prompt for ChatGPT / Claude
-              </button>
-            </div>
-
-            <!-- Ready-Made Prompt Template Cards -->
-            <div class="copilot-presets-label">Quick AI Design Prompts (Click to Copy):</div>
+            <!-- Interactive 3D Pattern Gallery -->
+            <div class="copilot-presets-label">Click a Preset to Preview Live in 3D & Copy AI Prompt:</div>
             <div class="prompt-preset-list">
-              <button class="prompt-card-btn" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
+              <button class="prompt-card-btn active" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
                 ⭐ Star & Cross Lattice
               </button>
-              <button class="prompt-card-btn" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
+              <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
+                🐉 Dragon Scale Armor
+              </button>
+              <button class="prompt-card-btn" data-preset="voronoi" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
                 🧬 Biomechanical Spine
               </button>
-              <button class="prompt-card-btn" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
+              <button class="prompt-card-btn" data-preset="cyber" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
                 ⚡ Cyber Barcode Stream
               </button>
-              <button class="prompt-card-btn" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
+              <button class="prompt-card-btn" data-preset="waves" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
                 🌊 Japanese Wave Ripple
+              </button>
+              <button class="prompt-card-btn" data-preset="knurl" data-prompt-text="Design a diamond knurling grip texture with raised 4-sided pyramid tiles separated by deep tactile V-grooves.">
+                💎 Diamond Pyramid Knurl
+              </button>
+              <button class="prompt-card-btn" data-preset="flutes" data-prompt-text="Design helical spiral flutes with 8 twisting grooves wrapping around the cylinder at a 45 degree angle.">
+                🌀 Helical Spiral Flutes
+              </button>
+              <button class="prompt-card-btn" data-preset="weave" data-prompt-text="Design a carbon fiber micro-weave lattice with alternating checkerboard depth offsets for high-friction grip.">
+                🕸️ Micro-Weave Carbon
+              </button>
+              <button class="prompt-card-btn" data-preset="lotus" data-prompt-text="Design an organic lotus flower petal ripple wrapping radially around the sleeve.">
+                🌸 Lotus Petal Ripple
+              </button>
+              <button class="prompt-card-btn" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
+                🧱 Brick Lattice
+              </button>
+              <button class="prompt-card-btn" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
+                🌪️ Turbulence Fluid
               </button>
             </div>
 
-            <!-- Paste & Refine Box -->
-            <div class="ai-paste-container" style="margin-top:0.85rem;">
+            <!-- Fine-Tuning Sliders -->
+            <div style="margin-top: 1.0rem;">
+              <div class="control-grid-2col">
+                <div class="control-group">
+                  <label for="noiseScale">Noise Scale: <span id="noiseScaleVal">0.12</span></label>
+                  <input type="range" id="noiseScale" min="0.02" max="0.50" step="0.01" value="0.12">
+                </div>
+
+                <div class="control-group">
+                  <label for="noiseContrast">Contrast: <span id="noiseContrastVal">1.2</span></label>
+                  <input type="range" id="noiseContrast" min="0.2" max="3.0" step="0.1" value="1.2">
+                </div>
+              </div>
+
+              <div class="control-grid-2col">
+                <div class="control-group">
+                  <label for="radialSymmetry">Symmetry Folds: <span id="radialSymmetryVal">4</span>x</label>
+                  <input type="range" id="radialSymmetry" min="1" max="16" step="1" value="4">
+                </div>
+
+                <div class="control-group">
+                  <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>°</label>
+                  <input type="range" id="helicalTwist" min="-180" max="180" step="10" value="0">
+                </div>
+              </div>
+
+              <div style="display:flex; gap:0.4rem; margin-top:0.4rem;">
+                <button id="btnInvertDepths" class="btn-small btn-secondary" style="flex:1;">🔄 Invert Depths</button>
+                <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1;">🎲 Random Seed</button>
+              </div>
+            </div>
+
+            <!-- Custom AI Prompt & Chatbot Input -->
+            <div class="ai-paste-container" style="margin-top:1.0rem;">
               <label for="aiJsonInput" style="font-weight:700; font-size:0.82rem; color:#38bdf8; display:block; margin-bottom:0.35rem;">
-                2. Paste Chatbot Output (JSON 2D Array or Prompt Text):
+                Custom Prompt / Chatbot Output (JSON 2D Array or Prompt Text):
               </label>
-              <textarea id="aiJsonInput" class="ai-prompt-box" rows="3" placeholder="Paste your chatbot's output here (e.g. [[0.2, -0.5, ...], ...]) or describe a design..."></textarea>
+              <textarea id="aiJsonInput" class="ai-prompt-box" rows="3" placeholder="Paste your chatbot's output here (e.g. [[0.2, -0.5, ...], ...]) or write a prompt..."></textarea>
               
               <div style="display:flex; gap:0.4rem; margin-top:0.4rem;">
                 <button id="btnExecuteAIPaste" class="btn-success" style="flex:1; padding:0.6rem; font-size:0.85rem;">
-                  ⚡ 3. Apply to 3D Cylinder
+                  ⚡ Apply to 3D Cylinder
+                </button>
+                <button id="btnCopySystemPrompt" class="btn-primary btn-small" title="Copy Prompt Instruction to Clipboard for ChatGPT/Claude">
+                  📋 Copy Prompt
                 </button>
                 <button id="btnExportMatrixToAI" class="btn-secondary btn-small" title="Copy Current 3D Matrix to Clipboard for your Chatbot">
                   📤 Export Matrix
@@ -180,51 +266,6 @@
               </div>
 
               <div id="aiParseStatus" class="ai-parse-status">Waiting for AI chatbot input...</div>
-            </div>
-          </div>
-
-          <!-- Section 3: Procedural Fine-Tuning Controls -->
-          <div class="control-section">
-            <h3 class="section-title">🎛️ Algorithmic Fine-Tuning</h3>
-            
-            <div class="preset-chip-list">
-              <button class="preset-chip active" data-preset="stars">⭐ Stars & Crosses</button>
-              <button class="preset-chip" data-preset="cyber">⚡ Cyber Matrix</button>
-              <button class="preset-chip" data-preset="voronoi">🧬 Bio Voronoi</button>
-              <button class="preset-chip" data-preset="knurl">💎 Diamond Knurl</button>
-              <button class="preset-chip" data-preset="waves">🌊 Waves</button>
-              <button class="preset-chip" data-preset="scales">🐉 Scales</button>
-              <button class="preset-chip" data-preset="flutes">🌀 Flutes</button>
-              <button class="preset-chip" data-preset="weave">🕸️ Weave</button>
-            </div>
-
-            <div class="control-grid-2col">
-              <div class="control-group">
-                <label for="noiseScale">Noise Scale: <span id="noiseScaleVal">0.12</span></label>
-                <input type="range" id="noiseScale" min="0.02" max="0.50" step="0.01" value="0.12">
-              </div>
-
-              <div class="control-group">
-                <label for="noiseContrast">Contrast: <span id="noiseContrastVal">1.2</span></label>
-                <input type="range" id="noiseContrast" min="0.2" max="3.0" step="0.1" value="1.2">
-              </div>
-            </div>
-
-            <div class="control-grid-2col">
-              <div class="control-group">
-                <label for="radialSymmetry">Symmetry Folds: <span id="radialSymmetryVal">4</span>x</label>
-                <input type="range" id="radialSymmetry" min="1" max="16" step="1" value="4">
-              </div>
-
-              <div class="control-group">
-                <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>°</label>
-                <input type="range" id="helicalTwist" min="-180" max="180" step="10" value="0">
-              </div>
-            </div>
-
-            <div style="display:flex; gap:0.4rem; margin-top:0.5rem;">
-              <button id="btnInvertDepths" class="btn-small btn-secondary" style="flex:1;">🔄 Invert Depths</button>
-              <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1;">🎲 Random Seed</button>
             </div>
           </div>
 
@@ -255,6 +296,18 @@
                 <span class="toggle-custom"></span>
                 <span>🧪 Show 16mm Glass Tube Reference</span>
               </label>
+
+              <label class="toggle-label">
+                <input type="checkbox" id="toggleLipRetainer">
+                <span class="toggle-custom"></span>
+                <span>🛑 Bottom Glass Tube Endstop Lip (Default: OFF)</span>
+              </label>
+
+              <label class="toggle-label">
+                <input type="checkbox" id="toggleFacetedShading" checked>
+                <span class="toggle-custom"></span>
+                <span>🛡️ High-Visibility CAD Faceted Shading</span>
+              </label>
             </div>
           </div>
 
@@ -274,39 +327,6 @@
 
         </div>
 
-        <!-- Right Viewport Pane -->
-        <div class="viewport-pane">
-          <div class="viewport-header">
-            <div class="viewport-badge">
-              <span class="pulse-dot"></span>
-              Blender GeoNodes Style AI Co-Pilot Engine
-            </div>
-            
-            <div style="display:flex; gap:0.5rem; align-items:center;">
-              <button id="btnTakeAIScreenshot" class="btn-secondary btn-small" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); color:#38bdf8; font-weight:700;" title="Take 3D Viewport Snapshot for AI Chatbot Feedback">
-                📸 Take AI Snapshot
-              </button>
-              
-              <div id="meshDimensionsDisplay" class="mesh-dims-tag">
-                16.2mm ID × 22.0mm OD × 90.0mm L
-              </div>
-            </div>
-          </div>
-
-          <div id="viewport" class="viewport-canvas-container">
-            <div id="viewportLoading" class="viewport-loading">
-              <div class="spinner"></div>
-              <div>Compiling Procedural AI Voxel Cylinder...</div>
-            </div>
-          </div>
-
-          <div class="viewport-footer-stats">
-            <div>Vertices: <strong id="vertexCountDisplay">0</strong></div>
-            <div>Triangles: <strong id="triangleCountDisplay">0</strong></div>
-            <div>Fit: <strong>Standard 16mm Glass Tube</strong></div>
-          </div>
-        </div>
-
       </div>
     </div>
   </main>
@@ -321,7 +341,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience6-generator.js?v=3.6"></script>
+  <script src="js/experience6-generator.js?v=4.4"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

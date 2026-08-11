@@ -1264,19 +1264,30 @@ input:checked + .slider-round:before {
 }
 
 /* Responsive Split-Pane Adjustments */
-@media (max-width: 900px) {
+@media (max-width: 992px) {
   .stl-generator-wrapper {
+    display: flex;
+    flex-direction: column;
     grid-template-columns: 1fr;
   }
 
-  .controls-pane {
-    max-height: none;
-    border-top: 1px solid var(--surface-border);
+  .viewport-pane {
+    order: 1; /* Render 3D Viewport AT THE TOP on mobile */
+    border-right: none;
+    border-bottom: 1px solid var(--surface-border);
+    min-height: 400px;
+    height: 420px;
   }
 
-  .viewport-pane {
-    border-right: none;
-    min-height: 380px;
+  .controls-pane {
+    order: 2; /* Controls scroll below 3D canvas on mobile */
+    max-height: none;
+  }
+
+  .viewport-header {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.65rem 0.85rem;
   }
 }
 
