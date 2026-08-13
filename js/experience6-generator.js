@@ -433,6 +433,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       try {
         const parsed = JSON.parse(jsonMatch[0]);
         if (Array.isArray(parsed) && parsed.length > 0) {
+          this.updateRandomizedControlsVisibility('custom');
           this._loadArrayIntoMatrix(parsed);
           this._renderCanvas2D();
           this.updateMesh();
@@ -479,8 +480,27 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     }
   }
 
+  isRandomizedPreset(presetName) {
+    const randomizedPresets = ['cyber', 'voronoi', 'waves', 'turbulence'];
+    return randomizedPresets.includes(presetName);
+  }
+
+  updateRandomizedControlsVisibility(presetName) {
+    const isRandomized = this.isRandomizedPreset(presetName);
+    const noiseScaleGroup = document.getElementById('noiseScaleGroup');
+    const seedBtn = document.getElementById('btnRandomizeSeed');
+
+    if (noiseScaleGroup) {
+      noiseScaleGroup.style.display = isRandomized ? '' : 'none';
+    }
+    if (seedBtn) {
+      seedBtn.style.display = isRandomized ? '' : 'none';
+    }
+  }
+
   // ─── PURE ALGORITHMIC AI PATTERN GENERATOR ENGINE ──────────────────
   generateAIPattern(presetName) {
+    this.updateRandomizedControlsVisibility(presetName);
     this._initDepthMatrix();
     
     const cols = this.state.gridCols;
@@ -500,20 +520,21 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       for (let r = 0; r < rows; r++) {
         const normY = r / rows;
         const twistedAngle = angle + normY * twist;
+        const twistedSymCol = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * cols);
         let v = 0;
 
         switch (presetName) {
           case 'stars':
           default:
             // ⭐ Precise 5-Point Star & Cross Lattice Array
-            const starCellX = (symCol % 8) - 4;
+            const starCellX = (twistedSymCol % 8) - 4;
             const starCellY = (r % 10) - 5;
             const starDist = Math.sqrt(starCellX * starCellX + starCellY * starCellY);
             const starAngle = Math.atan2(starCellY, starCellX);
             const starRadius = 2.4 + Math.sin(starAngle * 5.0) * 1.2;
             
             if (starDist < starRadius) {
-              v = 1.0 * contrast; // Cut 5-Point Star
+              v = 1.0 * contrast; // Cut 5-Point Star (100% Passthrough Window)
             } else {
               const isCross = (Math.abs(starCellX) <= 1 || Math.abs(starCellY) <= 1);
               v = isCross ? -0.75 * contrast : 0.0; // Raised Cross Grid
@@ -521,93 +542,99 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             break;
 
           case 'custom1':
-            const c1_cellX = (symCol % 6) - 3;
+            const c1_cellX = (twistedSymCol % 6) - 3;
             const c1_cellY = (r % 8) - 4;
             const c1_dist = Math.sqrt(c1_cellX * c1_cellX + c1_cellY * c1_cellY);
-            v = (c1_dist < 2.0) ? 0.95 * contrast : -0.6 * contrast;
+            v = (c1_dist < 2.0) ? 1.0 * contrast : -0.6 * contrast;
             break;
 
           case 'custom2':
             const c2_wave = Math.sin(twistedAngle * 10 + normY * 30) * Math.cos(symCol * 0.3);
-            v = Math.tanh(c2_wave * contrast * 2.0);
+            v = Math.tanh(c2_wave * 2.0);
+            v = (v > 0) ? Math.min(1.0, v * 1.25) * contrast : v * contrast;
             break;
 
           case 'custom3':
             const c3_spiral = twistedAngle * 8 + normY * Math.PI * 10;
             const c3_cross = Math.sin(twistedAngle * 8 - normY * Math.PI * 10);
-            v = Math.max(-0.5, Math.sin(c3_spiral) * c3_cross * 1.5 * contrast);
+            v = Math.sin(c3_spiral) * c3_cross * 1.5;
+            v = (v > 0) ? Math.min(1.0, v * 1.35) * contrast : Math.max(-0.6, v) * contrast;
             break;
 
           case 'custom4':
             const c4_rib = Math.sin(normY * Math.PI * 16);
             const c4_radial = Math.cos(twistedAngle * 6);
-            v = (c4_rib * c4_radial > 0.1) ? 0.9 * contrast : -0.7 * contrast;
+            v = (c4_rib * c4_radial > 0.1) ? 1.0 * contrast : -0.7 * contrast;
             break;
 
           case 'cyber':
-            const n1 = this._simplexNoise2D(symCol * scale, r * scale + seed);
+            const n1 = this._simplexNoise2D(twistedSymCol * scale, r * scale + seed);
             const n2 = Math.sin(twistedAngle * 6 + normY * 16);
-            v = Math.sin((n1 + n2) * Math.PI * contrast);
-            if (v > 0.25) v = 1.0;
-            else if (v < -0.25) v = -0.8;
+            v = Math.sin((n1 + n2) * Math.PI);
+            if (v > 0.20) v = 1.0 * contrast;
+            else if (v < -0.20) v = -0.8 * contrast;
             else v = 0;
             break;
 
           case 'voronoi':
-            const vx = (symCol / cols) * (8 * scale * 10);
+            const vx = ((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) * (8 * scale * 10);
             const vy = normY * (10 * scale * 10);
-            v = this._voronoiCell(vx, vy, seed) * contrast;
-            v = Math.max(-1.0, Math.min(1.0, (v - 0.45) * 2.2));
+            v = (this._voronoiCell(vx, vy, seed) - 0.45) * 2.5;
+            v = (v > 0) ? Math.min(1.0, v * 1.4) * contrast : Math.max(-1.0, v) * contrast;
             break;
 
           case 'knurl':
             const k1 = Math.sin(twistedAngle * 12 + normY * 36);
             const k2 = Math.sin(twistedAngle * 12 - normY * 36);
-            v = Math.max(-0.3, (k1 * k2) * 1.6 * contrast);
+            v = k1 * k2 * 1.8;
+            v = (v > 0) ? Math.min(1.0, v * 1.25) * contrast : Math.max(-0.4, v) * contrast;
             break;
 
           case 'waves':
-            v = Math.sin(twistedAngle * 8 + normY * 24) * Math.cos(normY * 12 + seed);
-            v = Math.tanh(v * contrast * 1.5);
+            const rawWave = Math.sin(twistedAngle * 8 + normY * 24) * Math.cos(normY * 12 + seed);
+            v = (rawWave > 0) ? Math.min(1.0, rawWave * 2.2) * contrast : Math.max(-1.0, rawWave * 1.5) * contrast;
             break;
 
           case 'scales':
             const scaleY = normY * 18;
             const offset = (Math.floor(scaleY) % 2 === 0) ? 0 : Math.PI / 6;
-            v = Math.sin(twistedAngle * 10 + offset) * Math.sin((scaleY % 1.0) * Math.PI);
-            v = Math.pow(Math.max(0, v), 1.4) * contrast;
+            const rawScale = Math.sin(twistedAngle * 10 + offset) * Math.sin((scaleY % 1.0) * Math.PI);
+            v = Math.pow(Math.max(0, rawScale), 1.2) * 1.35 * contrast;
+            v = Math.min(1.0, v);
             break;
 
           case 'flutes':
             const spiral = twistedAngle * 6 + normY * Math.PI * 8;
             v = Math.sin(spiral);
-            v = Math.pow(Math.abs(v), 0.7) * Math.sign(v) * contrast;
+            v = (v > 0) ? Math.min(1.0, Math.pow(v, 0.6) * 1.1) * contrast : -Math.pow(Math.abs(v), 0.7) * contrast;
             break;
 
           case 'weave':
-            const w1 = Math.floor((symCol / cols) * 32) % 2;
+            const w1 = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * 32) % 2;
             const w2 = Math.floor(normY * 40) % 2;
-            v = (w1 ^ w2) ? 0.75 * contrast : -0.75 * contrast;
+            v = (w1 ^ w2) ? 1.0 * contrast : -0.75 * contrast;
             break;
 
           case 'turbulence':
-            const t1 = this._simplexNoise2D(symCol * scale * 2, r * scale * 2 + seed);
-            const t2 = this._simplexNoise2D(symCol * scale * 4 + 100, r * scale * 4 + seed);
-            v = (t1 * 0.7 + t2 * 0.3) * contrast;
+            const twistX = (((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * cols;
+            const t1 = this._simplexNoise2D(twistX * scale * 2, r * scale * 2 + seed);
+            const t2 = this._simplexNoise2D(twistX * scale * 4 + 100, r * scale * 4 + seed);
+            const rawTurb = (t1 * 0.7 + t2 * 0.3);
+            v = (rawTurb > 0) ? Math.min(1.0, rawTurb * 2.0) * contrast : Math.max(-1.0, rawTurb * 1.8) * contrast;
             break;
 
           case 'lotus':
             const lotusAngle = twistedAngle * 8.0;
             const lotusY = normY * Math.PI * 12.0;
-            v = Math.sin(lotusAngle) * Math.cos(lotusY) + Math.cos(lotusAngle * 0.5);
-            v = Math.tanh(v * contrast);
+            const rawLotus = Math.sin(lotusAngle) * Math.cos(lotusY) + Math.cos(lotusAngle * 0.5);
+            v = (rawLotus > 0) ? Math.min(1.0, rawLotus * 0.85) * contrast : Math.max(-1.0, rawLotus * 0.7) * contrast;
             break;
 
           case 'bricks':
             const brickR = Math.floor(normY * 24);
             const shift = (brickR % 2 === 0) ? 0 : 0.5;
-            const brickC = Math.floor(((symCol / cols) + shift) * 16) % 16;
-            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 0.9 * contrast : -0.6 * contrast;
+            const brickC = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0 + shift) % 1.0) * 16);
+            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 1.0 * contrast : -0.6 * contrast;
             break;
         }
 
@@ -767,11 +794,11 @@ My Design Request: ${customText || this.state.aiPrompt}`;
   _createSleeveGeometry() {
     const R_in = this.state.innerDiameter / 2.0;  // 8.1mm
     const R_out = this.state.outerDiameter / 2.0; // 11.0mm
-    const maxWall = R_out - R_in;                 // 2.9mm
+    const maxWall = Math.max(0.1, R_out - R_in);  // 2.9mm wall thickness
     const L = this.state.length;
     
-    // Wall thickness safety clamp: never cut past 0.6mm remaining wall
-    const safeMaxCut = Math.min(this.state.maxCutDepth, maxWall - 0.6);
+    // Cut depth up to full wall thickness (allows 100% passthrough windows)
+    const cutDepth = Math.min(this.state.maxCutDepth, maxWall);
     
     const cols = this.state.gridCols;
     const rows = this.state.gridRows;
@@ -782,13 +809,16 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     const colors = [];
 
     const halfL = L / 2.0;
+    
+    // Store outer surface radii for passthrough window check
+    const outerRadii = new Float32Array((rows + 1) * (cols + 1));
 
-    // 1. Build Outer Surface Grid Vertices with Depth-based Ambient Occlusion Tinting & End Taper
+    // 1. Build Outer Surface Grid Vertices
     for (let r = 0; r <= rows; r++) {
       const normY = r / rows;
       const y = normY * L - halfL;
 
-      // Smooth End-Cap Rim Taper: 0.0 at top/bottom rims, 1.0 inside
+      // Smooth End-Cap Rim Taper: 0.0 at top/bottom rims, 1.0 inside (keeps top & bottom collars solid)
       let endTaper = 1.0;
       const taperMargin = 2; // top 2 and bottom 2 rows taper smoothly to 0
       if (r < taperMargin) {
@@ -802,17 +832,20 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         const normX = c / cols;
         const angle = normX * Math.PI * 2.0;
 
-        // Bilinear smooth heightmap sampling multiplied by endTaper
         const depthVal = this._sampleDepthMatrix(c, r) * endTaper;
         
         let deltaR = 0;
         if (depthVal > 0) {
-          deltaR = -depthVal * safeMaxCut;
+          deltaR = -depthVal * cutDepth;
         } else if (depthVal < 0) {
           deltaR = Math.abs(depthVal) * this.state.maxExtrudeHeight;
         }
 
-        const currR = R_out + deltaR;
+        // Clamp minimum radius to inner bore radius R_in
+        const currR = Math.max(R_in, R_out + deltaR);
+        const idx = r * (cols + 1) + c;
+        outerRadii[idx] = currR;
+
         const x = Math.cos(angle) * currR;
         const z = Math.sin(angle) * currR;
 
@@ -820,13 +853,11 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         uvs.push(normX, normY);
 
         // Depth Ambient Occlusion & Facet Contrast Color:
-        // Cut inward (+depthVal): dark shadow contrast inside cuts
-        // Extrude outward (-depthVal): bright highlight contrast on scale ridges
         let factor = 1.0;
         if (depthVal > 0) {
-          factor = 1.0 - depthVal * 0.40; // Darker shadow inside cut grooves
+          factor = 1.0 - depthVal * 0.40;
         } else if (depthVal < 0) {
-          factor = 1.0 + Math.abs(depthVal) * 0.25; // Bright specular highlight on ridges
+          factor = 1.0 + Math.abs(depthVal) * 0.25;
         }
 
         const cr = Math.min(1.0, 0.62 * factor);
@@ -836,9 +867,26 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       }
     }
 
+    // Helper: Check if a grid cell (c, r) is a full passthrough hole to the inner glass tube
+    const isFullHoleCell = (c, r) => {
+      const i1 = r * (cols + 1) + c;
+      const i2 = i1 + 1;
+      const i3 = (r + 1) * (cols + 1) + c;
+      const i4 = i3 + 1;
+      const eps = 0.02; // 0.02mm tolerance near R_in
+      return (
+        outerRadii[i1] <= R_in + eps &&
+        outerRadii[i2] <= R_in + eps &&
+        outerRadii[i3] <= R_in + eps &&
+        outerRadii[i4] <= R_in + eps
+      );
+    };
+
     // Outer Quad Indices (Facing Outward)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
+        if (isFullHoleCell(c, r)) continue; // Omit quad to open a see-through window hole!
+
         const i1 = r * (cols + 1) + c;
         const i2 = i1 + 1;
         const i3 = (r + 1) * (cols + 1) + c;
@@ -860,13 +908,15 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
         vertices.push(x, y, z);
         uvs.push(c / cols, r / rows);
-        colors.push(0.42, 0.48, 0.55); // Inner bore slate gray
+        colors.push(0.38, 0.44, 0.52); // Inner bore slate color
       }
     }
 
     // Inner Quad Indices (Facing Inward)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
+        if (isFullHoleCell(c, r)) continue; // Omit inner quad for open see-through window hole!
+
         const i1 = innerStartIdx + r * (cols + 1) + c;
         const i2 = i1 + 1;
         const i3 = innerStartIdx + (r + 1) * (cols + 1) + c;
@@ -918,6 +968,8 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     const rows = this.state.gridRows;
     const L = this.state.length;
     const R_out = this.state.outerDiameter / 2.0;
+    const R_in = this.state.innerDiameter / 2.0;
+    const cutDepth = Math.min(this.state.maxCutDepth, R_out - R_in);
 
     const sphereGeom = new THREE.SphereGeometry(0.8, 8, 8);
     const nodeMat = new THREE.MeshStandardMaterial({
@@ -937,7 +989,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         const val = this.depthMatrix[c][r];
 
         if (Math.abs(val) > 0.1) {
-          const radialOffset = R_out + (val > 0 ? -val * this.state.maxCutDepth : Math.abs(val) * this.state.maxExtrudeHeight);
+          const radialOffset = Math.max(R_in, R_out + (val > 0 ? -val * cutDepth : Math.abs(val) * this.state.maxExtrudeHeight));
           dummy.position.set(Math.cos(angle) * radialOffset, y, Math.sin(angle) * radialOffset);
           dummy.scale.setScalar(Math.abs(val) * 1.4 + 0.4);
           dummy.updateMatrix();
@@ -1037,10 +1089,47 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         this.state.patternPreset = presetKey;
         this.generateAIPattern(presetKey);
 
+        // Update Active Pattern title display banner
+        const activeTitleEl = document.getElementById('activePatternTitle');
+        if (activeTitleEl) {
+          const titleSpan = card.querySelector('span');
+          const titleText = titleSpan ? titleSpan.textContent : (card.textContent || presetKey);
+          activeTitleEl.textContent = titleText.trim();
+        }
+
         // Copy system prompt for AI chatbot with clear status
         this.copyChatbotSystemPrompt(promptText || presetKey);
       });
     });
+
+    // Individual Slider Reset Buttons (↺)
+    document.querySelectorAll('.btn-slider-reset').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const sliderId = btn.getAttribute('data-slider');
+        const defaultVal = btn.getAttribute('data-default');
+        const sliderInput = document.getElementById(sliderId);
+        if (sliderInput && defaultVal !== null) {
+          sliderInput.value = defaultVal;
+          sliderInput.dispatchEvent(new Event('input'));
+        }
+      });
+    });
+
+    // Master Reset Buttons
+    const btnResetSec1 = document.getElementById('btnResetSection1');
+    if (btnResetSec1) {
+      btnResetSec1.addEventListener('click', () => {
+        this.resetAllSlidersToDefault();
+      });
+    }
+
+    const btnResetAll = document.getElementById('btnResetAllSliders');
+    if (btnResetAll) {
+      btnResetAll.addEventListener('click', () => {
+        this.resetAllSlidersToDefault();
+      });
+    }
 
     const btnExecutePaste = document.getElementById('btnExecuteAIPaste');
     if (btnExecutePaste) {
@@ -1312,6 +1401,31 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
+  }
+
+  resetAllSlidersToDefault() {
+    const defaults = {
+      outerDiameter: 22.0,
+      sleeveLength: 90.0,
+      gridCols: 32,
+      gridRows: 40,
+      maxCutDepth: 1.5,
+      maxExtrudeHeight: 1.2,
+      noiseScale: 0.12,
+      noiseContrast: 1.2,
+      radialSymmetry: 4,
+      helicalTwist: 0
+    };
+
+    Object.keys(defaults).forEach(id => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.value = defaults[id];
+        el.dispatchEvent(new Event('input'));
+      }
+    });
+
+    this._showParseStatus("↺ Reset all sleeve specs & fine-tuning sliders to preset defaults!");
   }
 
   _animate() {

@@ -16,7 +16,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=4.6">
+  <link rel="stylesheet" href="css/styles.css?v=5.0">
 </head>
 <body>
 
@@ -151,7 +151,10 @@
           
           <!-- Section 1: Dimensions & Resolution -->
           <div class="control-section">
-            <h3 class="section-title">⚙️ Sleeve Specs & Grid Resolution</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
+              <h3 class="section-title" style="margin:0;">⚙️ Sleeve Specs & Grid Resolution</h3>
+              <button type="button" id="btnResetSection1" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all top specs & dimensions to defaults">↺ Reset Specs</button>
+            </div>
             
             <div class="control-group">
               <label>Inner Diameter (Fits 16mm Glass Tube):</label>
@@ -159,31 +162,46 @@
             </div>
 
             <div class="control-group">
-              <label for="outerDiameter">Outer Diameter: <span id="outerDiameterVal">22.0</span> mm</label>
+              <div class="control-label-row">
+                <label for="outerDiameter">Outer Diameter: <span id="outerDiameterVal">22.0</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="outerDiameter" data-default="22.0" title="Reset Outer Diameter to 22.0mm">↺</button>
+              </div>
               <input type="range" id="outerDiameter" min="18.0" max="26.0" step="0.2" value="22.0">
             </div>
 
             <div class="control-group">
-              <label for="sleeveLength">Sleeve Length: <span id="sleeveLengthVal">90.0</span> mm</label>
+              <div class="control-label-row">
+                <label for="sleeveLength">Sleeve Length: <span id="sleeveLengthVal">90.0</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="sleeveLength" data-default="90.0" title="Reset Sleeve Length to 90.0mm">↺</button>
+              </div>
               <input type="range" id="sleeveLength" min="40.0" max="120.0" step="1.0" value="90.0">
             </div>
 
             <div class="control-grid-2col">
               <div class="control-group">
-                <label for="gridCols">Grid Cols (Radial): <span id="gridColsVal">32</span></label>
+                <div class="control-label-row">
+                  <label for="gridCols">Grid Cols (Radial): <span id="gridColsVal">32</span></label>
+                  <button type="button" class="btn-slider-reset" data-slider="gridCols" data-default="32" title="Reset Radial Grid Cols to 32">↺</button>
+                </div>
                 <input type="range" id="gridCols" min="16" max="128" step="4" value="32">
               </div>
 
               <div class="control-group">
-                <label for="gridRows">Grid Rows (Length): <span id="gridRowsVal">40</span></label>
+                <div class="control-label-row">
+                  <label for="gridRows">Grid Rows (Length): <span id="gridRowsVal">40</span></label>
+                  <button type="button" class="btn-slider-reset" data-slider="gridRows" data-default="40" title="Reset Length Grid Rows to 40">↺</button>
+                </div>
                 <input type="range" id="gridRows" min="20" max="120" step="5" value="40">
               </div>
             </div>
 
             <div class="control-grid-2col">
               <div class="control-group">
-                <label for="maxCutDepth">Max Cut Depth: <span id="maxCutDepthVal">1.5</span> mm</label>
-                <input type="range" id="maxCutDepth" min="0.0" max="2.5" step="0.1" value="1.5">
+                <div class="control-label-row">
+                  <label for="maxCutDepth">Max Cut Depth: <span id="maxCutDepthVal">1.5</span> mm <span style="font-size:0.68rem; color:#38bdf8; font-weight:600;">(≥2.9mm = 🪟 Windows)</span></label>
+                  <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="1.5" title="Reset Max Cut Depth to 1.5mm">↺</button>
+                </div>
+                <input type="range" id="maxCutDepth" min="0.0" max="3.5" step="0.1" value="1.5">
               </div>
 
               <div class="control-group">
@@ -197,6 +215,12 @@
           <div class="control-section ai-copilot-card">
             <h3 class="section-title">🤖 3D Pattern Presets & AI Co-Pilot Hub</h3>
             <p class="section-desc">Click any preset to preview it live in 3D & copy its prompt for ChatGPT/Claude, or fine-tune sliders below!</p>
+
+            <!-- Currently Active Pattern Banner -->
+            <div class="active-pattern-card" id="activePatternCard">
+              <span class="active-pattern-label">ACTIVE PATTERN:</span>
+              <span class="active-pattern-title" id="activePatternTitle">⭐ Star & Cross Lattice</span>
+            </div>
 
             <!-- Interactive 3D Pattern Gallery Folders -->
             <div class="copilot-presets-label">Select Preset Category or Folder:</div>
@@ -219,39 +243,43 @@
                 <div class="prompt-preset-list">
                   <!-- 4 Options Showing Initially -->
                   <button class="prompt-card-btn active" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
-                    ⭐ Star & Cross Lattice
+                    <span>⭐ Star & Cross Lattice</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
-                    🐉 Dragon Scale Armor
+                    <span>🐉 Dragon Scale Armor</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="voronoi" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
-                    🧬 Biomechanical Spine
+                    <span>🧬 Biomechanical Spine</span>
+                    <span class="preset-tag-randomized">🎲 Randomized</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="cyber" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
-                    ⚡ Cyber Barcode Stream
+                    <span>⚡ Cyber Barcode Stream</span>
+                    <span class="preset-tag-randomized">🎲 Randomized</span>
                   </button>
 
                   <!-- 7 Additional Presets (Revealed on Dropdown Expand) -->
                   <button class="prompt-card-btn extra-preset" data-preset="waves" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
-                    🌊 Japanese Wave Ripple
+                    <span>🌊 Japanese Wave Ripple</span>
+                    <span class="preset-tag-randomized">🎲 Randomized</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="knurl" data-prompt-text="Design a diamond knurling grip texture with raised 4-sided pyramid tiles separated by deep tactile V-grooves.">
-                    💎 Diamond Pyramid Knurl
+                    <span>💎 Diamond Pyramid Knurl</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="flutes" data-prompt-text="Design helical spiral flutes with 8 twisting grooves wrapping around the cylinder at a 45 degree angle.">
-                    🌀 Helical Spiral Flutes
+                    <span>🌀 Helical Spiral Flutes</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="weave" data-prompt-text="Design a carbon fiber micro-weave lattice with alternating checkerboard depth offsets for high-friction grip.">
-                    🕸️ Micro-Weave Carbon
+                    <span>🕸️ Micro-Weave Carbon</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="lotus" data-prompt-text="Design an organic lotus flower petal ripple wrapping radially around the sleeve.">
-                    🌸 Lotus Petal Ripple
+                    <span>🌸 Lotus Petal Ripple</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
-                    🧱 Brick Lattice
+                    <span>🧱 Brick Lattice</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
-                    🌪️ Turbulence Fluid
+                    <span>🌪️ Turbulence Fluid</span>
+                    <span class="preset-tag-randomized">🎲 Randomized</span>
                   </button>
                 </div>
 
@@ -277,16 +305,16 @@
                 <div class="prompt-preset-list">
                   <!-- 4 Custom Options Showing Initially -->
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom1" data-prompt-text="Customized FosterQC Preset #1: Star & Hex Hybrid Grid with 6-fold radial symmetry.">
-                    ✨ fosterqc Custom #1
+                    <span>✨ fosterqc Custom #1</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom2" data-prompt-text="Customized FosterQC Preset #2: Flame Cyber Wave Grid with alternating depth levels.">
-                    🔥 fosterqc Custom #2
+                    <span>🔥 fosterqc Custom #2</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom3" data-prompt-text="Customized FosterQC Preset #3: Diamond Spiral Vortex with twisting tactile grooves.">
-                    💎 fosterqc Custom #3
+                    <span>💎 fosterqc Custom #3</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom4" data-prompt-text="Customized FosterQC Preset #4: Precision Target Ribs with alternating cut/emboss bands.">
-                    🎯 fosterqc Custom #4
+                    <span>🎯 fosterqc Custom #4</span>
                   </button>
                 </div>
 
@@ -300,33 +328,71 @@
 
             <!-- Fine-Tuning Sliders -->
             <div style="margin-top: 1.0rem;">
+
+              <!-- Slider Persistence Notice -->
+              <div class="slider-persistence-note">
+                <span class="note-icon">ℹ️</span>
+                <span><strong>Slider Persistence Note:</strong> Fine-tuning sliders retain your custom values when switching patterns. Click <strong style="color:#38bdf8;">↺</strong> to reset any slider or use <strong style="color:#38bdf8;">↺ Reset Sliders</strong> below.</span>
+              </div>
+
               <div class="control-grid-2col">
                 <div class="control-group">
-                  <label for="noiseScale">Noise Scale: <span id="noiseScaleVal">0.12</span></label>
+                  <div class="control-label-row">
+                    <label for="maxCutDepth">Max Cut Depth: <span id="maxCutDepthVal">1.5</span> mm <span style="font-size:0.68rem; color:#38bdf8; font-weight:600;">(≥2.9mm = 🪟 Windows)</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="1.5" title="Reset Max Cut Depth to 1.5mm">↺</button>
+                  </div>
+                  <input type="range" id="maxCutDepth" min="0.0" max="3.5" step="0.1" value="1.5">
+                </div>
+
+                <div class="control-group">
+                  <div class="control-label-row">
+                    <label for="maxExtrudeHeight">Max Extrude: <span id="maxExtrudeHeightVal">1.2</span> mm</label>
+                    <button type="button" class="btn-slider-reset" data-slider="maxExtrudeHeight" data-default="1.2" title="Reset Max Extrude to 1.2mm">↺</button>
+                  </div>
+                  <input type="range" id="maxExtrudeHeight" min="0.0" max="2.5" step="0.1" value="1.2">
+                </div>
+              </div>
+
+              <div class="control-grid-2col">
+                <div class="control-group" id="noiseScaleGroup" style="display: none;">
+                  <div class="control-label-row">
+                    <label for="noiseScale">Noise Scale: <span id="noiseScaleVal">0.12</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="noiseScale" data-default="0.12" title="Reset Noise Scale to 0.12">↺</button>
+                  </div>
                   <input type="range" id="noiseScale" min="0.02" max="0.50" step="0.01" value="0.12">
                 </div>
 
                 <div class="control-group">
-                  <label for="noiseContrast">Contrast: <span id="noiseContrastVal">1.2</span></label>
+                  <div class="control-label-row">
+                    <label for="noiseContrast">Contrast: <span id="noiseContrastVal">1.2</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="noiseContrast" data-default="1.2" title="Reset Contrast to 1.2">↺</button>
+                  </div>
                   <input type="range" id="noiseContrast" min="0.2" max="3.0" step="0.1" value="1.2">
                 </div>
               </div>
 
               <div class="control-grid-2col">
                 <div class="control-group">
-                  <label for="radialSymmetry">Symmetry Folds: <span id="radialSymmetryVal">4</span>x</label>
+                  <div class="control-label-row">
+                    <label for="radialSymmetry">Symmetry Folds: <span id="radialSymmetryVal">4</span>x</label>
+                    <button type="button" class="btn-slider-reset" data-slider="radialSymmetry" data-default="4" title="Reset Symmetry Folds to 4x">↺</button>
+                  </div>
                   <input type="range" id="radialSymmetry" min="1" max="16" step="1" value="4">
                 </div>
 
                 <div class="control-group">
-                  <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>°</label>
+                  <div class="control-label-row">
+                    <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>°</label>
+                    <button type="button" class="btn-slider-reset" data-slider="helicalTwist" data-default="0" title="Reset Helical Twist to 0°">↺</button>
+                  </div>
                   <input type="range" id="helicalTwist" min="-180" max="180" step="10" value="0">
                 </div>
               </div>
 
-              <div style="display:flex; gap:0.4rem; margin-top:0.4rem;">
+              <div style="display:flex; gap:0.4rem; margin-top:0.5rem;">
+                <button id="btnResetAllSliders" class="btn-small btn-secondary" style="flex:1;" title="Reset all sliders to preset defaults">↺ Reset Sliders</button>
                 <button id="btnInvertDepths" class="btn-small btn-secondary" style="flex:1;">🔄 Invert Depths</button>
-                <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1;">🎲 Random Seed</button>
+                <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1; display: none;">🎲 Random Seed</button>
               </div>
             </div>
 
@@ -425,7 +491,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience6-generator.js?v=4.6"></script>
+  <script src="js/experience6-generator.js?v=5.0"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

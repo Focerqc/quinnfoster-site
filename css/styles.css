@@ -2374,13 +2374,115 @@ input:checked + .slider-round:before {
   cursor: pointer;
   text-align: left;
   transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
 }
 
-.prompt-card-btn:hover {
-  background: rgba(56, 189, 248, 0.12);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
+.prompt-card-btn.active {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.22) 0%, rgba(168, 85, 247, 0.22) 100%) !important;
+  border: 2px solid #38bdf8 !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 14px rgba(56, 189, 248, 0.45), inset 0 0 8px rgba(56, 189, 248, 0.15) !important;
   transform: translateY(-1px);
+}
+
+.preset-tag-randomized {
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 0.12rem 0.4rem;
+  border-radius: 4px;
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: #fbbf24;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+.prompt-card-btn.active .preset-tag-randomized {
+  background: rgba(245, 158, 11, 0.35);
+  border-color: rgba(251, 191, 36, 0.85);
+  color: #ffffff;
+  box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+/* Active Pattern Banner Display */
+.active-pattern-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  border-radius: 8px;
+  padding: 0.55rem 0.9rem;
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.active-pattern-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #38bdf8;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.active-pattern-title {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 0 6px rgba(56, 189, 248, 0.4);
+}
+
+/* Slider Persistence Note */
+.slider-persistence-note {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: 6px;
+  padding: 0.45rem 0.75rem;
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.slider-persistence-note .note-icon {
+  font-size: 0.85rem;
+}
+
+/* Per-Slider Reset Buttons (↺) */
+.control-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.btn-slider-reset {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--surface-border);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: bold;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+  line-height: 1;
+  transition: all var(--transition-fast);
+}
+
+.btn-slider-reset:hover {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  color: #38bdf8;
+  transform: rotate(-30deg);
+}
+
+.control-grid-2col:has(#noiseScaleGroup[style*="display: none"]) {
+  grid-template-columns: 1fr;
 }
 
 .ai-parse-status {
