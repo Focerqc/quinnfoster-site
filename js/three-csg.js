@@ -44,12 +44,13 @@ CSG.fromGeometry = function(geom,objectIndex) {
                 let vi = index[i + j]
                 let vp = vi * 3;
                 let vt = vi * 2;
+                let vc = vi * 3;
                 let x = posattr.array[vp]
                 let y = posattr.array[vp + 1]
                 let z = posattr.array[vp + 2]
-                let nx = normalattr.array[vp]
-                let ny = normalattr.array[vp + 1]
-                let nz = normalattr.array[vp + 2]
+                let nx = normalattr ? normalattr.array[vp] : 0
+                let ny = normalattr ? normalattr.array[vp + 1] : 0
+                let nz = normalattr ? normalattr.array[vp + 2] : 1
                 //let u = uvattr.array[vt]
                 //let v = uvattr.array[vt + 1]
                 vertices[j] = new Vertex({
@@ -64,7 +65,7 @@ CSG.fromGeometry = function(geom,objectIndex) {
                     x: uvattr.array[vt],
                     y: uvattr.array[vt+1],
                     z: 0
-                },colorattr&&{x:colorattr.array[vt],y:colorattr.array[vt+1],z:colorattr.array[vt+2]});
+                },colorattr&&{x:colorattr.array[vc],y:colorattr.array[vc+1],z:colorattr.array[vc+2]});
             }
             polys[pli] = new Polygon(vertices,objectIndex)
         }
@@ -175,9 +176,18 @@ CSG.toGeometry = function(csg, buffered=true) {
                 vertices.write(pvs[j-1].pos)
                 normals.write(pvs[0].normal)
                 normals.write(pvs[j-2].normal)
-                normals.write(pvs[j-1].normal);
-                uvs&&(pvs[0].uv)&&(uvs.write(pvs[0].uv)||uvs.write(pvs[j-2].uv)||uvs.write(pvs[j-1].uv));
-                colors&&(colors.write(pvs[0].color)||colors.write(pvs[j-2].color)||colors.write(pvs[j-1].color))
+                if (uvs) {
+                    const defUv = { x: 0, y: 0 };
+                    uvs.write((pvs[0] && pvs[0].uv) || defUv);
+                    uvs.write((pvs[j-2] && pvs[j-2].uv) || defUv);
+                    uvs.write((pvs[j-1] && pvs[j-1].uv) || defUv);
+                }
+                if (colors) {
+                    const defCol = { x: 1, y: 1, z: 1 };
+                    colors.write((pvs[0] && pvs[0].color) || defCol);
+                    colors.write((pvs[j-2] && pvs[j-2].color) || defCol);
+                    colors.write((pvs[j-1] && pvs[j-1].color) || defCol);
+                }
             }
         }
         )
@@ -189,11 +199,12 @@ CSG.toGeometry = function(csg, buffered=true) {
             let index = []
             let gbase=0;
             for(let gi=0;gi<grps.length;gi++){
+                if(!grps[gi] || !grps[gi].length) continue;
                 geom.addGroup(gbase,grps[gi].length,gi)
                 gbase+=grps[gi].length
                 index=index.concat(grps[gi]);
             }
-            geom.setIndex(index)
+            if(index.length) geom.setIndex(index);
         }
         g2 = geom;
     }

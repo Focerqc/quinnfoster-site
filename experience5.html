@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 6 — AI Chatbot Interactive Co-Pilot 16mm Cylinder Generator | Quinn Foster">
-  <title>Experience 6 — AI Co-Pilot & GeoNodes Generator | Quinn Foster</title>
+  <meta name="description" content="Experience 5 — AI Dual Cut & Extrude 16mm Cylinder Generator | Quinn Foster">
+  <title>Experience 5 — AI Dual Cut & Extrude Studio | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -66,13 +66,13 @@
           </svg>
           Experience 4 (Expert)
         </a>
-        <a href="experience5.html" class="tab-btn">
+        <a href="experience5.html" class="tab-btn active">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
           </svg>
           Experience 5 (Dual Mode)
         </a>
-        <a href="experience6.html" class="tab-btn active">
+        <a href="experience6.html" class="tab-btn">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
           </svg>
@@ -332,15 +332,21 @@
                 <span><strong>Slider Persistence Note:</strong> Fine-tuning sliders retain your custom values when switching patterns. Click <strong style="color:#38bdf8;">↺</strong> to reset any slider or use <strong style="color:#38bdf8;">↺ Reset Sliders</strong> below.</span>
               </div>
 
-              <!-- Engraving & Window Cutout Depth Slider -->
-              <div class="control-group" style="margin-bottom: 0.85rem;">
-                <div class="control-label-row">
-                  <label for="maxCutDepth">Cut / Window Depth: <span id="maxCutDepthVal">2.9</span> mm <span id="windowBadge" style="font-size:0.72rem; color:#38bdf8; font-weight:700; background:rgba(56,189,248,0.15); padding:0.15rem 0.45rem; border-radius:4px; border:1px solid rgba(56,189,248,0.3);">🪟 Windows Cut Straight Through</span></label>
-                  <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="2.9" title="Reset Cut Depth to 2.9mm (Full Passthrough Windows)">↺</button>
+              <div class="control-grid-2col">
+                <div class="control-group">
+                  <div class="control-label-row">
+                    <label for="maxCutDepth">Max Cut Depth: <span id="maxCutDepthVal">1.5</span> mm <span style="font-size:0.68rem; color:#38bdf8; font-weight:600;">(≥2.9mm = 🪟 Windows)</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="1.5" title="Reset Max Cut Depth to 1.5mm">↺</button>
+                  </div>
+                  <input type="range" id="maxCutDepth" min="0.0" max="3.5" step="0.1" value="1.5">
                 </div>
-                <input type="range" id="maxCutDepth" min="0.5" max="3.5" step="0.1" value="2.9">
-                <div style="font-size:0.72rem; color:#94a3b8; margin-top:0.3rem; line-height:1.35;">
-                  💡 <strong>0.5mm – 2.0mm</strong>: Tactile surface engravings & grip grooves | <strong>≥2.5mm</strong>: <strong>True Passthrough Windows</strong> cut straight through to the glass tube!
+
+                <div class="control-group">
+                  <div class="control-label-row">
+                    <label for="maxExtrudeHeight">Max Extrude: <span id="maxExtrudeHeightVal">1.2</span> mm</label>
+                    <button type="button" class="btn-slider-reset" data-slider="maxExtrudeHeight" data-default="1.2" title="Reset Max Extrude to 1.2mm">↺</button>
+                  </div>
+                  <input type="range" id="maxExtrudeHeight" min="0.0" max="2.5" step="0.1" value="1.2">
                 </div>
               </div>
 
@@ -707,7 +713,7 @@
   </footer>
 
   <script src="js/main.js"></script>
-  <script src="js/experience6-generator.js?v=7.0"></script>
+  <script src="js/experience5-generator.js?v=7.0"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

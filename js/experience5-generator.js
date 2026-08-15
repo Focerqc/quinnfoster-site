@@ -23,9 +23,9 @@ class PixelSleeveGenerator {
       gridCols: 32,          // Radial Circumference Divisions (16 to 128)
       gridRows: 40,          // Vertical Length Divisions (20 to 120)
       
-      // Depth Parameters (Pure Cut-Only & Passthrough Windows)
-      maxCutDepth: 2.9,      // Max inward cut in mm (≥2.5mm = True Passthrough Windows)
-      maxExtrudeHeight: 0.0, // Cut-only engine (Locked to 0.0 for flush outer diameter)
+      // Depth Parameters
+      maxCutDepth: 1.5,      // Max inward cut in mm
+      maxExtrudeHeight: 1.2, // Max outward extrusion in mm
       voxelShape: 'chisel',   // 'block', 'chisel', 'knurl', 'hex', 'smooth'
       
       // Retainer Lip
@@ -614,7 +614,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         switch (presetName) {
           case 'stars':
           default:
-            // ⭐ Precise 5-Point Star Cutout Windows (1.0) & Solid Cross Lattice (0.0)
+            // ⭐ Precise 5-Point Star & Cross Lattice Array
             const starCellX = (twistedSymCol % 8) - 4;
             const starCellY = (r % 10) - 5;
             const starDist = Math.sqrt(starCellX * starCellX + starCellY * starCellY);
@@ -622,124 +622,112 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             const starRadius = 2.4 + Math.sin(starAngle * 5.0) * 1.2;
             
             if (starDist < starRadius) {
-              v = 1.0 * contrast; // ⭐ True Cutout Window straight to glass tube!
+              v = 1.0 * contrast; // Cut 5-Point Star (100% Passthrough Window)
             } else {
               const isCross = (Math.abs(starCellX) <= 1 || Math.abs(starCellY) <= 1);
-              v = isCross ? 0.0 : 0.35 * contrast; // 0.0 = Solid Outer Wall, 0.35 = Tactile Texture
+              v = isCross ? -0.75 * contrast : 0.0; // Raised Cross Grid
             }
             break;
 
           case 'custom1':
-            // ✨ Star & Hex Hybrid Cutout Ports
             const c1_cellX = (twistedSymCol % 6) - 3;
             const c1_cellY = (r % 8) - 4;
             const c1_dist = Math.sqrt(c1_cellX * c1_cellX + c1_cellY * c1_cellY);
-            v = (c1_dist < 2.0) ? 1.0 * contrast : 0.0;
+            v = (c1_dist < 2.0) ? 1.0 * contrast : -0.6 * contrast;
             break;
 
           case 'custom2':
-            // 🔥 Flame Cyber Ripple Flutes
             const c2_wave = Math.sin(twistedAngle * 10 + normY * 30) * Math.cos(symCol * 0.3);
-            v = Math.max(0.0, Math.sin(c2_wave * Math.PI)) * 0.85 * contrast;
+            v = Math.tanh(c2_wave * 2.0);
+            v = (v > 0) ? Math.min(1.0, v * 1.25) * contrast : v * contrast;
             break;
 
           case 'custom3':
-            // 💎 Diamond Spiral Vortex Engraving
             const c3_spiral = twistedAngle * 8 + normY * Math.PI * 10;
             const c3_cross = Math.sin(twistedAngle * 8 - normY * Math.PI * 10);
-            v = Math.max(0.0, Math.sin(c3_spiral) * c3_cross) * 0.85 * contrast;
+            v = Math.sin(c3_spiral) * c3_cross * 1.5;
+            v = (v > 0) ? Math.min(1.0, v * 1.35) * contrast : Math.max(-0.6, v) * contrast;
             break;
 
           case 'custom4':
-            // 🎯 Precision Target Ring Window Slots
             const c4_rib = Math.sin(normY * Math.PI * 16);
             const c4_radial = Math.cos(twistedAngle * 6);
-            v = (c4_rib * c4_radial > 0.1) ? 1.0 * contrast : 0.0;
+            v = (c4_rib * c4_radial > 0.1) ? 1.0 * contrast : -0.7 * contrast;
             break;
 
           case 'cyber':
-            // ⚡ Cyber Barcode Stream Window Slots
             const n1 = this._simplexNoise2D(twistedSymCol * scale, r * scale + seed);
             const n2 = Math.sin(twistedAngle * 6 + normY * 16);
-            const rawCyber = Math.sin((n1 + n2) * Math.PI);
-            if (rawCyber > 0.25) v = 1.0 * contrast; // Vertical window slot
-            else if (rawCyber > -0.2) v = 0.4 * contrast; // Recessed channel
-            else v = 0.0; // Flush outer housing
+            v = Math.sin((n1 + n2) * Math.PI);
+            if (v > 0.20) v = 1.0 * contrast;
+            else if (v < -0.20) v = -0.8 * contrast;
+            else v = 0;
             break;
 
           case 'voronoi':
-            // 🧬 Biomechanical Voronoi Breathing Windows
             const vx = ((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) * (8 * scale * 10);
             const vy = normY * (10 * scale * 10);
-            const vorDist = this._voronoiCell(vx, vy, seed);
-            if (vorDist < 0.32) v = 1.0 * contrast; // Breathing window port!
-            else if (vorDist < 0.55) v = ((0.55 - vorDist) / 0.23) * 0.65 * contrast;
-            else v = 0.0; // Cellular wall
+            v = (this._voronoiCell(vx, vy, seed) - 0.45) * 2.5;
+            v = (v > 0) ? Math.min(1.0, v * 1.4) * contrast : Math.max(-1.0, v) * contrast;
             break;
 
           case 'knurl':
-            // 💎 Diamond Knurl Tactile V-Grooves
             const k1 = Math.sin(twistedAngle * 12 + normY * 36);
             const k2 = Math.sin(twistedAngle * 12 - normY * 36);
-            v = Math.max(0.0, k1 * k2) * 0.85 * contrast;
+            v = k1 * k2 * 1.8;
+            v = (v > 0) ? Math.min(1.0, v * 1.25) * contrast : Math.max(-0.4, v) * contrast;
             break;
 
           case 'waves':
-            // 🌊 Japanese Wave Ripples
             const rawWave = Math.sin(twistedAngle * 8 + normY * 24) * Math.cos(normY * 12 + seed);
-            v = Math.max(0.0, rawWave) * 0.8 * contrast;
+            v = (rawWave > 0) ? Math.min(1.0, rawWave * 2.2) * contrast : Math.max(-1.0, rawWave * 1.5) * contrast;
             break;
 
           case 'scales':
-            // 🐉 Dragon Scale Armor Grooves
             const scaleY = normY * 18;
             const offset = (Math.floor(scaleY) % 2 === 0) ? 0 : Math.PI / 6;
             const rawScale = Math.sin(twistedAngle * 10 + offset) * Math.sin((scaleY % 1.0) * Math.PI);
-            v = Math.max(0.0, Math.pow(Math.max(0, rawScale), 1.2)) * 0.85 * contrast;
+            v = Math.pow(Math.max(0, rawScale), 1.2) * 1.35 * contrast;
+            v = Math.min(1.0, v);
             break;
 
           case 'flutes':
-            // 🌀 Helical Spiral Flutes with Window Ports
             const spiral = twistedAngle * 6 + normY * Math.PI * 8;
-            const fluteVal = Math.sin(spiral);
-            v = (fluteVal > 0.65) ? 1.0 * contrast : Math.max(0.0, fluteVal) * 0.7 * contrast;
+            v = Math.sin(spiral);
+            v = (v > 0) ? Math.min(1.0, Math.pow(v, 0.6) * 1.1) * contrast : -Math.pow(Math.abs(v), 0.7) * contrast;
             break;
 
           case 'weave':
-            // 🕸️ Micro-Weave Carbon Checkerboard
             const w1 = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * 32) % 2;
             const w2 = Math.floor(normY * 40) % 2;
-            v = (w1 ^ w2) ? 0.65 * contrast : 0.0;
+            v = (w1 ^ w2) ? 1.0 * contrast : -0.75 * contrast;
             break;
 
           case 'turbulence':
-            // 🌪️ Fluid Turbulence Swirl Windows
             const twistX = (((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * cols;
             const t1 = this._simplexNoise2D(twistX * scale * 2, r * scale * 2 + seed);
             const t2 = this._simplexNoise2D(twistX * scale * 4 + 100, r * scale * 4 + seed);
             const rawTurb = (t1 * 0.7 + t2 * 0.3);
-            v = (rawTurb > 0.35) ? 1.0 * contrast : Math.max(0.0, rawTurb) * 0.75 * contrast;
+            v = (rawTurb > 0) ? Math.min(1.0, rawTurb * 2.0) * contrast : Math.max(-1.0, rawTurb * 1.8) * contrast;
             break;
 
           case 'lotus':
-            // 🌸 Lotus Petal Ripple Contours
             const lotusAngle = twistedAngle * 8.0;
             const lotusY = normY * Math.PI * 12.0;
             const rawLotus = Math.sin(lotusAngle) * Math.cos(lotusY) + Math.cos(lotusAngle * 0.5);
-            v = Math.max(0.0, rawLotus * 0.75) * 0.85 * contrast;
+            v = (rawLotus > 0) ? Math.min(1.0, rawLotus * 0.85) * contrast : Math.max(-1.0, rawLotus * 0.7) * contrast;
             break;
 
           case 'bricks':
-            // 🧱 Brick Lattice Window Cutouts
             const brickR = Math.floor(normY * 24);
             const shift = (brickR % 2 === 0) ? 0 : 0.5;
             const brickC = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0 + shift) % 1.0) * 16);
-            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 1.0 * contrast : 0.0;
+            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 1.0 * contrast : -0.6 * contrast;
             break;
         }
 
-        const finalV = this.state.isDepthInverted ? (1.0 - v) : v;
-        this.depthMatrix[c][r] = Math.max(0.0, Math.min(1.0, finalV));
+        const finalV = this.state.isDepthInverted ? -v : v;
+        this.depthMatrix[c][r] = Math.max(-1.0, Math.min(1.0, finalV));
       }
     }
 
@@ -1653,7 +1641,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     
     // Cut depth up to full wall thickness
     const cutDepth = Math.min(this.state.maxCutDepth, maxWall);
-    const isFullWindowDepth = cutDepth >= 2.4; // Enable true passthrough window cutouts when cut depth is deep (>= 2.4mm)
+    const maxExt = Math.max(0, parseFloat(this.state.maxExtrudeHeight) || 0.0);
     
     const cols = this.state.gridCols;
     const rows = this.state.gridRows;
@@ -1665,31 +1653,12 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
     const halfL = L / 2.0;
 
-    // Helper: Checks whether a specific grid cell (c, r) is an open passthrough window
-    const isCellWindow = (c, r) => {
-      if (!isFullWindowDepth) return false;
-      // Preserve solid collar rings at top and bottom ends
-      if (r < 2 || r >= rows - 2) return false;
-      
-      // Preserve solid backer band if 3D logo / text is active
-      if (this.state.solidBacker && this.state.logoEnabled && this.state.logoGeometry) {
-        const bandCenterY = this.state.logoY || 0;
-        const targetScale = parseFloat(this.state.logoScale) || 16.0;
-        const bandHeight = Math.max(14.0, (targetScale * 0.5) + 6.0);
-        const y = ((r + 0.5) / rows) * L - halfL;
-        if (Math.abs(y - bandCenterY) < bandHeight / 2.0 + 1.5) return false;
-      }
-
-      const d = Math.max(0.0, Math.min(1.0, this._sampleDepthMatrix(c, r)));
-      return (d >= 0.85);
-    };
-
-    // 1. Build Outer Surface Grid Vertices
+    // 1. Build Outer Surface Grid Vertices (cols unique vertices per row, 100% seamless welded topology)
     for (let r = 0; r <= rows; r++) {
       const normY = r / rows;
       const y = normY * L - halfL;
 
-      // Solid collar rim taper
+      // Smooth End-Cap Rim Taper: 0.0 at top/bottom rims, 1.0 inside (keeps top & bottom collars solid)
       let endTaper = 1.0;
       const taperMargin = 2;
       if (r < taperMargin) {
@@ -1699,13 +1668,14 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       }
       endTaper = endTaper * endTaper * (3.0 - 2.0 * endTaper);
 
-      // Solid backer factor
+      // Solid Backer Band clearance (flattens sleeve seamlessly at text position):
       let backerFactor = 1.0;
       if (this.state.solidBacker && this.state.logoEnabled && this.state.logoGeometry) {
         const bandCenterY = this.state.logoY || 0;
         const targetScale = parseFloat(this.state.logoScale) || 16.0;
         const bandHeight = Math.max(14.0, (targetScale * 0.5) + 6.0);
         const blendMargin = 2.5;
+
         const distY = Math.abs(y - bandCenterY);
         const halfBand = bandHeight / 2.0;
         if (distY < halfBand) {
@@ -1720,11 +1690,15 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         const normX = c / cols;
         const angle = normX * Math.PI * 2.0;
 
-        const rawDepth = Math.max(0.0, Math.min(1.0, this._sampleDepthMatrix(c, r)));
-        const depthVal = rawDepth * endTaper * backerFactor;
+        const depthVal = this._sampleDepthMatrix(c, r) * endTaper * backerFactor;
         
-        // Carve strictly inward from outer diameter R_out
-        const deltaR = -depthVal * cutDepth;
+        let deltaR = 0;
+        if (depthVal > 0) {
+          deltaR = -depthVal * cutDepth;
+        } else if (depthVal < 0) {
+          deltaR = Math.abs(depthVal) * maxExt;
+        }
+
         const currR = Math.max(R_in + 0.05, R_out + deltaR);
         const x = Math.cos(angle) * currR;
         const z = Math.sin(angle) * currR;
@@ -1732,8 +1706,31 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         vertices.push(x, y, z);
         uvs.push(normX, normY);
 
-        const shadeFactor = 1.0 - depthVal * 0.35;
-        colors.push(0.72 * shadeFactor, 0.78 * shadeFactor, 0.85 * shadeFactor);
+        let factor = 1.0;
+        if (depthVal > 0) {
+          factor = 1.0 - depthVal * 0.35;
+        } else if (depthVal < 0) {
+          factor = 1.0 + Math.abs(depthVal) * 0.20;
+        }
+
+        const cr = Math.min(1.0, 0.72 * factor);
+        const cg = Math.min(1.0, 0.78 * factor);
+        const cb = Math.min(1.0, 0.85 * factor);
+        colors.push(cr, cg, cb);
+      }
+    }
+
+    // Outer Quad Indices (Facing Outward, cleanly wrapping (c+1)%cols)
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const nextC = (c + 1) % cols;
+        const i1 = r * cols + c;
+        const i2 = r * cols + nextC;
+        const i3 = (r + 1) * cols + c;
+        const i4 = (r + 1) * cols + nextC;
+
+        indices.push(i1, i3, i2);
+        indices.push(i2, i3, i4);
       }
     }
 
@@ -1748,68 +1745,25 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
         vertices.push(x, y, z);
         uvs.push(c / cols, r / rows);
-        colors.push(0.42, 0.48, 0.55);
+        colors.push(0.45, 0.50, 0.58);
       }
     }
 
-    // 3. Build Outer Faces, Inner Faces, and Watertight Window Boundary Walls
+    // Inner Quad Indices (Facing Inward)
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const nextC = (c + 1) % cols;
-        const prevC = (c - 1 + cols) % cols;
+        const i1 = innerStartIdx + r * cols + c;
+        const i2 = innerStartIdx + r * cols + nextC;
+        const i3 = innerStartIdx + (r + 1) * cols + c;
+        const i4 = innerStartIdx + (r + 1) * cols + nextC;
 
-        const oSW = r * cols + c;
-        const oSE = r * cols + nextC;
-        const oNW = (r + 1) * cols + c;
-        const oNE = (r + 1) * cols + nextC;
-
-        const iSW = innerStartIdx + r * cols + c;
-        const iSE = innerStartIdx + r * cols + nextC;
-        const iNW = innerStartIdx + (r + 1) * cols + c;
-        const iNE = innerStartIdx + (r + 1) * cols + nextC;
-
-        const isWin = isCellWindow(c, r);
-
-        if (!isWin) {
-          // Solid Cell: Draw Outer Quad (Facing Outward)
-          indices.push(oSW, oNW, oSE);
-          indices.push(oSE, oNW, oNE);
-
-          // Solid Cell: Draw Inner Quad (Facing Inward)
-          indices.push(iSW, iSE, iNW);
-          indices.push(iSE, iNE, iNW);
-        } else {
-          // Passthrough Window Cell: Omit outer & inner surface quads!
-          // Add boundary side walls bridging outer to inner wherever bordering a solid neighbor:
-
-          // North Boundary Wall
-          if (r === rows - 1 || !isCellWindow(c, r + 1)) {
-            indices.push(oNW, oNE, iNW);
-            indices.push(oNE, iNE, iNW);
-          }
-
-          // South Boundary Wall
-          if (r === 0 || !isCellWindow(c, r - 1)) {
-            indices.push(oSE, oSW, iSE);
-            indices.push(oSW, iSW, iSE);
-          }
-
-          // East Boundary Wall
-          if (!isCellWindow(nextC, r)) {
-            indices.push(oNE, oSE, iNE);
-            indices.push(oSE, iSE, iNE);
-          }
-
-          // West Boundary Wall
-          if (!isCellWindow(prevC, r)) {
-            indices.push(oSW, oNW, iSW);
-            indices.push(oNW, iNW, iSW);
-          }
-        }
+        indices.push(i1, i2, i3);
+        indices.push(i2, i4, i3);
       }
     }
 
-    // 4. Top Ring Cap (Closed Solid Ring - Outward Normal +Y)
+    // 3. Top Ring Cap (Closed Solid Ring - Outward Normal +Y)
     for (let c = 0; c < cols; c++) {
       const nextC = (c + 1) % cols;
       const o1 = rows * cols + c;
@@ -1821,7 +1775,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       indices.push(o2, i1, i2);
     }
 
-    // 5. Bottom Ring Cap (Closed Solid Ring - Outward Normal -Y)
+    // 4. Bottom Ring Cap (Closed Solid Ring - Outward Normal -Y)
     for (let c = 0; c < cols; c++) {
       const nextC = (c + 1) % cols;
       const o1 = c;
@@ -1916,24 +1870,8 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       this.state.gridRows = parseInt(v); 
       this._debouncedGenerateAIPattern(35);
     });
-    this._bindInput('maxCutDepth', (v) => { 
-      this.state.maxCutDepth = parseFloat(v);
-      const badge = document.getElementById('windowBadge');
-      if (badge) {
-        if (this.state.maxCutDepth >= 2.4) {
-          badge.textContent = "🪟 Windows Cut Straight Through";
-          badge.style.color = "#38bdf8";
-          badge.style.borderColor = "rgba(56, 189, 248, 0.4)";
-          badge.style.background = "rgba(56, 189, 248, 0.15)";
-        } else {
-          badge.textContent = "✏️ Surface Engraving Mode";
-          badge.style.color = "#a5b4fc";
-          badge.style.borderColor = "rgba(165, 180, 252, 0.4)";
-          badge.style.background = "rgba(165, 180, 252, 0.15)";
-        }
-      }
-      this._debouncedUpdateMesh(20); 
-    });
+    this._bindInput('maxCutDepth', (v) => { this.state.maxCutDepth = parseFloat(v); this._debouncedUpdateMesh(20); });
+    this._bindInput('maxExtrudeHeight', (v) => { this.state.maxExtrudeHeight = parseFloat(v); this._debouncedUpdateMesh(20); });
     this._bindInput('noiseScale', (v) => { this.state.noiseScale = parseFloat(v); this._debouncedGenerateAIPattern(25); });
     this._bindInput('noiseContrast', (v) => { this.state.noiseContrast = parseFloat(v); this._debouncedGenerateAIPattern(25); });
     this._bindInput('radialSymmetry', (v) => { this.state.radialSymmetry = parseInt(v); this._debouncedGenerateAIPattern(25); });
@@ -2577,13 +2515,6 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
     if (!this.container || !this.renderer || !this.camera) return;
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
-    if (!w || !h) return;
-
-    // Prevent iOS address bar micro-height changes from triggering disruptive rebuilds
-    if (this._lastWidth === w && Math.abs((this._lastHeight || 0) - h) < 50) return;
-    this._lastWidth = w;
-    this._lastHeight = h;
-
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(w, h);
@@ -2595,7 +2526,8 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
       sleeveLength: 90.0,
       gridCols: 32,
       gridRows: 40,
-      maxCutDepth: 2.9,
+      maxCutDepth: 1.5,
+      maxExtrudeHeight: 1.2,
       noiseScale: 0.12,
       noiseContrast: 1.2,
       radialSymmetry: 4,
