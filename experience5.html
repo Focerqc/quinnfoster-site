@@ -23,7 +23,7 @@
   <script src="js/three-csg-bundle.js?v=6.9"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=7.4">
+  <link rel="stylesheet" href="css/styles.css?v=7.6">
 </head>
 <body>
 
@@ -42,30 +42,47 @@
           </svg>
           Bio
         </a>
-        <a href="experience1.html" class="tab-btn">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
-          </svg>
-          Experience 1 (Beginner)
-        </a>
-        <a href="experience2.html" class="tab-btn">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-          </svg>
-          Experience 2 (Standard)
-        </a>
-        <a href="experience3.html" class="tab-btn">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-          </svg>
-          Experience 3 (Intermediate)
-        </a>
-        <a href="experience4.html" class="tab-btn">
-          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          </svg>
-          Experience 4 (Expert)
-        </a>
+
+        <!-- Old Experiences Dropdown Folder -->
+        <div class="nav-dropdown" id="navOldExperiencesDropdown">
+          <button type="button" class="tab-btn nav-dropdown-toggle" id="navOldExperiencesBtn" aria-expanded="false" aria-haspopup="true">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+            </svg>
+            <span>Old Experiences</span>
+            <svg class="dropdown-chevron" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div class="nav-dropdown-menu" id="navOldExperiencesMenu">
+            <a href="experience1.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              <span>Experience 1 (Beginner)</span>
+            </a>
+            <a href="experience2.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span>Experience 2 (Standard)</span>
+            </a>
+            <a href="experience3.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span>Experience 3 (Intermediate)</span>
+            </a>
+            <a href="experience4.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              </svg>
+              <span>Experience 4 (Expert)</span>
+            </a>
+          </div>
+        </div>
+
         <a href="experience5.html" class="tab-btn active">
           <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -105,7 +122,7 @@
             
             <div class="viewport-header-actions">
               <button id="btnToggleOrientation" class="btn-secondary btn-small active" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Click to rotate 3D view to upright Vertical orientation (0°)">
-                🔄 Print View Horizontal
+                🔄 Current View Horizontal
               </button>
 
               <button id="btnExpandViewport" class="btn-secondary btn-small" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Expand viewport height for full-size 3D view">
@@ -216,7 +233,7 @@
             <!-- Currently Active Pattern Banner -->
             <div class="active-pattern-card" id="activePatternCard">
               <span class="active-pattern-label">ACTIVE PATTERN:</span>
-              <span class="active-pattern-title" id="activePatternTitle">⭐ Star & Cross Lattice</span>
+              <span class="active-pattern-title" id="activePatternTitle">🌪️ Turbulence Fluid</span>
             </div>
 
             <!-- Interactive 3D Pattern Gallery Folders -->
@@ -239,8 +256,9 @@
 
                 <div class="prompt-preset-list">
                   <!-- 4 Options Showing Initially -->
-                  <button class="prompt-card-btn active" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
-                    <span>⭐ Star & Cross Lattice</span>
+                  <button class="prompt-card-btn active" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
+                    <span>🌪️ Turbulence Fluid</span>
+                    <span class="preset-tag-randomized">🎲 Randomized</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
                     <span>🐉 Dragon Scale Armor</span>
@@ -274,9 +292,8 @@
                   <button class="prompt-card-btn extra-preset" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
                     <span>🧱 Brick Lattice</span>
                   </button>
-                  <button class="prompt-card-btn extra-preset" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
-                    <span>🌪️ Turbulence Fluid</span>
-                    <span class="preset-tag-randomized">🎲 Randomized</span>
+                  <button class="prompt-card-btn extra-preset" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
+                    <span>⭐ Star & Cross Lattice</span>
                   </button>
                 </div>
 
@@ -441,9 +458,9 @@
           </div>
 
           <!-- Section 3: True 3D Vector Text, Logo & CSG Deboss Studio -->
-          <div class="control-section logo-section-card" style="border: 1.5px solid rgba(129, 140, 248, 0.6); background: linear-gradient(180deg, rgba(30, 27, 75, 0.6) 0%, rgba(17, 24, 39, 0.8) 100%); box-shadow: 0 4px 20px rgba(99, 102, 241, 0.15);">
+          <div class="control-section logo-section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-              <h3 class="section-title" style="margin:0; color:#a5b4fc; font-size: 1.05rem;">🔤 3D Vector Text & CSG Deboss Suite</h3>
+              <h3 class="section-title" style="margin:0;">🔤 3D Vector Text & CSG Deboss Suite</h3>
               <button type="button" id="btnResetLogoSection" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all Text & Logo settings">↺ Reset</button>
             </div>
 
@@ -451,13 +468,13 @@
             <div class="control-group">
               <input type="file" id="inputLogoFile" accept=".stl,.png,.jpg,.jpeg,.svg,.webp" style="display: none;">
               <div class="logo-btn-group" style="display: flex; gap: 0.5rem; align-items: center; width: 100%;">
-                <button type="button" class="btn-primary" id="btnOpenTextModal" style="flex: 1.2; display: flex; justify-content: center; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 700; padding: 0.75rem 0.85rem; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.35);" title="Generate 3D Vector Text">
+                <button type="button" class="btn-primary" id="btnOpenTextModal" style="flex: 1.2; display: flex; justify-content: center; align-items: center; gap: 0.4rem; font-size: 0.9rem; font-weight: 700; padding: 0.75rem 0.85rem;" title="Generate 3D Vector Text">
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
                   ✨ Create 3D Text
                 </button>
-                <button type="button" class="btn-secondary" id="btnBrowseLogo" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 0.4rem; background: rgba(99, 102, 241, 0.15); border-color: rgba(99, 102, 241, 0.4); color: var(--text-primary); font-size: 0.85rem; font-weight: 700; padding: 0.75rem 0.85rem;">
+                <button type="button" class="btn-secondary" id="btnBrowseLogo" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 0.4rem; color: var(--text-primary); font-size: 0.85rem; font-weight: 700; padding: 0.75rem 0.85rem;">
                   <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 0115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
@@ -516,7 +533,7 @@
                 <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.25rem;">
                   <div style="position: relative; flex: 1; display: flex; align-items: center;">
                     <input type="number" id="inputLogoScalePercent" value="100" min="1" max="1000" step="5" class="styled-number-input" style="padding-right: 2rem; width: 100%; background: rgba(15,23,42,0.85); border: 1px solid var(--surface-border); color: #fff; padding: 0.35rem 0.6rem; border-radius: 6px;">
-                    <span style="position: absolute; right: 0.75rem; color: #818cf8; font-weight: 700; pointer-events: none;">%</span>
+                    <span style="position: absolute; right: 0.75rem; color: var(--accent-teal); font-weight: 700; pointer-events: none;">%</span>
                   </div>
                   <div style="display: flex; gap: 0.25rem;">
                     <button type="button" class="btn-secondary btn-scale-preset" data-scale="50" style="padding: 0.35rem 0.5rem; font-size: 0.75rem;">50%</button>
@@ -722,8 +739,8 @@
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
-  <script src="js/experience5-generator.js?v=7.5"></script>
+  <script src="js/main.js?v=1.1"></script>
+  <script src="js/experience5-generator.js?v=7.6"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

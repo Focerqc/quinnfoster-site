@@ -34,8 +34,8 @@ class PixelSleeveGenerator {
       lipBore: 14.5,         // Inner stop diameter mm
       
       // AI Procedural Engine
-      aiPrompt: 'Alternating Star & Cross Geometric Lattice',
-      patternPreset: 'stars',// 'stars', 'cyber', 'voronoi', 'knurl', 'waves', 'scales', 'flutes', 'weave', 'turbulence', 'lotus', 'bricks'
+      aiPrompt: 'Design a fluid dynamics turbulence pattern with organic flowing waves.',
+      patternPreset: 'turbulence',// 'stars', 'cyber', 'voronoi', 'knurl', 'waves', 'scales', 'flutes', 'weave', 'turbulence', 'lotus', 'bricks'
       noiseScale: 0.12,
       noiseContrast: 1.2,
       radialSymmetry: 4,     // 4-fold radial symmetry default for clean star patterns
@@ -2493,7 +2493,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
   // ─── AI PROMPT, SCREENSHOT & MATRIX EXPORT HELPERS ────────────────
   copyChatbotSystemPrompt(customPrompt = '') {
-    const promptText = customPrompt || this.state.aiPrompt || 'Alternating Star & Cross Geometric Lattice';
+    const promptText = customPrompt || this.state.aiPrompt || 'Design a fluid dynamics turbulence pattern with organic flowing waves.';
     const cols = this.state.gridCols;
     const rows = this.state.gridRows;
 
@@ -2718,7 +2718,7 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
 
     const btnRotate = document.getElementById('btnToggleOrientation');
     if (btnRotate) {
-      btnRotate.textContent = isHoriz ? '🔄 Print View Horizontal' : '📐 Current View Vertical';
+      btnRotate.textContent = isHoriz ? '🔄 Current View Horizontal' : '📐 Current View Vertical';
       btnRotate.title = isHoriz ? 'Click to set 3D view to upright Vertical orientation (0°)' : 'Click to rotate 3D view 90° Horizontal';
       btnRotate.classList.toggle('active', !isHoriz);
     }
