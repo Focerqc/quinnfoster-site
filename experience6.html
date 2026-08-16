@@ -23,7 +23,7 @@
   <script src="js/three-csg-bundle.js?v=6.9"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=7.6">
+  <link rel="stylesheet" href="css/styles.css?v=7.8">
 </head>
 <body>
 
@@ -185,9 +185,33 @@
               <button type="button" id="btnResetSection1" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all top specs & dimensions to defaults">↺ Reset Specs</button>
             </div>
             
+            <!-- Inner Diameter (Bore ID) -->
             <div class="control-group">
-              <label>Inner Diameter (Fits 16mm Glass Tube):</label>
-              <div class="readonly-badge">16.2 mm (Fixed Clearance Fit)</div>
+              <div class="control-label-row">
+                <label for="innerDiameter">Inner Diameter (Bore ID): <span id="innerDiameterVal">16.20</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="innerDiameter" data-default="16.20" title="Reset Inner Diameter to 16.20mm">↺</button>
+              </div>
+              <input type="range" id="innerDiameter" min="15.00" max="18.50" step="0.05" value="16.20">
+              
+              <!-- Quick Fit Calibrations -->
+              <div class="fit-presets-row">
+                <button type="button" class="btn-preset-fit" data-fit="16.00" title="16.0mm - Tight press fit">Tight (16.0mm)</button>
+                <button type="button" class="btn-preset-fit active" data-fit="16.20" title="16.2mm - Standard 0.2mm clearance">Standard (16.2mm)</button>
+                <button type="button" class="btn-preset-fit" data-fit="16.40" title="16.4mm - Smooth slide / shrinkage fit">Loose / PETG (16.4mm)</button>
+                <button type="button" class="btn-preset-fit" data-fit="16.60" title="16.6mm - Wide clearance">Wide (16.6mm)</button>
+              </div>
+            </div>
+
+            <!-- Elephant's Foot Relief Chamfer -->
+            <div class="control-group">
+              <div class="control-label-row">
+                <label for="elephantsFootChamfer">🐘 Elephant's Foot Relief Chamfer: <span id="elephantsFootChamferVal">0.8</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="elephantsFootChamfer" data-default="0.8" title="Reset Relief Chamfer to 0.8mm">↺</button>
+              </div>
+              <input type="range" id="elephantsFootChamfer" min="0.0" max="2.0" step="0.1" value="0.8">
+              <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 0.2rem; display: flex; align-items: center; gap: 0.3rem;">
+                <span>✨ 45° entrance bevel prevents 1st-layer squish from blocking tube</span>
+              </div>
             </div>
 
             <div class="control-group">
@@ -200,10 +224,28 @@
 
             <div class="control-group">
               <div class="control-label-row">
-                <label for="sleeveLength">Sleeve Length: <span id="sleeveLengthVal">90.0</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="sleeveLength" data-default="90.0" title="Reset Sleeve Length to 90.0mm">↺</button>
+                <label for="sleeveLength">Sleeve Length: <span id="sleeveLengthVal">80.0</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="sleeveLength" data-default="80.0" title="Reset Sleeve Length to 80.0mm">↺</button>
               </div>
-              <input type="range" id="sleeveLength" min="40.0" max="120.0" step="1.0" value="90.0">
+              <input type="range" id="sleeveLength" min="40.0" max="140.0" step="1.0" value="80.0">
+            </div>
+
+            <!-- Glass Tube Length Reference (80mm to 200mm) -->
+            <div class="control-group">
+              <div class="control-label-row">
+                <label for="glassLength">🧪 Glass Tube Length: <span id="glassLengthVal">100.0</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="glassLength" data-default="100.0" title="Reset Glass Tube Length to 100.0mm">↺</button>
+              </div>
+              <input type="range" id="glassLength" min="80.0" max="200.0" step="1.0" value="100.0">
+              
+              <!-- Quick Tube Length Presets -->
+              <div class="fit-presets-row">
+                <button type="button" class="btn-preset-fit" data-glass="80.0" title="80mm Compact Tube">80mm</button>
+                <button type="button" class="btn-preset-fit active" data-glass="100.0" title="100mm Standard Tube">100mm</button>
+                <button type="button" class="btn-preset-fit" data-glass="120.0" title="120mm Studio Tube">120mm</button>
+                <button type="button" class="btn-preset-fit" data-glass="150.0" title="150mm Long Tube">150mm</button>
+                <button type="button" class="btn-preset-fit" data-glass="200.0" title="200mm Extended Tube">200mm</button>
+              </div>
             </div>
 
             <div class="control-grid-2col">
@@ -734,7 +776,7 @@
   </footer>
 
   <script src="js/main.js?v=1.1"></script>
-  <script src="js/experience6-generator.js?v=7.6"></script>
+  <script src="js/experience6-generator.js?v=7.8"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

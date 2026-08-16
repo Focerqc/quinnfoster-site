@@ -15,9 +15,11 @@ class PixelSleeveGenerator {
     
     // Core Generator State
     this.state = {
-      innerDiameter: 16.2,   // Locked for 16mm glass tube fit (0.2mm clearance)
+      innerDiameter: 16.2,   // Sleeve Inner Bore Diameter in mm (Fits 16mm glass tube, default 16.2mm with 0.2mm clearance)
+      elephantsFootChamfer: 0.8, // 45° internal entrance relief chamfer in mm (eliminates elephant's foot 1st-layer sticking)
       outerDiameter: 22.0,   // Base Outer Diameter in mm
-      length: 90.0,          // Sleeve Length in mm
+      length: 80.0,          // Sleeve Length in mm (Default: 80.0mm)
+      glassLength: 100.0,    // Glass Tube Length in mm (Default: 100.0mm, range 80-200mm)
       
       // Grid Matrix Resolution
       gridCols: 32,          // Radial Circumference Divisions (16 to 128)
@@ -1531,7 +1533,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       const blob = new Blob([stlData], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = `experience6_sleeve_${this.state.gridCols}x${this.state.gridRows}.stl`;
+      link.download = `experience5_sleeve_${this.state.innerDiameter.toFixed(1)}mm_ID_${this.state.gridCols}x${this.state.gridRows}.stl`;
       link.click();
       URL.revokeObjectURL(link.href);
 
@@ -1704,7 +1706,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
 
     // 5. Realistic 16mm Glass Tube Reference
     if (this.state.showGlassTube) {
-      const glassLen = L + 20.0;
+      const glassLen = Math.max(20.0, parseFloat(this.state.glassLength) || 100.0);
       const glassOuterR = 8.0; // 16mm OD
       const glassInnerR = 6.8; // 13.6mm ID
 
@@ -1739,10 +1741,17 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       this.glassMesh = new THREE.Mesh(glassGeom, glassMat);
       this.glassMesh.rotation.x = -Math.PI / 2;
 
-      // Align glass tube bottom: sits on top of endstop if toggled ON (-L/2 + lipThickness), else flush at bottom (-L/2)
-      const lipH = this.state.lipRetainer ? (this.state.lipThickness || 1.2) : 0.0;
-      const bottomY = -L / 2.0 + lipH;
-      const glassY = bottomY + glassLen / 2.0;
+      // Align glass tube:
+      // When lipRetainer is ON: glass tube sits on bottom endstop lip (-L/2 + lipThickness), so bottom is seated
+      // When lipRetainer is OFF (Default): sleeve is centered on the glass tube at y = 0
+      let glassY = 0;
+      if (this.state.lipRetainer) {
+        const lipH = this.state.lipThickness || 1.2;
+        const bottomY = -L / 2.0 + lipH;
+        glassY = bottomY + glassLen / 2.0;
+      } else {
+        glassY = 0; // Default centered
+      }
 
       this.glassMesh.position.set(0, glassY, 0);
       this.glassGroup.add(this.glassMesh);
@@ -1862,14 +1871,32 @@ My Design Request: ${customText || this.state.aiPrompt}`;
       }
     }
 
-    // 2. Build Inner Bore Surface Vertices (Smooth 16.2mm Inner Tube Bore)
+    // 2. Build Inner Bore Surface Vertices (Smooth Inner Tube Bore with Elephant's Foot Relief Chamfer)
     const innerStartIdx = vertices.length / 3;
+    const chamfer = Math.max(0.0, parseFloat(this.state.elephantsFootChamfer) || 0.0);
+    const chamferDepth = Math.max(chamfer, 1.2); // at least 1.2mm transition depth
     for (let r = 0; r <= rows; r++) {
       const y = (r / rows) * L - halfL;
+      const distFromBottom = (r / rows) * L;
+      const distFromTop = L - distFromBottom;
+
+      // 45° internal lead-in chamfer for elephant's foot relief at bottom and top openings
+      let flare = 0.0;
+      if (chamfer > 0.001) {
+        if (distFromBottom < chamferDepth) {
+          flare = Math.max(flare, chamfer * (1.0 - distFromBottom / chamferDepth));
+        }
+        if (distFromTop < chamferDepth) {
+          flare = Math.max(flare, chamfer * (1.0 - distFromTop / chamferDepth));
+        }
+      }
+      // Ensure inner radius stays cleanly within wall thickness
+      const currR_in = Math.min(R_out - 0.2, R_in + flare);
+
       for (let c = 0; c < cols; c++) {
         const angle = (c / cols) * Math.PI * 2.0;
-        const x = Math.cos(angle) * R_in;
-        const z = Math.sin(angle) * R_in;
+        const x = Math.cos(angle) * currR_in;
+        const z = Math.sin(angle) * currR_in;
 
         vertices.push(x, y, z);
         uvs.push(c / cols, r / rows);
@@ -1988,8 +2015,69 @@ My Design Request: ${customText || this.state.aiPrompt}`;
   }
 
   _initUI() {
-    this._bindInput('outerDiameter', (v) => { this.state.outerDiameter = parseFloat(v); this._debouncedUpdateMesh(20); });
+    this._bindInput('innerDiameter', (v) => { 
+      this.state.innerDiameter = parseFloat(v); 
+      // Safety check: ensure outer diameter is at least innerDiameter + 1.6mm
+      if (this.state.outerDiameter < this.state.innerDiameter + 1.6) {
+        this.state.outerDiameter = parseFloat((this.state.innerDiameter + 1.6).toFixed(1));
+        const odEl = document.getElementById('outerDiameter');
+        const odVal = document.getElementById('outerDiameterVal');
+        if (odEl) odEl.value = this.state.outerDiameter;
+        if (odVal) odVal.textContent = this.state.outerDiameter.toFixed(1);
+      }
+      this._updateFitPresetButtons();
+      this._debouncedUpdateMesh(20); 
+    });
+    this._bindInput('elephantsFootChamfer', (v) => { 
+      this.state.elephantsFootChamfer = parseFloat(v); 
+      this._debouncedUpdateMesh(20); 
+    });
+    this._bindInput('outerDiameter', (v) => { 
+      this.state.outerDiameter = parseFloat(v); 
+      if (this.state.outerDiameter < this.state.innerDiameter + 1.2) {
+        this.state.innerDiameter = parseFloat((this.state.outerDiameter - 1.2).toFixed(2));
+        const idEl = document.getElementById('innerDiameter');
+        const idVal = document.getElementById('innerDiameterVal');
+        if (idEl) idEl.value = this.state.innerDiameter;
+        if (idVal) idVal.textContent = this.state.innerDiameter.toFixed(2);
+        this._updateFitPresetButtons();
+      }
+      this._debouncedUpdateMesh(20); 
+    });
     this._bindInput('sleeveLength', (v) => { this.state.length = parseFloat(v); this._debouncedUpdateMesh(20); });
+    this._bindInput('glassLength', (v) => { 
+      this.state.glassLength = parseFloat(v); 
+      this._updateGlassPresetButtons();
+      this._debouncedUpdateMesh(20); 
+    });
+
+    // Quick Fit Calibration Preset Buttons
+    document.querySelectorAll('.btn-preset-fit[data-fit]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const fitVal = parseFloat(btn.dataset.fit);
+        if (!isNaN(fitVal)) {
+          const idInput = document.getElementById('innerDiameter');
+          if (idInput) {
+            idInput.value = fitVal.toFixed(2);
+            idInput.dispatchEvent(new Event('input'));
+          }
+        }
+      });
+    });
+
+    // Quick Glass Length Preset Buttons
+    document.querySelectorAll('.btn-preset-fit[data-glass]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const gVal = parseFloat(btn.dataset.glass);
+        if (!isNaN(gVal)) {
+          const gInput = document.getElementById('glassLength');
+          if (gInput) {
+            gInput.value = gVal.toFixed(1);
+            gInput.dispatchEvent(new Event('input'));
+          }
+        }
+      });
+    });
     this._bindInput('gridCols', (v) => { 
       this.state.gridCols = parseInt(v); 
       this._debouncedGenerateAIPattern(35);
@@ -2624,10 +2712,41 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
     if (el) {
       el.addEventListener('input', (e) => {
         const val = e.target.value;
-        if (valDisplay) valDisplay.textContent = val;
+        if (valDisplay) {
+          const num = parseFloat(val);
+          if (!isNaN(num) && (id === 'innerDiameter' || id === 'outerDiameter' || id === 'sleeveLength' || id === 'glassLength' || id === 'elephantsFootChamfer' || id === 'maxCutDepth' || id === 'maxExtrudeHeight')) {
+            valDisplay.textContent = (id === 'innerDiameter') ? num.toFixed(2) : num.toFixed(1);
+          } else {
+            valDisplay.textContent = val;
+          }
+        }
         callback(val);
       });
     }
+  }
+
+  _updateFitPresetButtons() {
+    const currId = parseFloat(this.state.innerDiameter) || 16.2;
+    document.querySelectorAll('.btn-preset-fit[data-fit]').forEach(btn => {
+      const fitVal = parseFloat(btn.dataset.fit);
+      if (Math.abs(fitVal - currId) < 0.03) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
+
+  _updateGlassPresetButtons() {
+    const currGlass = parseFloat(this.state.glassLength) || 100.0;
+    document.querySelectorAll('.btn-preset-fit[data-glass]').forEach(btn => {
+      const gVal = parseFloat(btn.dataset.glass);
+      if (Math.abs(gVal - currGlass) < 0.5) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
   }
 
   _updateMeshStatusOverlay(geom) {
@@ -2637,7 +2756,7 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
 
     if (vertEl && geom) vertEl.textContent = geom.attributes.position.count.toLocaleString();
     if (triEl && geom) triEl.textContent = (geom.index ? geom.index.count / 3 : 0).toLocaleString();
-    if (dimsEl) dimsEl.textContent = `16.2mm ID × ${this.state.outerDiameter}mm OD × ${this.state.length}mm L`;
+    if (dimsEl) dimsEl.textContent = `${this.state.innerDiameter.toFixed(1)}mm ID × ${this.state.outerDiameter.toFixed(1)}mm OD × ${this.state.length.toFixed(1)}mm L`;
   }
 
   toggleOrientation(forceState = null) {
@@ -2732,8 +2851,11 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
 
   resetAllSlidersToDefault() {
     const defaults = {
+      innerDiameter: 16.2,
+      elephantsFootChamfer: 0.8,
       outerDiameter: 22.0,
-      sleeveLength: 90.0,
+      sleeveLength: 80.0,
+      glassLength: 100.0,
       gridCols: 32,
       gridRows: 40,
       maxCutDepth: 1.5,
