@@ -74,6 +74,14 @@ body {
   background-attachment: fixed;
 }
 
+/* Scroll-locked state when enlarged 3D viewer is active */
+body.viewport-expanded-locked,
+html.viewport-expanded-locked {
+  overflow: hidden !important;
+  touch-action: none !important;
+  height: 100vh !important;
+}
+
 /* Typography Helpers */
 h1, h2, h3, h4 {
   color: var(--text-primary);
@@ -1338,10 +1346,19 @@ input:checked + .slider-round:before {
     border-radius: var(--radius-md) !important;
   }
 
+  .stl-generator-container {
+    position: relative !important;
+  }
+
   .stl-generator-wrapper {
     display: flex !important;
     flex-direction: column !important;
     min-height: auto !important;
+    transition: padding-top 0.35s cubic-bezier(0.25, 1, 0.5, 1) !important;
+  }
+
+  .stl-generator-wrapper.wrapper-shrunk-spaced {
+    padding-top: 195px !important; /* Locks document scroll position during viewport shrink */
   }
 
   .viewport-pane {
@@ -1359,13 +1376,52 @@ input:checked + .slider-round:before {
     min-height: 360px;
     height: clamp(380px, 48vh, 460px);
     max-height: 480px;
-    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-height 0.3s ease, max-height 0.3s ease;
+    will-change: height, min-height, max-height;
+    transition: height 0.35s cubic-bezier(0.25, 1, 0.5, 1), min-height 0.35s cubic-bezier(0.25, 1, 0.5, 1), max-height 0.35s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   .viewport-pane.viewport-expanded {
     height: 75vh !important;
-    max-height: 700px !important;
-    min-height: 500px !important;
+    max-height: 720px !important;
+    min-height: 520px !important;
+  }
+
+  /* Dynamic scroll shrink: smoothly compresses to half-height when user scrolls down controls */
+  .viewport-pane.viewport-shrunk {
+    height: clamp(185px, 23vh, 220px) !important;
+    min-height: 185px !important;
+    max-height: 220px !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.9) !important;
+  }
+
+  .viewport-pane.viewport-shrunk .viewport-header-actions {
+    display: none !important;
+  }
+
+  .viewport-pane.viewport-shrunk .viewport-header {
+    padding: 0.15rem 0.5rem !important;
+  }
+
+  .viewport-pane.viewport-shrunk .viewport-footer-stats {
+    padding: 0.15rem 0.5rem !important;
+    font-size: 0.62rem !important;
+  }
+
+  .viewport-pane.viewport-shrunk .viewport-floating-controls {
+    top: 0.25rem;
+    left: 0.35rem;
+    gap: 0.25rem;
+  }
+
+  .viewport-pane.viewport-shrunk .btn-viewport-control {
+    height: 26px;
+    padding: 0 0.45rem;
+    font-size: 0.65rem;
+  }
+
+  .viewport-pane.viewport-shrunk .btn-viewport-circle {
+    width: 26px;
+    height: 26px;
   }
 
   .viewport-header {

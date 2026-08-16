@@ -47,7 +47,7 @@ class PixelSleeveGenerator {
       showGlassTube: true,
       geoNodesMode: false,   // Blender Geometry Nodes Scatter Mode
       facetedShading: true,  // High-Visibility CAD Faceted Shading Mode (Default: ON)
-      isRotatedHorizontal: false, // 90° Orientation Toggle (Default: Vertical)
+      isRotatedHorizontal: true, // 90° Orientation Toggle (Default: Horizontal)
       materialStyle: 'titanium',
 
       // 3D Vector Text & Logo CAD Engine (Experience 4 Integration)
@@ -63,7 +63,8 @@ class PixelSleeveGenerator {
       logoAxisRadius: 11.0,   // Distance from cylinder central axis (radius in mm)
       logoRotate: 0,          // Total in-plane rotation (degrees)
       logoMode: 'deboss',     // 'deboss' (cut inward) or 'emboss' (extrude outward)
-      logoUseCSG: true        // Use true Boolean CSG cut
+      logoUseCSG: true,       // Use true Boolean CSG cut
+      cleanFloatingIslands: true // Auto-remove disconnected floating islands (D/O counters, stencil debris)
     };
 
     // 2D Depth Matrix Array (gridCols x gridRows), values in [-1.0, 1.0]
@@ -106,7 +107,7 @@ class PixelSleeveGenerator {
     this.generateAIPattern(this.state.patternPreset);
     
     this._initUI();
-    this.toggleOrientation(false);
+    this.toggleOrientation(true); // Default to horizontal view
     this._preloadFont();
     this._animate();
     
@@ -1314,7 +1315,134 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         console.warn('CSG Boolean error:', csgErr);
       }
     }
+
+    // Auto-remove disconnected floating islands (e.g. inner counter of letter D, O, A, etc.)
+    if (this.state.cleanFloatingIslands) {
+      this._updateProgressModal(75, 'Filtering and removing disconnected floating islands...');
+      await new Promise(r => setTimeout(r, 10));
+      exportGeo = this._removeFloatingIslands(exportGeo);
+    }
+
     return exportGeo;
+  }
+
+  _removeFloatingIslands(geometry) {
+    if (!geometry || !geometry.attributes || !geometry.attributes.position) return geometry;
+
+    const posAttr = geometry.attributes.position;
+    const indexAttr = geometry.index;
+    const numTriangles = indexAttr ? Math.floor(indexAttr.count / 3) : Math.floor(posAttr.count / 3);
+    if (numTriangles <= 10) return geometry;
+
+    const posArray = posAttr.array;
+    const keyToVertId = new Map();
+    let vertCount = 0;
+    const triVerts = new Int32Array(numTriangles * 3);
+
+    for (let i = 0; i < numTriangles * 3; i++) {
+      const idx = indexAttr ? indexAttr.getX(i) : i;
+      const px = posArray[idx * 3];
+      const py = posArray[idx * 3 + 1];
+      const pz = posArray[idx * 3 + 2];
+      // 0.02mm quantization tolerance to weld shared edges
+      const key = `${Math.round(px * 50)},${Math.round(py * 50)},${Math.round(pz * 50)}`;
+      let vid = keyToVertId.get(key);
+      if (vid === undefined) {
+        vid = vertCount++;
+        keyToVertId.set(key, vid);
+      }
+      triVerts[i] = vid;
+    }
+
+    // Disjoint Set Union (Union-Find)
+    const parent = new Int32Array(numTriangles);
+    for (let i = 0; i < numTriangles; i++) parent[i] = i;
+
+    function find(i) {
+      let root = i;
+      while (root !== parent[root]) root = parent[root];
+      let curr = i;
+      while (curr !== root) {
+        let nxt = parent[curr];
+        parent[curr] = root;
+        curr = nxt;
+      }
+      return root;
+    }
+
+    function union(i, j) {
+      const ri = find(i);
+      const rj = find(j);
+      if (ri !== rj) parent[ri] = rj;
+    }
+
+    const vertToTris = new Map();
+    for (let t = 0; t < numTriangles; t++) {
+      for (let k = 0; k < 3; k++) {
+        const v = triVerts[t * 3 + k];
+        let list = vertToTris.get(v);
+        if (!list) {
+          list = [];
+          vertToTris.set(v, list);
+        }
+        list.push(t);
+      }
+    }
+
+    vertToTris.forEach(tList => {
+      if (tList.length > 1) {
+        const first = tList[0];
+        for (let i = 1; i < tList.length; i++) {
+          union(first, tList[i]);
+        }
+      }
+    });
+
+    // Count triangles per component
+    const compSizes = new Map();
+    for (let t = 0; t < numTriangles; t++) {
+      const r = find(t);
+      compSizes.set(r, (compSizes.get(r) || 0) + 1);
+    }
+
+    if (compSizes.size <= 1) return geometry;
+
+    let maxTriCount = 0;
+    let mainRoot = -1;
+    compSizes.forEach((count, r) => {
+      if (count > maxTriCount) {
+        maxTriCount = count;
+        mainRoot = r;
+      }
+    });
+
+    // Keep the main sleeve body and any significant connected component (> 15% of max)
+    const keepTriangles = [];
+    for (let t = 0; t < numTriangles; t++) {
+      const r = find(t);
+      if (r === mainRoot || (compSizes.get(r) / maxTriCount) > 0.15) {
+        keepTriangles.push(t);
+      }
+    }
+
+    if (keepTriangles.length === numTriangles) return geometry;
+
+    const newPos = new Float32Array(keepTriangles.length * 9);
+    let dst = 0;
+    for (let i = 0; i < keepTriangles.length; i++) {
+      const t = keepTriangles[i];
+      for (let k = 0; k < 3; k++) {
+        const srcIdx = indexAttr ? indexAttr.getX(t * 3 + k) : (t * 3 + k);
+        newPos[dst++] = posArray[srcIdx * 3];
+        newPos[dst++] = posArray[srcIdx * 3 + 1];
+        newPos[dst++] = posArray[srcIdx * 3 + 2];
+      }
+    }
+
+    const cleanGeo = new THREE.BufferGeometry();
+    cleanGeo.setAttribute('position', new THREE.BufferAttribute(newPos, 3));
+    cleanGeo.computeVertexNormals();
+    return cleanGeo;
   }
 
   async toggleCSGPreview() {
@@ -1953,12 +2081,25 @@ My Design Request: ${customText || this.state.aiPrompt}`;
         btnExpand.textContent = isExpanded ? '🗗 Compact Viewer' : '⛶ Expand Viewer';
         btnExpand.title = isExpanded ? 'Collapse viewport back to compact height' : 'Expand viewport height for full-size 3D view';
         btnExpand.classList.toggle('active', isExpanded);
+
+        // Lock/unlock page scroll when enlarged viewer is active
+        if (isExpanded) {
+          document.body.classList.add('viewport-expanded-locked');
+          document.documentElement.classList.add('viewport-expanded-locked');
+          pane.classList.remove('viewport-shrunk');
+        } else {
+          document.body.classList.remove('viewport-expanded-locked');
+          document.documentElement.classList.remove('viewport-expanded-locked');
+        }
+
         setTimeout(() => {
           this._onResize();
           this._resetCamera();
         }, 150);
       });
     }
+
+    this._initScrollShrinkBehavior();
 
     const btnCopyPrompt = document.getElementById('btnCopySystemPrompt');
     if (btnCopyPrompt) {
@@ -2093,6 +2234,17 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     const btnRotateOrient = document.getElementById('btnToggleOrientation');
     if (btnRotateOrient) {
       btnRotateOrient.addEventListener('click', () => this.toggleOrientation());
+    }
+
+    const toggleFloating = document.getElementById('toggleCleanFloatingIslands');
+    if (toggleFloating) {
+      toggleFloating.addEventListener('change', (e) => {
+        this.state.cleanFloatingIslands = e.target.checked;
+        if (this.isCSGPreviewActive) {
+          this.toggleCSGPreview(); // re-render CSG with new setting
+          this.toggleCSGPreview();
+        }
+      });
     }
 
     const btnSTL = document.getElementById('btnExportSTL');
@@ -2416,6 +2568,57 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
     });
   }
 
+  _initScrollShrinkBehavior() {
+    const pane = document.querySelector('.viewport-pane');
+    const wrapper = document.querySelector('.stl-generator-wrapper');
+    const sentinel = document.getElementById('viewportScrollSentinel');
+    if (!pane || !sentinel) return;
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (pane.classList.contains('viewport-expanded')) return;
+
+          // When sentinel scrolls above top viewport sticky bar
+          if (!entry.isIntersecting && entry.boundingClientRect.top < 54) {
+            if (!pane.classList.contains('viewport-shrunk')) {
+              pane.classList.add('viewport-shrunk');
+              if (wrapper) wrapper.classList.add('wrapper-shrunk-spaced');
+              this._animateResizeTransition(360);
+            }
+          } else if (entry.isIntersecting) {
+            if (pane.classList.contains('viewport-shrunk')) {
+              pane.classList.remove('viewport-shrunk');
+              if (wrapper) wrapper.classList.remove('wrapper-shrunk-spaced');
+              this._animateResizeTransition(360);
+            }
+          }
+        });
+      }, {
+        root: null,
+        rootMargin: '-54px 0px 0px 0px',
+        threshold: 0
+      });
+
+      observer.observe(sentinel);
+    }
+  }
+
+  _animateResizeTransition(durationMs = 360) {
+    if (this._resizeAnimId) cancelAnimationFrame(this._resizeAnimId);
+    const startTime = performance.now();
+    const step = (now) => {
+      this._onResize(true);
+      if (now - startTime < durationMs) {
+        this._resizeAnimId = requestAnimationFrame(step);
+      } else {
+        this._onResize(true);
+        this._resizeAnimId = null;
+      }
+    };
+    this._resizeAnimId = requestAnimationFrame(step);
+  }
+
   _initPresetFolderToggles() {
     const folders = [
       {
@@ -2515,7 +2718,7 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
 
     const btnRotate = document.getElementById('btnToggleOrientation');
     if (btnRotate) {
-      btnRotate.textContent = isHoriz ? '🔄 Prin View Horizontal' : '📐 Current View Vertical';
+      btnRotate.textContent = isHoriz ? '🔄 Print View Horizontal' : '📐 Current View Vertical';
       btnRotate.title = isHoriz ? 'Click to set 3D view to upright Vertical orientation (0°)' : 'Click to rotate 3D view 90° Horizontal';
       btnRotate.classList.toggle('active', !isHoriz);
     }
@@ -2573,20 +2776,20 @@ Return a valid JSON 2D array of numbers: [[col0_row0, col0_row1, ...], [col1_row
     this.controls.update();
   }
 
-  _onResize() {
+  _onResize(force = false) {
     if (!this.container || !this.renderer || !this.camera) return;
     const w = this.container.clientWidth;
     const h = this.container.clientHeight;
     if (!w || !h) return;
 
-    // Prevent iOS address bar micro-height changes from triggering disruptive rebuilds
-    if (this._lastWidth === w && Math.abs((this._lastHeight || 0) - h) < 50) return;
+    if (!force && this._lastWidth === w && this._lastHeight === h) return;
     this._lastWidth = w;
     this._lastHeight = h;
 
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
+    this.renderer.setSize(w, h, false);
+    if (this.controls) this.controls.update();
   }
 
   resetAllSlidersToDefault() {
