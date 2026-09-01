@@ -49,11 +49,11 @@
     'N52': 1.46
   };
 
-  // Phase color definitions
+  // Phase color definitions (Industry-Standard Brushless Motor Colors: Yellow U, Blue V, Green W)
   const PHASE_COLORS = {
-    A: { hex: '#ef4444', threeHex: 0xef4444, name: 'Phase A (U)', dark: '#991b1b', light: '#fca5a5' },
-    B: { hex: '#06b6d4', threeHex: 0x06b6d4, name: 'Phase B (V)', dark: '#0e7490', light: '#67e8f9' },
-    C: { hex: '#10b981', threeHex: 0x10b981, name: 'Phase C (W)', dark: '#047857', light: '#6ee7b7' },
+    A: { hex: '#eab308', threeHex: 0xeab308, name: 'Phase A (U)', dark: '#854d0e', light: '#fef08a' }, // Yellow (U)
+    B: { hex: '#3b82f6', threeHex: 0x3b82f6, name: 'Phase B (V)', dark: '#1d4ed8', light: '#93c5fd' }, // Blue (V)
+    C: { hex: '#10b981', threeHex: 0x10b981, name: 'Phase C (W)', dark: '#047857', light: '#6ee7b7' }, // Green (W)
     neutral: { hex: '#e2e8f0', threeHex: 0xe2e8f0, name: 'Neutral Star (N)', dark: '#64748b', light: '#ffffff' }
   };
 
@@ -1323,7 +1323,7 @@
         TOPOLOGICAL CIRCUIT SCHEMATIC (${isWye ? 'STAR / WYE TERMINATION' : 'DELTA (Δ) TERMINATION'})
       </text>
       <text x="${width - marginX}" y="32" text-anchor="end" fill="#94a3b8" font-size="12">
-        Phase A: Red · Phase B: Cyan · Phase C: Green
+        Phase A: Yellow (U) · Phase B: Blue (V) · Phase C: Green (W)
       </text>
     `;
 

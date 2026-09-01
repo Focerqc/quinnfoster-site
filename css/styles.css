@@ -4073,17 +4073,17 @@ input:checked + .slider-round:before {
 }
 
 .btn-phase-solo.active-a {
-  background: rgba(239, 68, 68, 0.25);
-  border-color: #ef4444;
-  color: #fca5a5;
-  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+  background: rgba(234, 179, 8, 0.25);
+  border-color: #eab308;
+  color: #fef08a;
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
 }
 
 .btn-phase-solo.active-b {
-  background: rgba(6, 182, 212, 0.25);
-  border-color: #06b6d4;
-  color: #67e8f9;
-  box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);
+  background: rgba(59, 130, 246, 0.25);
+  border-color: #3b82f6;
+  color: #93c5fd;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
 }
 
 .btn-phase-solo.active-c {
@@ -4091,6 +4091,24 @@ input:checked + .slider-round:before {
   border-color: #10b981;
   color: #6ee7b7;
   box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.legend-chip.phase-a {
+  color: #eab308;
+  border-color: rgba(234, 179, 8, 0.4);
+  background: rgba(234, 179, 8, 0.12);
+}
+
+.legend-chip.phase-b {
+  color: #3b82f6;
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.12);
+}
+
+.legend-chip.phase-c {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.12);
 }
 
 .btn-mode-toggle {

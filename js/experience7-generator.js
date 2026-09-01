@@ -51,10 +51,10 @@
     'N52': 1.46
   };
 
-  // Phase color styling
+  // Phase color styling (Industry Standard: Yellow U, Blue V, Green W)
   const PHASE_COLORS = {
-    A: { hex: '#ef4444', name: 'Phase A', dark: '#991b1b', light: '#fca5a5' },
-    B: { hex: '#06b6d4', name: 'Phase B', dark: '#0e7490', light: '#67e8f9' },
+    A: { hex: '#eab308', name: 'Phase A', dark: '#854d0e', light: '#fef08a' },
+    B: { hex: '#3b82f6', name: 'Phase B', dark: '#1d4ed8', light: '#93c5fd' },
     C: { hex: '#10b981', name: 'Phase C', dark: '#047857', light: '#6ee7b7' },
     none: { hex: '#64748b', name: 'Unassigned', dark: '#334155', light: '#94a3b8' }
   };
