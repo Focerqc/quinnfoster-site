@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 7 — Interactive BLDC Outrunner Stator Winding Tool & Performance Simulator for 27-Slot Hub Motors | Quinn Foster">
-  <title>Experience 7 — BLDC Stator Winding & Performance Simulator | Quinn Foster</title>
+  <meta name="description" content="Experience 8 — Photorealistic 3D BLDC Stator Winding, Slot Fill & Star/Delta Connection Visualizer | Quinn Foster">
+  <title>Experience 8 — 3D Stator Winding & Star/Delta Circuit Visualizer | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -87,11 +87,11 @@
           <span class="num-badge">6</span>
           <span class="tab-btn-full-label">Experience 6 (Window Cutouts)</span>
         </a>
-        <a href="experience7.html" class="tab-btn tab-btn-num active" title="Experience 7 (Stator Winding Tool)">
+        <a href="experience7.html" class="tab-btn tab-btn-num" title="Experience 7 (Winding Tool)">
           <span class="num-badge">7</span>
           <span class="tab-btn-full-label">Experience 7 (Winding Tool)</span>
         </a>
-        <a href="experience8.html" class="tab-btn tab-btn-num" title="Experience 8 (3D Real Winding)">
+        <a href="experience8.html" class="tab-btn tab-btn-num active" title="Experience 8 (3D Real Winding)">
           <span class="num-badge">8</span>
           <span class="tab-btn-full-label">Experience 8 (3D Winding)</span>
         </a>
@@ -107,22 +107,22 @@
 
   <!-- Main Container -->
   <main class="container" style="padding-top: 0.5rem;">
-    <div class="experience-card exp7-container">
+    <div class="experience-card exp8-container">
       
       <!-- Top Title Bar & Motor Geometry Banner -->
-      <div class="exp7-hero-banner">
-        <div class="exp7-hero-title-col">
+      <div class="exp8-hero-banner">
+        <div class="exp8-hero-title-col">
           <div class="viewport-badge" style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
             <span class="pulse-dot"></span>
-            Superflux & Cannoncore Hub Motor Topology
+            Superflux & Cannoncore Hub Motor Topology · 3D Physical Architecture
           </div>
-          <h1 class="exp7-main-title">Interactive BLDC Outrunner Stator Winding & Performance Simulator</h1>
-          <p class="exp7-main-subtitle">
-            27-Slot Outrunner Stator (115mm OD × 60mm ID × 90mm Stack). Visualizes tooth phase grouping, parallel strand bundles, turns, slot fill factor, airgap flux, and calculated Kv/Kt performance.
+          <h1 class="exp8-main-title">Experience 8: Photorealistic 3D Stator Winding & Star/Delta Visualizer</h1>
+          <p class="exp8-main-subtitle">
+            Physically rendered 27-slot stator core with parametric copper coil bundles, dynamic slot fill factor, inter-slot jumper routing, phase leads (U/V/W), and switchable Star (Wye) vs. Delta (Δ) termination wiring.
           </p>
         </div>
 
-        <div class="exp7-hero-actions">
+        <div class="exp8-hero-actions">
           <button type="button" id="btnCopyWindingSpec" class="btn-primary btn-small" title="Copy full motor winding spec sheet for workshop build">
             📋 Copy Spec Sheet
           </button>
@@ -130,96 +130,91 @@
       </div>
 
       <!-- Main 2-Column Grid Layout -->
-      <div class="exp7-grid-layout">
+      <div class="exp8-grid-layout">
         
-        <!-- Left Column: Visualizer Suite (3D Engine, 2D Circular SVG, 2D Linear Unrolled, Winding Guide) -->
-        <div class="exp7-visualizer-pane">
+        <!-- Left Column: Visualizer Suite (3D Physical Engine & 2D Topological Schematic) -->
+        <div class="exp8-visualizer-pane">
           
           <!-- View Switcher Tabs Bar -->
           <div class="exp7-view-tabs-bar">
-            <button type="button" class="view-tab-btn" data-view="view-3d">
-              <span>🕹️ 3D Real Stator</span>
+            <button type="button" class="view-tab-btn active" data-view="view-3d">
+              <span>🕹️ 3D Real Stator Winding</span>
             </button>
-            <button type="button" class="view-tab-btn active" data-view="view-2d-circular">
-              <span>⭕ 2D Circular Stator</span>
-            </button>
-            <button type="button" class="view-tab-btn" data-view="view-2d-linear">
-              <span>📏 2D Linear Unrolled</span>
-            </button>
-            <button type="button" class="view-tab-btn" data-view="view-guide">
-              <span>📋 Workshop Guide</span>
+            <button type="button" class="view-tab-btn" data-view="view-schematic">
+              <span>📐 2D Topological Circuit</span>
             </button>
           </div>
 
           <!-- View Tab 1: 3D Three.js Viewport -->
-          <div id="view-3d" class="view-pane-content">
-            <div class="viewport-header" style="background: rgba(15, 23, 42, 0.7); border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
-              <div class="exp7-phase-legend">
-                <span class="legend-chip phase-a">● Phase A (Red)</span>
-                <span class="legend-chip phase-b">● Phase B (Cyan)</span>
-                <span class="legend-chip phase-c">● Phase C (Green)</span>
+          <div id="view-3d" class="view-pane-content active">
+            
+            <!-- Floating Toolbar 1: Phase Isolation & Wire Appearance Mode -->
+            <div class="exp8-toolbar-row">
+              <div class="exp8-toolbar-group">
+                <span class="exp8-toolbar-label">Solo Phase:</span>
+                <button type="button" class="btn-phase-solo active-all" data-solo="all">All Phases</button>
+                <button type="button" class="btn-phase-solo" data-solo="A">● Phase A (U)</button>
+                <button type="button" class="btn-phase-solo" data-solo="B">● Phase B (V)</button>
+                <button type="button" class="btn-phase-solo" data-solo="C">● Phase C (W)</button>
               </div>
-              <div class="viewport-header-actions">
-                <button id="btnToggleAutoSpin" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+
+              <div class="exp8-toolbar-group">
+                <button type="button" id="btnWireAppearance" class="btn-mode-toggle" title="Cycle between Phase-Coded, Pure Copper, and Copper with Phase Labels">
+                  🎨 Mode: Phase-Coded
+                </button>
+                <button id="btnToggleAutoSpin" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.74rem;">
                   ⏸ Auto-Spin: OFF
                 </button>
-                <button id="btnViewportReset" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                <button id="btnViewportReset" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.74rem;">
                   ↺ Reset Camera
                 </button>
               </div>
             </div>
 
-            <div id="viewport" class="viewport-canvas-container" style="min-height: 480px; position: relative;">
+            <!-- 3D Canvas Viewport -->
+            <div id="viewport" class="viewport-canvas-container" style="min-height: 520px; position: relative;">
               <div id="viewportLoading" class="viewport-loading">
                 <div class="spinner"></div>
-                <div>Loading Superflux Stator Laminations GLB...</div>
+                <div>Generating 3D Stator & Copper Bundles...</div>
               </div>
             </div>
 
-            <!-- Exploded View Slider Floating Toolbar -->
-            <div class="exp7-exploded-toolbar">
-              <label for="explodedSlider" style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
-                <span>💥 Exploded View (Pull Magnets / Airgap):</span>
-              </label>
-              <input type="range" id="explodedSlider" min="0.0" max="1.0" step="0.02" value="0.0" style="flex: 1; max-width: 280px;">
-            </div>
-          </div>
-
-          <!-- View Tab 2: 2D Circular Interactive SVG Stator -->
-          <div id="view-2d-circular" class="view-pane-content active">
-            <div class="exp7-card-header-sub">
-              <div>
-                <strong style="color: #38bdf8;">Interactive 27-Tooth Stator Diagram</strong>
-                <span style="font-size: 0.78rem; color: #94a3b8; margin-left: 0.5rem;">Click any tooth to inspect electrical angle & winding details</span>
+            <!-- Floating Toolbar 2: Stator Transparency (X-Ray) & Exploded View -->
+            <div class="exp8-toolbar-row" style="background: rgba(15, 23, 42, 0.95);">
+              <div class="exp8-toolbar-group" style="flex: 1; max-width: 48%;">
+                <label for="statorOpacitySlider" style="font-size: 0.74rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>🔍 Stator X-Ray / Opacity:</span>
+                </label>
+                <input type="range" id="statorOpacitySlider" min="0.0" max="1.0" step="0.05" value="1.0" style="flex: 1;">
               </div>
-              <div class="exp7-phase-legend">
-                <span class="legend-chip phase-a">Phase A</span>
-                <span class="legend-chip phase-b">Phase B</span>
-                <span class="legend-chip phase-c">Phase C</span>
-                <span class="legend-chip" style="color: #facc15; border-color: #facc1544;">★ Hall Sensors</span>
+
+              <div class="exp8-toolbar-group" style="flex: 1; max-width: 48%;">
+                <label for="explodedSlider" style="font-size: 0.74rem; font-weight: 700; color: #a855f7; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>💥 Pull Magnets / Airgap:</span>
+                </label>
+                <input type="range" id="explodedSlider" min="0.0" max="1.0" step="0.02" value="0.0" style="flex: 1;">
               </div>
             </div>
-            <div id="circularSvgContainer" class="circular-svg-wrapper"></div>
-          </div>
 
-          <!-- View Tab 3: 2D Linear Unrolled Stator Diagram -->
-          <div id="view-2d-linear" class="view-pane-content">
-            <div class="exp7-card-header-sub">
-              <strong style="color: #38bdf8;">Unrolled Linear Stator Sequence (Teeth 1 to 27)</strong>
-              <span style="font-size: 0.78rem; color: #94a3b8;">Shows Phase Bus and Star/Delta terminal connections</span>
+            <!-- Quick Status Bar -->
+            <div class="exp8-quick-bar">
+              <div class="exp8-quick-bar-item">
+                <span>Active Termination:</span>
+                <strong id="terminationModeLabel" style="color: #38bdf8;">Star (Wye / Y) Topology</strong>
+              </div>
+              <div class="exp8-quick-bar-item" style="margin-left: auto;">
+                <span>Orbit: Left Click + Drag · Zoom: Scroll · Pan: Right Click</span>
+              </div>
             </div>
-            <div class="linear-svg-scroll-container">
-              <div id="linearSvgContainer" class="linear-svg-wrapper"></div>
+          </div>
+
+          <!-- View Tab 2: 2D Topological Circuit Schematic -->
+          <div id="view-schematic" class="view-pane-content">
+            <div class="exp8-schematic-container">
+              <div id="schematicSvgContainer"></div>
             </div>
           </div>
 
-          <!-- View Tab 4: Step-by-Step Practical Winding Guide -->
-          <div id="view-guide" class="view-pane-content">
-            <div id="windingGuideContainer" class="winding-guide-wrapper"></div>
-          </div>
-
-          <!-- Active Selected Tooth Live Inspector Tag -->
-          <div id="toothInspectorDisplay" class="exp7-tooth-inspector-container"></div>
         </div>
 
         <!-- Right Column: Winding Controls & Performance Hub -->
@@ -228,7 +223,7 @@
           <!-- Section 0: Quick Build Presets -->
           <div class="control-section exp7-preset-card">
             <div class="section-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>⚡ Popular Winding Presets</span>
+              <span>⚡ Winding Presets</span>
               <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">Click to load baseline</span>
             </div>
             <div class="exp7-preset-grid">
@@ -251,24 +246,22 @@
             </div>
           </div>
 
-          <!-- Section 1: Winding Topology & Pole Configuration -->
+          <!-- Section 1: Phase Termination & Schema -->
           <div class="control-section">
-            <h3 class="section-title">⚙️ Winding Topology & Architecture</h3>
+            <h3 class="section-title">⚙️ Phase Termination & Architecture</h3>
             
             <div class="control-grid-2col">
-              <!-- Rotor Pole Configuration (Fixed 30 Poles) -->
               <div class="control-group">
-                <label>Rotor Pole Topology ($P$):</label>
+                <label>Stator & Rotor Topology:</label>
                 <div class="fixed-spec-badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 0.55rem 0.75rem; color: #f8fafc; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; min-height: 42px;">
                   <span style="font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
                     <span class="pulse-dot" style="width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;"></span>
-                    30 Rotor Poles
+                    27 Slots / 30 Poles
                   </span>
-                  <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">27N30P (15 Pairs)</span>
+                  <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">15 Pole Pairs</span>
                 </div>
               </div>
 
-              <!-- Connection Topology -->
               <div class="control-group">
                 <label>Phase Termination:</label>
                 <div class="conn-toggle-group">
@@ -287,20 +280,18 @@
               <div class="exp7-schema-string" id="windingSchemaDisplay">AacCcbBbaAacCcbBbaAacCcbBba</div>
               
               <div class="exp7-schema-tags">
-                <div class="schema-tag">Winding Factor ($k_{w1}$): <strong id="kw1Display">0.9598</strong></div>
-                <div class="schema-tag">Cogging Steps: <strong id="lcmDisplay">270</strong></div>
-                <div class="schema-tag">Periodicity (GCD): <strong id="gcdDisplay">3</strong></div>
-                <div class="schema-tag">Slot Elec Angle: <strong id="gammaEDisplay">200.0°</strong></div>
+                <div class="schema-tag">Winding Factor ($k_{w1}$): <strong>0.9598</strong></div>
+                <div class="schema-tag">Cogging Steps: <strong>270</strong></div>
+                <div class="schema-tag">Periodicity: <strong>3</strong></div>
               </div>
             </div>
           </div>
 
-          <!-- Section 2: Wire Sizing & Live Slot Fill Factor Gauge -->
+          <!-- Section 2: Wire Sizing & Physical Slot Fill Factor Gauge -->
           <div class="control-section">
-            <h3 class="section-title">🧵 Wire Strands & Slot Fill Factor</h3>
+            <h3 class="section-title">🧵 Wire Strands & Physical Slot Fill</h3>
             
             <div class="control-grid-3col">
-              <!-- Wire Gauge (AWG) -->
               <div class="control-group">
                 <label for="wireAwgSelect">Wire Gauge (AWG):</label>
                 <select id="wireAwgSelect" class="form-select">
@@ -315,7 +306,6 @@
                 </select>
               </div>
 
-              <!-- Parallel Strands Slider -->
               <div class="control-group">
                 <div class="control-label-row">
                   <label for="strandsSlider">Parallel Strands: <span id="strandsVal">18</span>x</label>
@@ -323,7 +313,6 @@
                 <input type="range" id="strandsSlider" min="1" max="30" step="1" value="18">
               </div>
 
-              <!-- Turns per Tooth Slider -->
               <div class="control-group">
                 <div class="control-label-row">
                   <label for="turnsSlider">Turns / Tooth: <span id="turnsVal">6</span>T</label>
@@ -366,60 +355,18 @@
             </div>
           </div>
 
-          <!-- Section 3: Magnet Grade & Airgap Physics -->
-          <div class="control-section">
-            <h3 class="section-title">🧲 Magnet Grade & Stator Airgap</h3>
-            
-            <div class="control-grid-2col">
-              <!-- Magnet Grade -->
-              <div class="control-group">
-                <label for="magnetGradeSelect">Neodymium Magnet Grade:</label>
-                <select id="magnetGradeSelect" class="form-select">
-                  <option value="N35">N35 (Br: 1.18 Tesla)</option>
-                  <option value="N42">N42 (Br: 1.30 Tesla)</option>
-                  <option value="N45">N45 (Br: 1.35 Tesla)</option>
-                  <option value="N48" selected>N48 (Br: 1.40 Tesla - High Grade)</option>
-                  <option value="N50">N50 (Br: 1.43 Tesla)</option>
-                  <option value="N52">N52 (Br: 1.46 Tesla - Ultra Max)</option>
-                </select>
-              </div>
-
-              <!-- Airgap Slider -->
-              <div class="control-group">
-                <div class="control-label-row">
-                  <label for="airgapSlider">Stator Airgap ($g$): <span id="airgapVal">0.70 mm</span></label>
-                </div>
-                <input type="range" id="airgapSlider" min="0.40" max="1.50" step="0.05" value="0.70">
-              </div>
-            </div>
-
-            <div class="exp7-mini-stats-grid" style="grid-template-columns: 1fr 1fr;">
-              <div class="mini-stat-card">
-                <span class="mini-label">Airgap Flux Density ($B_g$)</span>
-                <span class="mini-val" id="bgDisplay">0.89 T</span>
-              </div>
-              <div class="mini-stat-card">
-                <span class="mini-label">Fundamental Flux / Pole ($\Phi_p$)</span>
-                <span class="mini-val" id="fluxDisplay">0.62 mWb</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Section 4: Motor Performance & Speed Simulator -->
+          <!-- Section 3: Performance & Speeds Dashboard -->
           <div class="control-section exp7-performance-card">
-            <h3 class="section-title">🚀 Calculated Motor Performance & Speeds</h3>
+            <h3 class="section-title">🚀 Motor Performance & Calculated Speeds</h3>
             
             <div class="control-grid-2col">
-              <!-- Battery Voltage Slider -->
               <div class="control-group">
                 <div class="control-label-row">
-                  <label for="voltageSlider">Battery Pack Voltage: <span id="voltageVal">84 V</span></label>
+                  <label for="voltageSlider">Battery Voltage: <span id="voltageVal">84 V</span></label>
                 </div>
                 <input type="range" id="voltageSlider" min="36" max="100" step="2" value="84">
-                <div style="font-size: 0.7rem; color: #94a3b8; margin-top: 0.2rem;">Typical: 18S (75V), 20S (84V), 24S (100V)</div>
               </div>
 
-              <!-- Phase Current Slider -->
               <div class="control-group">
                 <div class="control-label-row">
                   <label for="currentSlider">Motor Current Rating: <span id="currentVal">50 A</span></label>
@@ -441,12 +388,12 @@
               </div>
 
               <div class="perf-metric-card">
-                <span class="perf-metric-title">No-Load Wheel Speed (@ 11" Tire)</span>
-                <span class="perf-metric-val highlight-speed" id="noLoadSpeedDisplay">1495 RPM (50.5 mph / 81.3 km/h)</span>
+                <span class="perf-metric-title">No-Load Speed (@ 11" Tire)</span>
+                <span class="perf-metric-val highlight-speed" id="noLoadSpeedDisplay">1495 RPM (50.5 mph)</span>
               </div>
 
               <div class="perf-metric-card">
-                <span class="perf-metric-title">Continuous Torque & Copper Loss</span>
+                <span class="perf-metric-title">Continuous Torque & Loss</span>
                 <span class="perf-metric-val highlight-torque" id="torqueDisplay">26.8 Nm (@ 50A)</span>
                 <div style="font-size: 0.72rem; color: #f87171; margin-top: 0.2rem;">I²R Thermal Loss: <strong id="copperLossDisplay">35.4 W</strong></div>
               </div>
@@ -474,9 +421,8 @@
     </div>
   </footer>
 
-  <!-- Scripts -->
-  <script src="js/main.js?v=2.4"></script>
-  <script src="js/experience7-generator.js?v=2.4"></script>
+  <script src="js/main.js?v=9.4"></script>
+  <script src="js/experience8-generator.js?v=9.4"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

@@ -73,9 +73,9 @@
     batteryVoltage: 84.0, // 20S Li-Ion (~84V max / 72V nominal)
     currentA: 50.0,
     tireDiameterInches: 11.0, // Standard PEV / Onewheel tire
-    activeTab: 'view-3d', // 'view-3d', 'view-2d-circular', 'view-2d-linear', 'view-guide'
+    activeTab: 'view-2d-circular', // 'view-3d', 'view-2d-circular', 'view-2d-linear', 'view-guide'
     explodedProgress: 0.0, // 0 = closed, 1 = exploded
-    autoSpin: true,
+    autoSpin: false,
     showWireStrands: false,
     selectedTooth: 1, // 1 to 27
     calculated: {}
@@ -894,6 +894,10 @@
     tryLoad(0);
   }
 
+  function getToothAngle(slotIndex) {
+    return (10.0 * Math.PI / 180) + (slotIndex * 2 * Math.PI) / 27;
+  }
+
   function buildProceduralStator() {
     if (!statorGroup) return;
 
@@ -917,22 +921,65 @@
 
     const group = new THREE.Group();
 
-    const innerRingGeo = new THREE.CylinderGeometry(rIn + 10, rIn, stackLen, 36, 1, true);
+    const innerRingGeo = new THREE.CylinderGeometry(rIn + 6, rIn + 6, stackLen, 48, 1, false);
     const innerRingMesh = new THREE.Mesh(innerRingGeo, statorMat);
     group.add(innerRingMesh);
 
+    const toothLen = (rOut - 3.7) - (rIn + 6);
+    const midR = (rIn + 6 + (rOut - 3.7)) / 2;
+
     for (let i = 0; i < slots; i++) {
-      const angle = (i * 2 * Math.PI) / slots;
-      const toothGeo = new THREE.BoxGeometry(STATOR_SPECS.toothStemWidthMm, stackLen, rOut - (rIn + 8));
+      const angle = getToothAngle(i);
+      const toothGeo = new THREE.BoxGeometry(STATOR_SPECS.toothStemWidthMm, stackLen, toothLen);
       const toothMesh = new THREE.Mesh(toothGeo, statorMat);
       
-      const midR = (rIn + 8 + rOut) / 2;
       toothMesh.position.set(midR * Math.cos(angle), 0, midR * Math.sin(angle));
       toothMesh.rotation.y = -angle + Math.PI / 2;
       group.add(toothMesh);
+
+      const shoeGeo = new THREE.BoxGeometry(STATOR_SPECS.toothStemWidthMm * 2.3, stackLen, 2.5);
+      const shoeMesh = new THREE.Mesh(shoeGeo, statorMat);
+      shoeMesh.position.set((rOut - 1.25) * Math.cos(angle), 0, (rOut - 1.25) * Math.sin(angle));
+      shoeMesh.rotation.y = -angle + Math.PI / 2;
+      group.add(shoeMesh);
     }
 
     statorGroup.add(group);
+  }
+
+  // Helper: Physical dimensions of conductor bundle based on turns, strands & wire gauge
+  function getBundleDimensions() {
+    const wireEntry = WIRE_GAUGE_DB.find(w => w.awg === state.wireAwg) || WIRE_GAUGE_DB[10];
+    const wireDia = wireEntry.totalDiaMm || (wireEntry.diaMm * 1.07);
+    const singleWireArea = Math.PI * (wireDia / 2) ** 2;
+    const totalConductorArea = state.turns * state.strands * singleWireArea;
+
+    const packedArea = totalConductorArea * 1.35;
+    const rawThickness = packedArea / 7.5;
+    const tBundle = Math.min(3.8, Math.max(0.45, rawThickness));
+
+    const rawCrown = 0.5 + (packedArea / 4.2);
+    const hCrown = Math.min(7.5, Math.max(0.7, rawCrown));
+
+    const stackLen = STATOR_SPECS.stackLengthMm;
+    const wStem = STATOR_SPECS.toothStemWidthMm;
+    const midR = 45.0;
+    const toothRadialDepth = 16.2;
+    const topCrownY = (stackLen / 2) + hCrown;
+    const botCrownY = -(stackLen / 2) - hCrown;
+
+    return {
+      tBundle,
+      hCrown,
+      wireDia,
+      totalConductorArea,
+      stackLen,
+      wStem,
+      midR,
+      toothRadialDepth,
+      topCrownY,
+      botCrownY
+    };
   }
 
   function update3DCoils() {
@@ -952,16 +999,46 @@
     if (!calc || !calc.winding) return;
 
     const teeth = calc.winding.teeth;
-    const stackLen = STATOR_SPECS.stackLengthMm;
-    const rOut = STATOR_SPECS.outerDiameterMm / 2;
-    const rIn = STATOR_SPECS.innerDiameterMm / 2;
-    const midR = (rIn + 12 + rOut - 6) / 2;
-    const stemL = rOut - (rIn + 12);
+    const dims = getBundleDimensions();
 
-    const coilThickness = Math.min(8.0, 2.0 + (state.turns * 0.4) + (state.strands * 0.1));
+    const halfW = (dims.wStem / 2) + dims.tBundle;
+    const halfH = (dims.stackLen / 2) + dims.hCrown;
+    const inHalfW = dims.wStem / 2;
+    const inHalfH = dims.stackLen / 2;
+    const cornerR = Math.min(halfW - 0.2, Math.max(0.4, dims.hCrown * 0.4));
+
+    const shape = new THREE.Shape();
+    shape.moveTo(-halfW + cornerR, -halfH);
+    shape.lineTo(halfW - cornerR, -halfH);
+    shape.quadraticCurveTo(halfW, -halfH, halfW, -halfH + cornerR);
+    shape.lineTo(halfW, halfH - cornerR);
+    shape.quadraticCurveTo(halfW, halfH, halfW - cornerR, halfH);
+    shape.lineTo(-halfW + cornerR, halfH);
+    shape.quadraticCurveTo(-halfW, halfH, -halfW, halfH - cornerR);
+    shape.lineTo(-halfW, -halfH + cornerR);
+    shape.quadraticCurveTo(-halfW, -halfH, -halfW + cornerR, -halfH);
+
+    const hole = new THREE.Path();
+    hole.moveTo(-inHalfW, -inHalfH);
+    hole.lineTo(inHalfW, -inHalfH);
+    hole.lineTo(inHalfW, inHalfH);
+    hole.lineTo(-inHalfW, inHalfH);
+    hole.lineTo(-inHalfW, -inHalfH);
+    shape.holes.push(hole);
+
+    const bevel = Math.min(0.45, Math.max(0.1, dims.tBundle * 0.25));
+    const baseCoilGeo = new THREE.ExtrudeGeometry(shape, {
+      depth: dims.toothRadialDepth,
+      bevelEnabled: true,
+      bevelSegments: 2,
+      steps: 1,
+      bevelSize: bevel,
+      bevelThickness: bevel
+    });
+    baseCoilGeo.center();
 
     teeth.forEach(t => {
-      const angle = ((t.slotNumber - 1) * 2 * Math.PI) / 27 - Math.PI / 2;
+      const angle = getToothAngle(t.slotNumber - 1);
       const phase = PHASE_COLORS[t.phase];
 
       const coilMat = new THREE.MeshStandardMaterial({
@@ -972,10 +1049,9 @@
         emissiveIntensity: 0.2
       });
 
-      const coilGeo = new THREE.BoxGeometry(STATOR_SPECS.toothStemWidthMm + coilThickness, stackLen - 8, stemL - 4);
-      const coilMesh = new THREE.Mesh(coilGeo, coilMat);
+      const coilMesh = new THREE.Mesh(baseCoilGeo, coilMat);
 
-      coilMesh.position.set(midR * Math.cos(angle), 0, midR * Math.sin(angle));
+      coilMesh.position.set(dims.midR * Math.cos(angle), 0, dims.midR * Math.sin(angle));
       coilMesh.rotation.y = -angle + Math.PI / 2;
 
       windingsGroup.add(coilMesh);
