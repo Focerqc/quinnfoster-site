@@ -238,7 +238,7 @@
               </button>
               <button type="button" class="btn-winding-preset" data-preset="speed-runner">
                 <strong>High Speed Racer</strong>
-                <span>27N24P · 5T · 22x28AWG · Delta</span>
+                <span>27N30P · 5T · 22x28AWG · Delta</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="single-strand-fat">
                 <strong>Single Wire (Fat)</strong>
@@ -252,17 +252,16 @@
             <h3 class="section-title">⚙️ Winding Topology & Architecture</h3>
             
             <div class="control-grid-2col">
-              <!-- Rotor Pole Count -->
+              <!-- Rotor Pole Configuration (Fixed 30 Poles) -->
               <div class="control-group">
-                <label for="poleCountSelect">Rotor Pole Count ($P$):</label>
-                <select id="poleCountSelect" class="form-select">
-                  <option value="24">24 Poles (27N24P - kw: 0.960)</option>
-                  <option value="26">26 Poles (27N26P - kw: 0.956)</option>
-                  <option value="28">28 Poles (27N28P - kw: 0.956)</option>
-                  <option value="30" selected>30 Poles (27N30P - Standard Superflux)</option>
-                  <option value="32">32 Poles (27N32P - kw: 0.956)</option>
-                  <option value="22">22 Poles (27N22P - kw: 0.956)</option>
-                </select>
+                <label>Rotor Pole Topology ($P$):</label>
+                <div class="fixed-spec-badge" style="background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: var(--radius-sm); padding: 0.55rem 0.75rem; color: #f8fafc; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between; min-height: 42px;">
+                  <span style="font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
+                    <span class="pulse-dot" style="width: 7px; height: 7px; background: #38bdf8; border-radius: 50%;"></span>
+                    30 Rotor Poles
+                  </span>
+                  <span style="font-size: 0.75rem; color: #94a3b8; font-weight: 500;">27N30P (15 Pairs)</span>
+                </div>
               </div>
 
               <!-- Connection Topology -->
@@ -473,7 +472,7 @@
 
   <!-- Scripts -->
   <script src="js/main.js?v=2.0"></script>
-  <script src="js/experience7-generator.js?v=2.0"></script>
+  <script src="js/experience7-generator.js?v=2.1"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

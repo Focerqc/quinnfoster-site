@@ -1063,14 +1063,6 @@
 
   // --- UI Event Handlers & Binding ---
   function setupEventListeners() {
-    const poleSelect = document.getElementById('poleCountSelect');
-    if (poleSelect) {
-      poleSelect.addEventListener('change', (e) => {
-        state.poles = parseInt(e.target.value, 10);
-        recalculateAll();
-      });
-    }
-
     const turnsInput = document.getElementById('turnsSlider');
     if (turnsInput) {
       turnsInput.addEventListener('input', (e) => {
@@ -1246,7 +1238,7 @@
           state.magnetGrade = 'N52';
           state.airgapMm = 0.50;
         } else if (presetType === 'speed-runner') {
-          state.poles = 24;
+          state.poles = 30;
           state.turns = 5;
           state.strands = 22;
           state.wireAwg = 28;
@@ -1262,8 +1254,7 @@
           state.magnetGrade = 'N48';
           state.airgapMm = 0.70;
         }
-
-        if (poleSelect) poleSelect.value = state.poles;
+        
         if (turnsInput) turnsInput.value = state.turns;
         if (strandsInput) strandsInput.value = state.strands;
         if (awgSelect) awgSelect.value = state.wireAwg;
