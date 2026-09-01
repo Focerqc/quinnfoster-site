@@ -3364,3 +3364,595 @@ input:checked + .slider-round:before {
 .ai-assistant-accordion.collapsed .ai-accordion-body {
   display: none !important;
 }
+
+/* ==========================================================================
+   EXPERIENCE 7: Interactive BLDC Outrunner Stator Winding & Performance Engine
+   ========================================================================== */
+
+.exp7-container {
+  padding: 1.25rem;
+}
+
+.exp7-hero-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(30, 41, 59, 0.8) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+}
+
+.exp7-main-title {
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: #f8fafc;
+  line-height: 1.25;
+  margin-bottom: 0.35rem;
+  background: linear-gradient(135deg, #ffffff 30%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.exp7-main-subtitle {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  line-height: 1.5;
+  margin: 0;
+  max-width: 900px;
+}
+
+.exp7-hero-actions {
+  flex-shrink: 0;
+}
+
+/* Grid 2-Column Layout */
+.exp7-grid-layout {
+  display: grid;
+  grid-template-columns: minmax(420px, 1.15fr) minmax(380px, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .exp7-grid-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Visualizer Pane */
+.exp7-visualizer-pane {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.exp7-view-tabs-bar {
+  display: flex;
+  background: rgba(11, 17, 32, 0.9);
+  border-bottom: 1px solid var(--surface-border);
+  padding: 0.35rem;
+  gap: 0.35rem;
+  overflow-x: auto;
+}
+
+.view-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  color: #94a3b8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.view-tab-btn:hover {
+  background: rgba(56, 189, 248, 0.1);
+  color: #e2e8f0;
+}
+
+.view-tab-btn.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: rgba(56, 189, 248, 0.5);
+  color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.2);
+}
+
+.view-pane-content {
+  display: none;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.view-pane-content.active {
+  display: block;
+}
+
+.exp7-phase-legend {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.legend-chip {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.legend-chip.phase-a {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.4);
+}
+
+.legend-chip.phase-b {
+  color: #06b6d4;
+  border-color: rgba(6, 182, 212, 0.4);
+}
+
+.legend-chip.phase-c {
+  color: #10b981;
+  border-color: rgba(16, 185, 129, 0.4);
+}
+
+.exp7-exploded-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  background: rgba(15, 23, 42, 0.9);
+  border-top: 1px solid var(--surface-border);
+}
+
+.exp7-card-header-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  border-bottom: 1px solid var(--surface-border);
+}
+
+/* 2D Circular SVG Container */
+.circular-svg-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  background: #080d1a;
+  min-height: 480px;
+}
+
+.stator-svg {
+  width: 100%;
+  max-width: 480px;
+  height: auto;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.6));
+}
+
+.stator-svg .tooth-group {
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.stator-svg .tooth-group:hover {
+  filter: brightness(1.25) drop-shadow(0 0 8px rgba(255, 255, 255, 0.5));
+}
+
+/* 2D Linear Unrolled Container */
+.linear-svg-scroll-container {
+  overflow-x: auto;
+  padding: 1.25rem 0.75rem;
+  background: #080d1a;
+}
+
+.linear-svg-wrapper {
+  min-width: 900px;
+}
+
+.linear-stator-svg {
+  width: 100%;
+  height: auto;
+}
+
+/* Winding Guide */
+.winding-guide-wrapper {
+  padding: 1rem;
+  max-height: 520px;
+  overflow-y: auto;
+}
+
+.guide-header-card {
+  padding: 0.85rem 1rem;
+  background: rgba(30, 41, 59, 0.5);
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.85rem;
+}
+
+.guide-header-card h4 {
+  margin: 0;
+  color: #38bdf8;
+  font-size: 0.95rem;
+}
+
+.guide-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-phase-card {
+  background: rgba(15, 23, 42, 0.7);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--surface-border);
+}
+
+.guide-phase-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.phase-pill {
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+/* Tooth Inspector */
+.exp7-tooth-inspector-container {
+  padding: 0.75rem 1rem;
+  background: rgba(11, 17, 32, 0.95);
+  border-top: 1px solid var(--surface-border);
+}
+
+.tooth-inspect-card {
+  background: rgba(30, 41, 59, 0.5);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-sm);
+}
+
+.phase-tag {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+/* Controls & Presets */
+.exp7-preset-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.6) 100%);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+.exp7-preset-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.btn-winding-preset {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+  color: #cbd5e1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-winding-preset strong {
+  font-size: 0.82rem;
+  color: #f1f5f9;
+}
+
+.btn-winding-preset span {
+  font-size: 0.7rem;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+.btn-winding-preset:hover {
+  background: rgba(56, 189, 248, 0.1);
+  border-color: rgba(56, 189, 248, 0.4);
+}
+
+.btn-winding-preset.active {
+  background: rgba(56, 189, 248, 0.2);
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.25);
+}
+
+.btn-winding-preset.active strong {
+  color: #38bdf8;
+}
+
+/* Wye / Delta Connection Toggle */
+.conn-toggle-group {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.btn-conn-toggle {
+  flex: 1;
+  padding: 0.45rem 0.65rem;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-conn-toggle.active {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: #6366f1;
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+/* Schema Banner */
+.exp7-schema-card {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(11, 17, 32, 0.85);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-sm);
+}
+
+.exp7-schema-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.35rem;
+}
+
+.schema-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #38bdf8;
+}
+
+.exp7-schema-string {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  letter-spacing: 0.12em;
+  word-break: break-all;
+  padding: 0.4rem 0.6rem;
+  background: rgba(0, 0, 0, 0.4);
+  border-radius: 4px;
+  margin-bottom: 0.5rem;
+}
+
+.exp7-schema-tags {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.schema-tag {
+  font-size: 0.72rem;
+  color: #cbd5e1;
+  background: rgba(30, 41, 59, 0.6);
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.schema-tag strong {
+  color: #38bdf8;
+}
+
+/* Slot Fill Gauge */
+.exp7-fill-gauge-container {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  background: rgba(11, 17, 32, 0.85);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.fill-gauge-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.8rem;
+  color: #cbd5e1;
+  margin-bottom: 0.45rem;
+}
+
+.fill-track {
+  height: 12px;
+  background: rgba(30, 41, 59, 0.8);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+}
+
+.fill-progress-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.3s ease, background-color 0.3s ease;
+}
+
+.fill-progress-bar.fill-safe,
+.fill-progress-bar.fill-loose {
+  background: linear-gradient(90deg, #38bdf8, #10b981);
+}
+
+.fill-progress-bar.fill-optimal {
+  background: linear-gradient(90deg, #10b981, #22c55e);
+}
+
+.fill-progress-bar.fill-tight {
+  background: linear-gradient(90deg, #f59e0b, #eab308);
+}
+
+.fill-progress-bar.fill-critical {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+.fill-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  color: #64748b;
+  margin-top: 0.3rem;
+}
+
+.fill-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.fill-badge.fill-safe,
+.fill-badge.fill-optimal,
+.fill-badge.fill-loose {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.fill-badge.fill-tight {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.fill-badge.fill-critical {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+/* Mini Stats Grid */
+.exp7-mini-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr 1fr;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.mini-stat-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.65rem;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-sm);
+}
+
+.mini-label {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 600;
+}
+
+.mini-val {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-top: 0.2rem;
+}
+
+/* Performance Dashboard */
+.exp7-performance-card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(20, 27, 45, 0.9) 100%);
+  border-color: rgba(99, 102, 241, 0.35);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+}
+
+.exp7-perf-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.perf-metric-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem 0.85rem;
+  background: rgba(11, 17, 32, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-sm);
+}
+
+.perf-metric-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.perf-metric-val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  margin-top: 0.35rem;
+  color: #ffffff;
+}
+
+.highlight-kv {
+  color: #38bdf8;
+}
+
+.highlight-kt {
+  color: #a855f7;
+}
+
+.highlight-speed {
+  color: #10b981;
+}
+
+.highlight-torque {
+  color: #f59e0b;
+}
+
+.control-grid-3col {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.75rem;
+}
+
+@media (max-width: 640px) {
+  .control-grid-3col,
+  .exp7-preset-grid,
+  .exp7-perf-grid,
+  .exp7-mini-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
