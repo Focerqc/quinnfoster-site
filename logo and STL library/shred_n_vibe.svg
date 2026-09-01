@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" width="500" height="280">
+  <!-- Solid Black Background for Deboss Depth Mapping -->
+  <rect width="500" height="280" fill="#000000"/>
+
+  <!-- Slanted Typography Group (Splash removed, tight footprint for engraving) -->
+  <g transform="translate(250, 140) skewX(-14)" text-anchor="middle" font-family="'Arial Black', 'Impact', 'Montserrat', sans-serif" font-weight="900">
+    <!-- SHRED -->
+    <text x="0" y="-36" font-size="80" fill="#ffffff" letter-spacing="4">SHRED</text>
+    <!-- N -->
+    <g transform="translate(0, 18)">
+      <polygon points="0,-22 28,0 0,22 -28,0" fill="none" stroke="#facc15" stroke-width="3" stroke-linejoin="round"/>
+      <text x="0" y="8" font-size="34" fill="#facc15" font-weight="900" letter-spacing="1">N</text>
+    </g>
+    <!-- VIBE -->
+    <text x="0" y="90" font-size="80" fill="#ffffff" letter-spacing="6">VIBE</text>
+  </g>
+</svg>

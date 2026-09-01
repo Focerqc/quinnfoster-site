@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 1 — Beginner 16mm Glass Tube Sleeve Generator | Quinn Foster">
-  <title>Experience 1 — Beginner Sleeve Suite | Quinn Foster</title>
+  <meta name="description" content="Experience 7 — Next Gen 3D Tool & Generator | Quinn Foster">
+  <title>Experience 7 | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,6 +14,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/TextGeometry.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
+
+  <!-- CSG Boolean CAD Engine -->
+  <script src="js/three-csg-bundle.js?v=6.9"></script>
 
   <!-- Main Stylesheet -->
   <link rel="stylesheet" href="css/styles.css?v=8.0">
@@ -38,7 +45,7 @@
 
         <!-- Archive Dropdown Folder -->
         <div class="nav-dropdown" id="navOldExperiencesDropdown">
-          <button type="button" class="tab-btn nav-dropdown-toggle active parent-active" id="navOldExperiencesBtn" aria-expanded="false" aria-haspopup="true">
+          <button type="button" class="tab-btn nav-dropdown-toggle" id="navOldExperiencesBtn" aria-expanded="false" aria-haspopup="true">
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V8z" />
             </svg>
@@ -49,7 +56,7 @@
           </button>
           
           <div class="nav-dropdown-menu" id="navOldExperiencesMenu">
-            <a href="experience1.html" class="nav-dropdown-item active">
+            <a href="experience1.html" class="nav-dropdown-item">
               <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
               </svg>
@@ -84,7 +91,7 @@
           <span class="num-badge">6</span>
           <span class="tab-btn-full-label">Experience 6 (Window Cutouts)</span>
         </a>
-        <a href="experience7.html" class="tab-btn tab-btn-num" title="Experience 7">
+        <a href="experience7.html" class="tab-btn tab-btn-num active" title="Experience 7">
           <span class="num-badge">7</span>
           <span class="tab-btn-full-label">Experience 7</span>
         </a>
@@ -98,70 +105,31 @@
     </div>
   </header>
 
-  <!-- Main Container -->
+  <!-- Main Content Area -->
   <main class="container">
-    <div class="section-header">
-      <div class="section-header-text">
-        <h2>Experience 1 — Beginner Sleeve Generator</h2>
-        <p>Simplified 16mm glass tube protective sleeve CAD engine with quick controls for beginners.</p>
-      </div>
-    </div>
-
-    <div class="experience-card stl-generator-container">
-      <div class="stl-generator-wrapper">
-        
-        <!-- Left Pane: 3D Viewport -->
-        <div class="viewport-pane">
-          <div class="viewport-header">
-            <div class="viewport-badge">
-              <span class="pulse-dot"></span>
-              3D Live Preview Workspace
-            </div>
-            <div class="viewport-actions" style="display: flex; gap: 0.5rem; align-items: center;">
-              <button id="resetCameraBtn" class="btn-secondary" style="font-size: 0.85rem; padding: 0.45rem 0.8rem;" title="Reset Camera View">
-                🔄 Reset Camera
-              </button>
-            </div>
+    <section class="tab-panel active" id="exp7-tab">
+      <div class="hero-section" style="margin-top: 2rem;">
+        <div class="hero-card" style="text-align: center; max-width: 680px; margin: 0 auto; padding: 3rem 2rem;">
+          <div class="bio-status-badge" style="justify-content: center; margin: 0 auto 1.25rem auto;">
+            <span class="status-dot"></span>
+            Under Active Development
           </div>
-          <div id="viewport" class="canvas-container" style="position: relative;">
-            <div id="viewportLoading" class="viewport-loading">
-              <div class="spinner"></div>
-              <span>Initializing CAD Engine...</span>
-            </div>
+
+          <h1 class="bio-title">Experience 7</h1>
+          <div class="bio-headline" style="margin-bottom: 1.5rem;">Next Generation 3D Tool & Experience</div>
+
+          <p class="bio-text" style="max-width: 520px; margin: 0 auto 2rem auto; color: var(--text-secondary);">
+            Experience 7 is currently prepped and ready for your new feature idea! Tell me what you'd like to build for Experience 7, and we'll implement it here.
+          </p>
+
+          <div style="display: flex; gap: 1rem; justify-content: center;">
+            <a href="experience6.html" class="tab-btn active" style="padding: 0.75rem 1.5rem;">
+              ← Back to Experience 6
+            </a>
           </div>
         </div>
-
-        <!-- Right Pane: Control Panel -->
-        <div class="controls-pane">
-          <div class="control-section">
-            <h3 class="section-title">⚙️ Sleeve Dimensions</h3>
-            
-            <div class="control-group">
-              <label>Inner Diameter (Fits 16mm Glass Tube):</label>
-              <div class="readonly-badge">16.2 mm (Fixed Clearance Fit)</div>
-            </div>
-
-            <div class="control-group">
-              <label for="outerDiameter">Outer Diameter: <span id="outerDiameterVal">21.0</span> mm</label>
-              <input type="range" id="outerDiameter" min="18.0" max="26.0" step="0.2" value="21.0">
-            </div>
-
-            <div class="control-group">
-              <label for="tubeLength">Sleeve Length: <span id="tubeLengthVal">100.0</span> mm</label>
-              <input type="range" id="tubeLength" min="40.0" max="140.0" step="1.0" value="100.0">
-            </div>
-          </div>
-
-          <!-- Section: Export -->
-          <div class="control-section export-section">
-            <button id="exportStlBtn" class="btn-primary btn-large">
-              📥 Export 3D Printable STL
-            </button>
-          </div>
-        </div>
-
       </div>
-    </div>
+    </section>
   </main>
 
   <!-- Footer -->
@@ -170,11 +138,15 @@
       <div class="footer-text">
         © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
       </div>
+      <div class="social-links">
+        <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
     </div>
   </footer>
 
-  <script src="js/main.js?v=1.1"></script>
-  <script src="js/experience1-generator.js?v=3.6"></script>
+  <script src="js/main.js?v=2.0"></script>
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
   </script>

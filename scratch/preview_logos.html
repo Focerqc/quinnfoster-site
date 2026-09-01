@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Logo Deboss Vector Shapes Preview</title>
+  <style>
+    :root {
+      --bg: #090d16;
+      --card-bg: #131b2e;
+      --border: #23304d;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-pink: #ec4899;
+      --accent-amber: #f59e0b;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 2rem;
+    }
+    h1, h2, h3 { margin-top: 0; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .preview-box {
+      background: #000;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 220px;
+    }
+    .preview-box svg { max-width: 100%; height: auto; }
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .badge-primary { background: rgba(56, 189, 248, 0.15); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-pink { background: rgba(236, 72, 153, 0.15); color: #ec4899; border: 1px solid rgba(236, 72, 153, 0.3); }
+    .specs-list {
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin: 0;
+      padding-left: 1.2rem;
+    }
+    .specs-list strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header style="margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+      <span class="badge badge-primary">Deboss & Engraving Tool Preview</span>
+      <h1 style="margin-top: 0.5rem; font-size: 1.8rem;">Vector Shapes for Text/Image Deboss Tool</h1>
+      <p style="color: var(--muted); margin: 0;">
+        Optimized vector contours for 3D cylindrical wrapping, parametric deboss cutting, and clean laser/CNC engraving.
+      </p>
+    </header>
+
+    <div class="grid">
+      <!-- Card 1: Shred n Vibe -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-size: 1.25rem; margin:0;">1. Shred n Vibe (Simple Engraving)</h2>
+          <span class="badge badge-pink">Engraving Optimized</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--muted); margin:0;">
+          Clean athletic slanted typography. Splash and speed lines removed per requirements to minimize footprint and prevent thin bridging artifacts.
+        </p>
+
+        <!-- Preview -->
+        <div class="preview-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" width="100%">
+            <rect width="500" height="280" fill="#000000"/>
+            <g transform="translate(250, 140) skewX(-14)" text-anchor="middle" font-family="'Impact', 'Arial Black', sans-serif" font-weight="900">
+              <text x="0" y="-36" font-size="80" fill="#ffffff" letter-spacing="4">SHRED</text>
+              <g transform="translate(0, 18)">
+                <polygon points="0,-22 28,0 0,22 -28,0" fill="none" stroke="#facc15" stroke-width="3" stroke-linejoin="round"/>
+                <text x="0" y="8" font-size="34" fill="#facc15" font-weight="900" letter-spacing="1">N</text>
+              </g>
+              <text x="0" y="90" font-size="80" fill="#ffffff" letter-spacing="6">VIBE</text>
+            </g>
+          </svg>
+        </div>
+
+        <ul class="specs-list">
+          <li><strong>Geometry:</strong> 3-tier centered vertical lockup (<code>SHRED</code> / <code>N</code> / <code>VIBE</code>).</li>
+          <li><strong>Slant:</strong> -14° dynamic italic angle matching original logo character.</li>
+          <li><strong>Engraving Optimization:</strong> Solid letterforms with generous spacing for crisp 0.6mm - 1.2mm depth deboss without fragile slivers.</li>
+        </ul>
+      </div>
+
+      <!-- Card 2: DynaVap Patch Outline -->
+      <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-size: 1.25rem; margin:0;">2. DynaVap Stepped Badge</h2>
+          <span class="badge badge-primary">Black Outline Focus</span>
+        </div>
+        <p style="font-size: 0.88rem; color: var(--muted); margin:0;">
+          Stepped contour silhouette featuring the prominent perimeter outline, vertical left divider bar, and custom geometric <code>DYNAVAP</code> lettering.
+        </p>
+
+        <!-- Preview -->
+        <div class="preview-box">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 220" width="100%">
+            <rect width="540" height="220" fill="#000000"/>
+            <!-- Stepped Outer Outline -->
+            <path d="M 50 30 L 218 30 L 248 56 L 490 56 C 504 56 514 66 514 80 L 514 140 C 514 154 504 164 490 164 L 248 164 L 218 190 L 50 190 C 36 190 26 180 26 166 L 26 54 C 26 40 36 30 50 30 Z" 
+                  fill="none" stroke="#38bdf8" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+            <!-- Left Divider Bar -->
+            <rect x="68" y="52" width="13" height="116" rx="6.5" fill="#38bdf8"/>
+            <!-- Geometric Lettering -->
+            <g fill="#38bdf8" fill-rule="evenodd">
+              <path d="M 104 68 H 132 L 148 84 V 136 L 132 152 H 104 Z M 118 82 H 128 L 135 89 V 131 L 128 138 H 118 Z"/>
+              <path d="M 156 68 H 172 L 182 98 L 192 68 H 208 L 191 114 V 152 H 175 V 114 Z"/>
+              <path d="M 222 76 H 236 L 253 118 V 76 H 267 V 144 H 253 L 236 102 V 144 H 222 Z"/>
+              <path d="M 276 144 L 296 76 H 308 L 328 144 H 313 L 309 128 H 295 L 291 144 Z M 302 96 L 297 115 H 307 Z"/>
+              <path d="M 334 76 H 348 L 357 124 L 366 76 H 380 L 365 144 H 349 Z"/>
+              <path d="M 386 144 L 406 76 H 418 L 438 144 H 423 L 419 128 H 405 L 401 144 Z M 412 96 L 407 115 H 417 Z"/>
+              <path d="M 444 76 H 468 L 480 88 V 110 L 468 122 H 458 V 144 H 444 Z M 458 88 H 465 L 469 92 V 104 L 465 108 H 458 Z"/>
+            </g>
+          </svg>
+        </div>
+
+        <ul class="specs-list">
+          <li><strong>Contour:</strong> Stepped cylindrical profile with taller left cap and narrower body waist.</li>
+          <li><strong>Features:</strong> 12px outer outline contour + 13px vertical divider notch bar.</li>
+          <li><strong>Typography:</strong> Custom geometric cuts on <code>D</code>, <code>Y</code>, <code>N</code>, <code>A</code>, <code>V</code>, <code>A</code>, <code>P</code> matching the woven patch.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

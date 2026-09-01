@@ -1794,6 +1794,37 @@ class TubeGenerator {
       </svg>`;
       const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
       this._processImage(dataUrl);
+    } else if (type === 'preset-shrednvibe') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" width="500" height="280">
+        <rect width="500" height="280" fill="#000"/>
+        <g transform="translate(250, 140) skewX(-14)" text-anchor="middle" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900">
+          <text x="0" y="-36" font-size="80" fill="#fff" letter-spacing="4">SHRED</text>
+          <g transform="translate(0, 18)">
+            <polygon points="0,-22 28,0 0,22 -28,0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+            <text x="0" y="8" font-size="34" fill="#fff" font-weight="900" letter-spacing="1">N</text>
+          </g>
+          <text x="0" y="90" font-size="80" fill="#fff" letter-spacing="6">VIBE</text>
+        </g>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    } else if (type === 'preset-dynavap') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 220" width="540" height="220">
+        <rect width="540" height="220" fill="#000"/>
+        <path d="M 50 30 L 218 30 L 248 56 L 490 56 C 504 56 514 66 514 80 L 514 140 C 514 154 504 164 490 164 L 248 164 L 218 190 L 50 190 C 36 190 26 180 26 166 L 26 54 C 26 40 36 30 50 30 Z" fill="none" stroke="#fff" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+        <rect x="68" y="52" width="13" height="116" rx="6.5" fill="#fff"/>
+        <g fill="#fff" fill-rule="evenodd">
+          <path d="M 104 68 H 132 L 148 84 V 136 L 132 152 H 104 Z M 118 82 H 128 L 135 89 V 131 L 128 138 H 118 Z"/>
+          <path d="M 156 68 H 172 L 182 98 L 192 68 H 208 L 191 114 V 152 H 175 V 114 Z"/>
+          <path d="M 222 76 H 236 L 253 118 V 76 H 267 V 144 H 253 L 236 102 V 144 H 222 Z"/>
+          <path d="M 276 144 L 296 76 H 308 L 328 144 H 313 L 309 128 H 295 L 291 144 Z M 302 96 L 297 115 H 307 Z"/>
+          <path d="M 334 76 H 348 L 357 124 L 366 76 H 380 L 365 144 H 349 Z"/>
+          <path d="M 386 144 L 406 76 H 418 L 438 144 H 423 L 419 128 H 405 L 401 144 Z M 412 96 L 407 115 H 417 Z"/>
+          <path d="M 444 76 H 468 L 480 88 V 110 L 468 122 H 458 V 144 H 444 Z M 458 88 H 465 L 469 92 V 104 L 465 108 H 458 Z"/>
+        </g>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
     }
   }
 

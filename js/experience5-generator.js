@@ -605,13 +605,15 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     const seed = this.state.randomSeed + this._hashString(prompt);
 
     for (let c = 0; c < cols; c++) {
-      const symCol = Math.floor((c % Math.max(1, Math.floor(cols / sym))) * sym);
-      const angle = (symCol / cols) * Math.PI * 2.0;
+      const normX = c / cols;
+      const baseAngle = normX * Math.PI * 2.0;
       
       for (let r = 0; r < rows; r++) {
         const normY = r / rows;
-        const twistedAngle = angle + normY * twist;
-        const twistedSymCol = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * cols);
+        const twistedAngle = baseAngle + normY * twist;
+        const twistedSymAngle = (normX * sym) * Math.PI * 2.0 + normY * twist;
+        const twistedSymCol = Math.floor((((twistedSymAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * cols);
+        const symCol = twistedSymCol;
         let v = 0;
 
         switch (presetName) {
@@ -640,7 +642,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             break;
 
           case 'custom2':
-            const c2_wave = Math.sin(twistedAngle * 10 + normY * 30) * Math.cos(symCol * 0.3);
+            const c2_wave = Math.sin(twistedAngle * 10 + normY * 30) * Math.cos(normX * Math.PI * 2.0 * sym * 0.3);
             v = Math.tanh(c2_wave * 2.0);
             v = (v > 0) ? Math.min(1.0, v * 1.25) * contrast : v * contrast;
             break;
@@ -653,9 +655,14 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             break;
 
           case 'custom4':
-            const c4_rib = Math.sin(normY * Math.PI * 16);
-            const c4_radial = Math.cos(twistedAngle * 6);
-            v = (c4_rib * c4_radial > 0.1) ? 1.0 * contrast : -0.7 * contrast;
+            const c4_spine = Math.abs(Math.cos(twistedAngle * 3));
+            if (c4_spine > 0.85) {
+              v = -0.7 * contrast; // Solid structural backbone rail connecting top to bottom
+            } else {
+              const c4_rib = Math.sin(normY * Math.PI * 16);
+              const c4_radial = Math.cos(twistedAngle * 6);
+              v = (c4_rib * c4_radial > 0.1) ? 1.0 * contrast : -0.7 * contrast;
+            }
             break;
 
           case 'cyber':
@@ -668,7 +675,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             break;
 
           case 'voronoi':
-            const vx = ((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) * (8 * scale * 10);
+            const vx = (((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0) % 1.0) * (8 * scale * 10);
             const vy = normY * (10 * scale * 10);
             v = (this._voronoiCell(vx, vy, seed) - 0.45) * 2.5;
             v = (v > 0) ? Math.min(1.0, v * 1.4) * contrast : Math.max(-1.0, v) * contrast;
@@ -725,7 +732,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
             const brickR = Math.floor(normY * 24);
             const shift = (brickR % 2 === 0) ? 0 : 0.5;
             const brickC = Math.floor((((twistedAngle / (Math.PI * 2.0)) % 1.0 + 1.0 + shift) % 1.0) * 16);
-            v = ((brickC % 3 === 0) || (brickR % 3 === 0)) ? 1.0 * contrast : -0.6 * contrast;
+            v = ((brickC % 3 === 0) && (brickR % 2 === 0)) ? 1.0 * contrast : ((brickR % 4 === 0) ? 0.35 * contrast : -0.6 * contrast);
             break;
         }
 
@@ -852,6 +859,119 @@ My Design Request: ${customText || this.state.aiPrompt}`;
   }
 
   // ─── 3D VECTOR TEXT & CSG CAD ENGINE (EXPERIENCE 4 INTEGRATION) ───
+  _initStlLibraryModal() {
+    const modal = document.getElementById('stlLibraryModal');
+    const openBtn = document.getElementById('btnOpenLibraryModal');
+    const closeBtn = document.getElementById('closeLibraryModalBtn');
+    const cards = modal ? modal.querySelectorAll('.library-card') : [];
+
+    if (openBtn && modal) {
+      openBtn.addEventListener('click', () => {
+        modal.style.display = 'flex';
+      });
+    }
+
+    if (closeBtn && modal) {
+      closeBtn.addEventListener('click', () => {
+        modal.style.display = 'none';
+      });
+    }
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.style.display = 'none';
+      });
+    }
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const type = card.dataset.type;
+        const title = card.dataset.title;
+        const url = card.dataset.url;
+
+        if (modal) modal.style.display = 'none';
+        this._loadLibraryPreset(type, url, title);
+      });
+    });
+  }
+
+  _loadLibraryPreset(type, url, title) {
+    this.setLogoTextDisplay(title || 'Library Item');
+
+    if (type === 'stl' && url) {
+      fetch(encodeURI(url))
+        .then(res => {
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          return res.arrayBuffer();
+        })
+        .then(buffer => {
+          this._processSTL(buffer);
+        })
+        .catch(err => {
+          console.warn('Library STL fetch failed (e.g. local file:// protocol restriction):', err);
+          alert('Cannot open library files directly from your hard drive due to browser security (file:// protocol blocks fetching).\n\nPlease use the "Upload Logo" button instead and manually select your STL file.');
+          this.setLogoTextDisplay('');
+        });
+    } else if (type === 'preset-qf') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="#000"/>
+        <circle cx="128" cy="128" r="100" fill="none" stroke="#fff" stroke-width="16"/>
+        <text x="128" y="148" font-family="sans-serif" font-weight="900" font-size="76" fill="#fff" text-anchor="middle">QF</text>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    } else if (type === 'preset-audio') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="#000"/>
+        <path d="M128 32 C80 32 64 64 64 120 L64 180 H192 L192 120 C192 64 176 32 128 32 Z" fill="none" stroke="#fff" stroke-width="14"/>
+        <line x1="96" y1="180" x2="96" y2="220" stroke="#fff" stroke-width="12"/>
+        <line x1="128" y1="180" x2="128" y2="224" stroke="#fff" stroke-width="12"/>
+        <line x1="160" y1="180" x2="160" y2="220" stroke="#fff" stroke-width="12"/>
+        <circle cx="128" cy="110" r="30" fill="none" stroke="#fff" stroke-width="10"/>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    } else if (type === 'preset-star') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+        <rect width="256" height="256" fill="#000"/>
+        <polygon points="128,24 158,96 232,96 172,142 194,216 128,170 62,216 84,142 24,96 98,96" fill="#fff"/>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    } else if (type === 'preset-shrednvibe') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 280" width="500" height="280">
+        <rect width="500" height="280" fill="#000"/>
+        <g transform="translate(250, 140) skewX(-14)" text-anchor="middle" font-family="'Arial Black', 'Impact', sans-serif" font-weight="900">
+          <text x="0" y="-36" font-size="80" fill="#fff" letter-spacing="4">SHRED</text>
+          <g transform="translate(0, 18)">
+            <polygon points="0,-22 28,0 0,22 -28,0" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/>
+            <text x="0" y="8" font-size="34" fill="#fff" font-weight="900" letter-spacing="1">N</text>
+          </g>
+          <text x="0" y="90" font-size="80" fill="#fff" letter-spacing="6">VIBE</text>
+        </g>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    } else if (type === 'preset-dynavap') {
+      const svgStr = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 540 220" width="540" height="220">
+        <rect width="540" height="220" fill="#000"/>
+        <path d="M 50 30 L 218 30 L 248 56 L 490 56 C 504 56 514 66 514 80 L 514 140 C 514 154 504 164 490 164 L 248 164 L 218 190 L 50 190 C 36 190 26 180 26 166 L 26 54 C 26 40 36 30 50 30 Z" fill="none" stroke="#fff" stroke-width="12" stroke-linejoin="round" stroke-linecap="round"/>
+        <rect x="68" y="52" width="13" height="116" rx="6.5" fill="#fff"/>
+        <g fill="#fff" fill-rule="evenodd">
+          <path d="M 104 68 H 132 L 148 84 V 136 L 132 152 H 104 Z M 118 82 H 128 L 135 89 V 131 L 128 138 H 118 Z"/>
+          <path d="M 156 68 H 172 L 182 98 L 192 68 H 208 L 191 114 V 152 H 175 V 114 Z"/>
+          <path d="M 222 76 H 236 L 253 118 V 76 H 267 V 144 H 253 L 236 102 V 144 H 222 Z"/>
+          <path d="M 276 144 L 296 76 H 308 L 328 144 H 313 L 309 128 H 295 L 291 144 Z M 302 96 L 297 115 H 307 Z"/>
+          <path d="M 334 76 H 348 L 357 124 L 366 76 H 380 L 365 144 H 349 Z"/>
+          <path d="M 386 144 L 406 76 H 418 L 438 144 H 423 L 419 128 H 405 L 401 144 Z M 412 96 L 407 115 H 417 Z"/>
+          <path d="M 444 76 H 468 L 480 88 V 110 L 468 122 H 458 V 144 H 444 Z M 458 88 H 465 L 469 92 V 104 L 465 108 H 458 Z"/>
+        </g>
+      </svg>`;
+      const dataUrl = 'data:image/svg+xml;base64,' + btoa(svgStr);
+      this._processImage(dataUrl);
+    }
+  }
+
   _initTextStlModal() {
     const modal = document.getElementById('textStlModal');
     const openBtn = document.getElementById('btnOpenTextModal');
@@ -2311,6 +2431,7 @@ My Design Request: ${customText || this.state.aiPrompt}`;
     }
 
     // Initialize 3D Vector Text & Logo CAD Engine (Experience 4 Integration)
+    this._initStlLibraryModal();
     this._initTextStlModal();
     this._initLogoUI();
   }

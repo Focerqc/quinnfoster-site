@@ -15,7 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const href = window.location.href.toLowerCase();
 
     let pageKey = 'bio';
-    if (rawPath.includes('experience6') || href.includes('experience6')) {
+    if (rawPath.includes('experience7') || href.includes('experience7')) {
+      pageKey = 'experience7';
+    } else if (rawPath.includes('experience6') || href.includes('experience6')) {
       pageKey = 'experience6';
     } else if (rawPath.includes('experience5') || href.includes('experience5')) {
       pageKey = 'experience5';
@@ -42,6 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (btn.id === 'navOldExperiencesBtn') return;
       const btnHref = (btn.getAttribute('href') || '').toLowerCase();
       const isMatch = (
+        (pageKey === 'experience7' && btnHref.includes('experience7')) ||
         (pageKey === 'experience6' && btnHref.includes('experience6')) ||
         (pageKey === 'experience5' && btnHref.includes('experience5')) ||
         (pageKey === 'bio' && (btnHref === '/' || btnHref.includes('index.html') || btnHref === ''))
