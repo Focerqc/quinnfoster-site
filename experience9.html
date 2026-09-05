@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.8">
+  <link rel="stylesheet" href="css/styles.css?v=10.0">
 </head>
 <body>
 
@@ -172,8 +172,20 @@
               </button>
             </div>
 
-            <!-- Top Right: Action Controls (Reset, Sound, Fullscreen) -->
+            <!-- Top Right: Action Controls (Zoom, Reset, Fullscreen) -->
             <div class="exp9-hud-top-right">
+              <div class="exp9-zoom-controls" title="Adjust Camera Zoom">
+                <button type="button" class="exp9-hud-btn exp9-zoom-btn" id="btnZoomIn" title="Zoom In (+ / Wheel Up)" aria-label="Zoom In">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4" />
+                  </svg>
+                </button>
+                <button type="button" class="exp9-hud-btn exp9-zoom-btn" id="btnZoomOut" title="Zoom Out (− / Wheel Down)" aria-label="Zoom Out">
+                  <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4" />
+                  </svg>
+                </button>
+              </div>
               <button type="button" class="exp9-hud-btn" id="btnRespawn" title="Respawn at Town Square (Key: R)">
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -199,25 +211,44 @@
             <span class="exp9-trick-text" id="trickText"></span>
           </div>
 
-          <!-- Mobile Virtual Joystick (Bottom Left) -->
-          <div class="exp9-joystick-zone" id="joystickZone">
+          <!-- Interactive Rail Grind Balance HUD (Appears when grinding) -->
+          <div class="exp9-balance-hud" id="balanceHud">
+            <div class="exp9-balance-label" id="balanceLabel">NOSESLIDE</div>
+            <div class="exp9-balance-track">
+              <div class="exp9-balance-sweetspot"></div>
+              <div class="exp9-balance-needle" id="balanceNeedle"></div>
+            </div>
+            <div class="exp9-balance-hint">Tap ▲ / ▼ or Right Stick to balance</div>
+          </div>
+
+          <!-- Mobile Virtual Drive Joystick (Bottom Left) -->
+          <div class="exp9-joystick-zone" id="joystickZone" title="Drive & Steer (WASD)">
             <div class="exp9-joystick-base" id="joystickBase">
               <div class="exp9-joystick-thumb" id="joystickThumb"></div>
             </div>
           </div>
 
-          <!-- Mobile Jump Button (Bottom Right) -->
+          <!-- Mobile Virtual Twist, Flip & Balance Joystick (Bottom Right) -->
+          <div class="exp9-right-joystick-zone" id="rightJoystickZone" title="Twist, Backflip & Balance (Arrows)">
+            <div class="exp9-right-joystick-base" id="rightJoystickBase">
+              <div class="exp9-right-joystick-thumb" id="rightJoystickThumb"></div>
+            </div>
+          </div>
+
+          <!-- Mobile Jump Button (Bottom Right next to Twist Stick) -->
           <div class="exp9-jump-btn-zone">
             <button type="button" class="exp9-jump-btn" id="btnTouchJump" aria-label="Jump / Bunny Hop">
-              <span>JUMP</span>
+              <span>HOP</span>
               <small>Space</small>
             </button>
           </div>
 
           <!-- Quick Controls Hint Legend (Desktop) -->
           <div class="exp9-desktop-controls-hint">
-            <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd><kbd>◄</kbd><kbd>▼</kbd><kbd>►</kbd> Steer & Carve</span>
-            <span><kbd>Space</kbd> Bunny Hop</span>
+            <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Drive</span>
+            <span><kbd>▲</kbd><kbd>◄</kbd><kbd>▼</kbd><kbd>►</kbd> Twist, Flip & Balance</span>
+            <span><kbd>Space</kbd> Hop</span>
+            <span><kbd>Scroll</kbd> / <kbd>[</kbd><kbd>]</kbd> Zoom</span>
             <span><kbd>1</kbd>–<kbd>5</kbd> Checkpoints</span>
             <span><kbd>R</kbd> Reset</span>
           </div>
@@ -337,6 +368,6 @@
   <!-- Main Navigation & Menu Script -->
   <script src="js/main.js?v=1.2"></script>
   <!-- Game Logic Engine -->
-  <script src="js/experience9.js?v=2.1"></script>
+  <script src="js/experience9.js?v=2.4"></script>
 </body>
 </html>

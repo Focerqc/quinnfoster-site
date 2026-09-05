@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 6 — AI Chatbot Interactive Co-Pilot 16mm Cylinder Generator | Quinn Foster">
-  <title>Experience 6 — AI Co-Pilot & GeoNodes Generator | Quinn Foster</title>
+  <meta name="description" content="Experience 6 � AI Chatbot Interactive Co-Pilot 16mm Cylinder Generator | Quinn Foster">
+  <title>Experience 6 � AI Co-Pilot & GeoNodes Generator | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +23,7 @@
   <script src="js/three-csg-bundle.js?v=6.9"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.8">
+  <link rel="stylesheet" href="css/styles.css?v=9.9">
 </head>
 <body>
 
@@ -129,20 +129,20 @@
             </div>
             
             <div class="viewport-header-actions">
-              <button id="btnToggleOrientation" class="btn-secondary btn-small active" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Click to rotate 3D view to upright Vertical orientation (0°)">
-                🔄 Current View Horizontal
+              <button id="btnToggleOrientation" class="btn-secondary btn-small active" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Click to rotate 3D view to upright Vertical orientation (0�)">
+                ?? Current View Horizontal
               </button>
 
               <button id="btnExpandViewport" class="btn-secondary btn-small" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); font-weight:700; color:#38bdf8;" title="Expand viewport height for full-size 3D view">
-                ⛶ Expand Viewer
+                ? Expand Viewer
               </button>
 
               <button id="btnTakeAIScreenshot" class="btn-secondary btn-small" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.4); color:#38bdf8; font-weight:700;" title="Take Clean Full-Frame 1:1 Squared 3D Snapshot">
-                📸 Take Full Frame Screenshot
+                ?? Take Full Frame Screenshot
               </button>
               
               <div id="meshDimensionsDisplay" class="mesh-dims-tag">
-                16.2mm ID × 22.0mm OD × 90.0mm L
+                16.2mm ID � 22.0mm OD � 90.0mm L
               </div>
             </div>
           </div>
@@ -189,15 +189,15 @@
           <!-- Section 1: Dimensions & Resolution -->
           <div class="control-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-              <h3 class="section-title" style="margin:0;">⚙️ Sleeve Specs & Grid Resolution</h3>
-              <button type="button" id="btnResetSection1" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all top specs & dimensions to defaults">↺ Reset Specs</button>
+              <h3 class="section-title" style="margin:0;">?? Sleeve Specs & Grid Resolution</h3>
+              <button type="button" id="btnResetSection1" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all top specs & dimensions to defaults">? Reset Specs</button>
             </div>
             
             <!-- Inner Diameter (Bore ID) -->
             <div class="control-group">
               <div class="control-label-row">
                 <label for="innerDiameter">Inner Diameter (Bore ID): <span id="innerDiameterVal">16.20</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="innerDiameter" data-default="16.20" title="Reset Inner Diameter to 16.20mm">↺</button>
+                <button type="button" class="btn-slider-reset" data-slider="innerDiameter" data-default="16.20" title="Reset Inner Diameter to 16.20mm">?</button>
               </div>
               <input type="range" id="innerDiameter" min="15.00" max="18.50" step="0.05" value="16.20">
               
@@ -213,19 +213,19 @@
             <!-- Elephant's Foot Relief Chamfer -->
             <div class="control-group">
               <div class="control-label-row">
-                <label for="elephantsFootChamfer">🐘 Elephant's Foot Relief Chamfer: <span id="elephantsFootChamferVal">0.8</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="elephantsFootChamfer" data-default="0.8" title="Reset Relief Chamfer to 0.8mm">↺</button>
+                <label for="elephantsFootChamfer">?? Elephant's Foot Relief Chamfer: <span id="elephantsFootChamferVal">0.8</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="elephantsFootChamfer" data-default="0.8" title="Reset Relief Chamfer to 0.8mm">?</button>
               </div>
               <input type="range" id="elephantsFootChamfer" min="0.0" max="2.0" step="0.1" value="0.8">
               <div style="font-size: 0.68rem; color: #38bdf8; margin-top: 0.2rem; display: flex; align-items: center; gap: 0.3rem;">
-                <span>✨ 45° entrance bevel prevents 1st-layer squish from blocking tube</span>
+                <span>? 45� entrance bevel prevents 1st-layer squish from blocking tube</span>
               </div>
             </div>
 
             <div class="control-group">
               <div class="control-label-row">
                 <label for="outerDiameter">Outer Diameter: <span id="outerDiameterVal">22.0</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="outerDiameter" data-default="22.0" title="Reset Outer Diameter to 22.0mm">↺</button>
+                <button type="button" class="btn-slider-reset" data-slider="outerDiameter" data-default="22.0" title="Reset Outer Diameter to 22.0mm">?</button>
               </div>
               <input type="range" id="outerDiameter" min="18.0" max="26.0" step="0.2" value="22.0">
             </div>
@@ -233,7 +233,7 @@
             <div class="control-group">
               <div class="control-label-row">
                 <label for="sleeveLength">Sleeve Length: <span id="sleeveLengthVal">80.0</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="sleeveLength" data-default="80.0" title="Reset Sleeve Length to 80.0mm">↺</button>
+                <button type="button" class="btn-slider-reset" data-slider="sleeveLength" data-default="80.0" title="Reset Sleeve Length to 80.0mm">?</button>
               </div>
               <input type="range" id="sleeveLength" min="40.0" max="140.0" step="1.0" value="80.0">
             </div>
@@ -241,8 +241,8 @@
             <!-- Glass Tube Length Reference (80mm to 200mm) -->
             <div class="control-group">
               <div class="control-label-row">
-                <label for="glassLength">🧪 Glass Tube Length: <span id="glassLengthVal">100.0</span> mm</label>
-                <button type="button" class="btn-slider-reset" data-slider="glassLength" data-default="100.0" title="Reset Glass Tube Length to 100.0mm">↺</button>
+                <label for="glassLength">?? Glass Tube Length: <span id="glassLengthVal">100.0</span> mm</label>
+                <button type="button" class="btn-slider-reset" data-slider="glassLength" data-default="100.0" title="Reset Glass Tube Length to 100.0mm">?</button>
               </div>
               <input type="range" id="glassLength" min="80.0" max="200.0" step="1.0" value="100.0">
               
@@ -260,7 +260,7 @@
               <div class="control-group">
                 <div class="control-label-row">
                   <label for="gridCols">Grid Cols (Radial): <span id="gridColsVal">32</span></label>
-                  <button type="button" class="btn-slider-reset" data-slider="gridCols" data-default="32" title="Reset Radial Grid Cols to 32">↺</button>
+                  <button type="button" class="btn-slider-reset" data-slider="gridCols" data-default="32" title="Reset Radial Grid Cols to 32">?</button>
                 </div>
                 <input type="range" id="gridCols" min="16" max="128" step="4" value="32">
               </div>
@@ -268,7 +268,7 @@
               <div class="control-group">
                 <div class="control-label-row">
                   <label for="gridRows">Grid Rows (Length): <span id="gridRowsVal">40</span></label>
-                  <button type="button" class="btn-slider-reset" data-slider="gridRows" data-default="40" title="Reset Length Grid Rows to 40">↺</button>
+                  <button type="button" class="btn-slider-reset" data-slider="gridRows" data-default="40" title="Reset Length Grid Rows to 40">?</button>
                 </div>
                 <input type="range" id="gridRows" min="20" max="120" step="5" value="40">
               </div>
@@ -277,13 +277,13 @@
 
           <!-- Section 2: 3D Pattern Presets & AI Co-Pilot Hub -->
           <div class="control-section ai-copilot-card">
-            <h3 class="section-title">🤖 3D Pattern Presets & AI Co-Pilot Hub</h3>
+            <h3 class="section-title">?? 3D Pattern Presets & AI Co-Pilot Hub</h3>
             <p class="section-desc">Click any preset to preview it live in 3D & copy its prompt for ChatGPT/Claude, or fine-tune sliders below!</p>
 
             <!-- Currently Active Pattern Banner -->
             <div class="active-pattern-card" id="activePatternCard">
               <span class="active-pattern-label">ACTIVE PATTERN:</span>
-              <span class="active-pattern-title" id="activePatternTitle">🌪️ Turbulence Fluid</span>
+              <span class="active-pattern-title" id="activePatternTitle">??? Turbulence Fluid</span>
             </div>
 
             <!-- Interactive 3D Pattern Gallery Folders -->
@@ -295,60 +295,60 @@
               <div class="preset-folder-card collapsed" id="folderBasicExamples">
                 <button type="button" class="preset-folder-header" id="headerBasicExamples" aria-expanded="false" title="Click to expand/collapse basic examples folder">
                   <div class="folder-header-left">
-                    <span class="folder-icon">📁</span>
+                    <span class="folder-icon">??</span>
                     <span class="folder-title">basic examples</span>
                     <span class="folder-count-badge">11 Presets</span>
                   </div>
                   <div class="folder-header-right">
-                    <span class="folder-toggle-text">▼ Expand</span>
+                    <span class="folder-toggle-text">? Expand</span>
                   </div>
                 </button>
 
                 <div class="prompt-preset-list">
                   <!-- 4 Options Showing Initially -->
                   <button class="prompt-card-btn active" data-preset="turbulence" data-prompt-text="Design a fluid dynamics turbulence pattern with organic flowing waves.">
-                    <span>🌪️ Turbulence Fluid</span>
-                    <span class="preset-tag-randomized">🎲 Randomized</span>
+                    <span>??? Turbulence Fluid</span>
+                    <span class="preset-tag-randomized">?? Randomized</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="scales" data-prompt-text="Design overlapping dragon scale armor with curved scale ridges that interlock smoothly along 6 symmetry folds.">
-                    <span>🐉 Dragon Scale Armor</span>
+                    <span>?? Dragon Scale Armor</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="voronoi" data-prompt-text="Design a biomechanical alien sleeve. Top third has spine ribcage ridges, middle third has Voronoi breathing pores, bottom third has spiral grip flutes.">
-                    <span>🧬 Biomechanical Spine</span>
-                    <span class="preset-tag-randomized">🎲 Randomized</span>
+                    <span>?? Biomechanical Spine</span>
+                    <span class="preset-tag-randomized">?? Randomized</span>
                   </button>
                   <button class="prompt-card-btn" data-preset="cyber" data-prompt-text="Design a Cyberpunk matrix grid with vertical binary data bar cutouts, alternating depth levels from 0.2mm to 1.5mm.">
-                    <span>⚡ Cyber Barcode Stream</span>
-                    <span class="preset-tag-randomized">🎲 Randomized</span>
+                    <span>? Cyber Barcode Stream</span>
+                    <span class="preset-tag-randomized">?? Randomized</span>
                   </button>
 
                   <!-- 7 Additional Presets (Revealed on Dropdown Expand) -->
                   <button class="prompt-card-btn extra-preset" data-preset="waves" data-prompt-text="Design an ergonomic Japanese wave pattern with smooth sine ripples wrapping radially around the 16mm cylinder.">
-                    <span>🌊 Japanese Wave Ripple</span>
-                    <span class="preset-tag-randomized">🎲 Randomized</span>
+                    <span>?? Japanese Wave Ripple</span>
+                    <span class="preset-tag-randomized">?? Randomized</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="knurl" data-prompt-text="Design a diamond knurling grip texture with raised 4-sided pyramid tiles separated by deep tactile V-grooves.">
-                    <span>💎 Diamond Pyramid Knurl</span>
+                    <span>?? Diamond Pyramid Knurl</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="flutes" data-prompt-text="Design helical spiral flutes with 8 twisting grooves wrapping around the cylinder at a 45 degree angle.">
-                    <span>🌀 Helical Spiral Flutes</span>
+                    <span>?? Helical Spiral Flutes</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="weave" data-prompt-text="Design a carbon fiber micro-weave lattice with alternating checkerboard depth offsets for high-friction grip.">
-                    <span>🕸️ Micro-Weave Carbon</span>
+                    <span>??? Micro-Weave Carbon</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="lotus" data-prompt-text="Design an organic lotus flower petal ripple wrapping radially around the sleeve.">
-                    <span>🌸 Lotus Petal Ripple</span>
+                    <span>?? Lotus Petal Ripple</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="bricks" data-prompt-text="Design a staggered brick masonry lattice cut into the sleeve wall.">
-                    <span>🧱 Brick Lattice</span>
+                    <span>?? Brick Lattice</span>
                   </button>
                   <button class="prompt-card-btn extra-preset" data-preset="stars" data-prompt-text="Design an alternating pattern of 5-point star cutouts (depth +1.0) and raised cross ridges (depth -0.8) along 4 radial symmetry axes.">
-                    <span>⭐ Star & Cross Lattice</span>
+                    <span>? Star & Cross Lattice</span>
                   </button>
                 </div>
 
                 <button type="button" class="btn-folder-toggle" id="toggleBasicExamples">
-                  <span class="toggle-icon">▼</span>
+                  <span class="toggle-icon">?</span>
                   <span class="toggle-label">Expand basic examples (7 more)</span>
                 </button>
               </div>
@@ -357,33 +357,33 @@
               <div class="preset-folder-card collapsed" id="folderFosterQC">
                 <button type="button" class="preset-folder-header" id="headerFosterQC" aria-expanded="false" title="Click to expand/collapse fosterqc custom presets folder">
                   <div class="folder-header-left">
-                    <span class="folder-icon" style="color: #38bdf8;">📂</span>
+                    <span class="folder-icon" style="color: #38bdf8;">??</span>
                     <span class="folder-title">fosterqc</span>
                     <span class="folder-count-badge custom-badge">Customized</span>
                   </div>
                   <div class="folder-header-right">
-                    <span class="folder-toggle-text">▼ Expand</span>
+                    <span class="folder-toggle-text">? Expand</span>
                   </div>
                 </button>
 
                 <div class="prompt-preset-list">
                   <!-- 4 Custom Options Showing Initially -->
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom1" data-prompt-text="Customized FosterQC Preset #1: Star & Hex Hybrid Grid with 6-fold radial symmetry.">
-                    <span>✨ fosterqc Custom #1</span>
+                    <span>? fosterqc Custom #1</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom2" data-prompt-text="Customized FosterQC Preset #2: Flame Cyber Wave Grid with alternating depth levels.">
-                    <span>🔥 fosterqc Custom #2</span>
+                    <span>?? fosterqc Custom #2</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom3" data-prompt-text="Customized FosterQC Preset #3: Diamond Spiral Vortex with twisting tactile grooves.">
-                    <span>💎 fosterqc Custom #3</span>
+                    <span>?? fosterqc Custom #3</span>
                   </button>
                   <button class="prompt-card-btn fosterqc-btn" data-preset="custom4" data-prompt-text="Customized FosterQC Preset #4: Precision Target Ribs with alternating cut/emboss bands.">
-                    <span>🎯 fosterqc Custom #4</span>
+                    <span>?? fosterqc Custom #4</span>
                   </button>
                 </div>
 
                 <button type="button" class="btn-folder-toggle" id="toggleFosterQC">
-                  <span class="toggle-icon">▼</span>
+                  <span class="toggle-icon">?</span>
                   <span class="toggle-label">Expand fosterqc folder</span>
                 </button>
               </div>
@@ -395,19 +395,19 @@
 
               <!-- Slider Persistence Notice -->
               <div class="slider-persistence-note">
-                <span class="note-icon">ℹ️</span>
-                <span><strong>Slider Persistence Note:</strong> Fine-tuning sliders retain your custom values when switching patterns. Click <strong style="color:#38bdf8;">↺</strong> to reset any slider or use <strong style="color:#38bdf8;">↺ Reset Sliders</strong> below.</span>
+                <span class="note-icon">??</span>
+                <span><strong>Slider Persistence Note:</strong> Fine-tuning sliders retain your custom values when switching patterns. Click <strong style="color:#38bdf8;">?</strong> to reset any slider or use <strong style="color:#38bdf8;">? Reset Sliders</strong> below.</span>
               </div>
 
               <!-- Engraving & Window Cutout Depth Slider -->
               <div class="control-group" style="margin-bottom: 0.85rem;">
                 <div class="control-label-row">
-                  <label for="maxCutDepth">Cut / Window Depth: <span id="maxCutDepthVal">2.9</span> mm <span id="windowBadge" style="font-size:0.72rem; color:#38bdf8; font-weight:700; background:rgba(56,189,248,0.15); padding:0.15rem 0.45rem; border-radius:4px; border:1px solid rgba(56,189,248,0.3);">🪟 Windows Cut Straight Through</span></label>
-                  <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="2.9" title="Reset Cut Depth to 2.9mm (Full Passthrough Windows)">↺</button>
+                  <label for="maxCutDepth">Cut / Window Depth: <span id="maxCutDepthVal">2.9</span> mm <span id="windowBadge" style="font-size:0.72rem; color:#38bdf8; font-weight:700; background:rgba(56,189,248,0.15); padding:0.15rem 0.45rem; border-radius:4px; border:1px solid rgba(56,189,248,0.3);">?? Windows Cut Straight Through</span></label>
+                  <button type="button" class="btn-slider-reset" data-slider="maxCutDepth" data-default="2.9" title="Reset Cut Depth to 2.9mm (Full Passthrough Windows)">?</button>
                 </div>
                 <input type="range" id="maxCutDepth" min="0.5" max="3.5" step="0.1" value="2.9">
                 <div style="font-size:0.72rem; color:#94a3b8; margin-top:0.3rem; line-height:1.35;">
-                  💡 <strong>0.5mm – 2.0mm</strong>: Tactile surface engravings & grip grooves | <strong>≥2.5mm</strong>: <strong>True Passthrough Windows</strong> cut straight through to the glass tube!
+                  ?? <strong>0.5mm � 2.0mm</strong>: Tactile surface engravings & grip grooves | <strong>=2.5mm</strong>: <strong>True Passthrough Windows</strong> cut straight through to the glass tube!
                 </div>
               </div>
 
@@ -415,7 +415,7 @@
                 <div class="control-group" id="noiseScaleGroup" style="display: none;">
                   <div class="control-label-row">
                     <label for="noiseScale">Noise Scale: <span id="noiseScaleVal">0.12</span></label>
-                    <button type="button" class="btn-slider-reset" data-slider="noiseScale" data-default="0.12" title="Reset Noise Scale to 0.12">↺</button>
+                    <button type="button" class="btn-slider-reset" data-slider="noiseScale" data-default="0.12" title="Reset Noise Scale to 0.12">?</button>
                   </div>
                   <input type="range" id="noiseScale" min="0.02" max="0.50" step="0.01" value="0.12">
                 </div>
@@ -423,7 +423,7 @@
                 <div class="control-group">
                   <div class="control-label-row">
                     <label for="noiseContrast">Contrast: <span id="noiseContrastVal">1.2</span></label>
-                    <button type="button" class="btn-slider-reset" data-slider="noiseContrast" data-default="1.2" title="Reset Contrast to 1.2">↺</button>
+                    <button type="button" class="btn-slider-reset" data-slider="noiseContrast" data-default="1.2" title="Reset Contrast to 1.2">?</button>
                   </div>
                   <input type="range" id="noiseContrast" min="0.2" max="3.0" step="0.1" value="1.2">
                 </div>
@@ -433,24 +433,24 @@
                 <div class="control-group">
                   <div class="control-label-row">
                     <label for="radialSymmetry">Symmetry Folds: <span id="radialSymmetryVal">4</span>x</label>
-                    <button type="button" class="btn-slider-reset" data-slider="radialSymmetry" data-default="4" title="Reset Symmetry Folds to 4x">↺</button>
+                    <button type="button" class="btn-slider-reset" data-slider="radialSymmetry" data-default="4" title="Reset Symmetry Folds to 4x">?</button>
                   </div>
                   <input type="range" id="radialSymmetry" min="1" max="16" step="1" value="4">
                 </div>
 
                 <div class="control-group">
                   <div class="control-label-row">
-                    <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>°</label>
-                    <button type="button" class="btn-slider-reset" data-slider="helicalTwist" data-default="0" title="Reset Helical Twist to 0°">↺</button>
+                    <label for="helicalTwist">Helical Twist: <span id="helicalTwistVal">0</span>�</label>
+                    <button type="button" class="btn-slider-reset" data-slider="helicalTwist" data-default="0" title="Reset Helical Twist to 0�">?</button>
                   </div>
                   <input type="range" id="helicalTwist" min="-180" max="180" step="10" value="0">
                 </div>
               </div>
 
               <div style="display:flex; gap:0.4rem; margin-top:0.5rem;">
-                <button id="btnResetAllSliders" class="btn-small btn-secondary" style="flex:1;" title="Reset all sliders to preset defaults">↺ Reset Sliders</button>
-                <button id="btnInvertDepths" class="btn-small btn-secondary" style="flex:1;">🔄 Invert Depths</button>
-                <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1; display: none;">🎲 Random Seed</button>
+                <button id="btnResetAllSliders" class="btn-small btn-secondary" style="flex:1;" title="Reset all sliders to preset defaults">? Reset Sliders</button>
+                <button id="btnInvertDepths" class="btn-small btn-secondary" style="flex:1;">?? Invert Depths</button>
+                <button id="btnRandomizeSeed" class="btn-small btn-secondary" style="flex:1; display: none;">?? Random Seed</button>
               </div>
             </div>
           </div>
@@ -459,11 +459,11 @@
           <div class="control-section ai-assistant-accordion collapsed" id="aiAssistantAccordion" style="background: rgba(15, 23, 42, 0.7); border-color: rgba(56, 189, 248, 0.35);">
             <button type="button" class="ai-accordion-header" id="headerAiAssistant" aria-expanded="false" title="Click to expand/collapse AI Assistant Prompt Guide">
               <div class="ai-accordion-header-left">
-                <span class="ai-accordion-icon">🤖</span>
+                <span class="ai-accordion-icon">??</span>
                 <span class="ai-accordion-title">Have your AI assistant help you design</span>
               </div>
               <div class="ai-accordion-header-right">
-                <span class="ai-accordion-toggle-text">▼ Expand</span>
+                <span class="ai-accordion-toggle-text">? Expand</span>
               </div>
             </button>
             
@@ -474,7 +474,7 @@
 
               <div style="margin-bottom: 0.65rem;">
                 <button type="button" id="btnCopySystemPrompt" class="btn-primary btn-small" style="width: 100%; padding: 0.5rem 0.85rem; font-weight: 700; display: flex; justify-content: center; align-items: center; gap: 0.4rem;" title="Copy Prompt Instruction to Clipboard for ChatGPT, Claude, or Gemini">
-                  📋 Copy System Prompt
+                  ?? Copy System Prompt
                 </button>
               </div>
               
@@ -491,7 +491,7 @@
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 0.4rem; flex: 1; min-width: 130px;">
                   <button type="button" id="btnExportMatrixToAI" class="btn-secondary btn-small" style="width: 100%; font-size: 0.78rem; padding: 0.55rem 0.65rem; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.4rem;" title="Copy Current 3D Matrix to Clipboard as JSON">
-                    📤 Export Matrix JSON
+                    ?? Export Matrix JSON
                   </button>
                   <div style="font-size: 0.7rem; color: #94a3b8; line-height: 1.3;">
                     2D heightmap matrix visualizer & JSON export for AI chatbots.
@@ -504,8 +504,8 @@
           <!-- Section 3: True 3D Vector Text, Logo & CSG Deboss Studio -->
           <div class="control-section logo-section-card">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem;">
-              <h3 class="section-title" style="margin:0;">🔤 3D Vector Text & CSG Deboss Suite</h3>
-              <button type="button" id="btnResetLogoSection" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all Text & Logo settings">↺ Reset</button>
+              <h3 class="section-title" style="margin:0;">?? 3D Vector Text & CSG Deboss Suite</h3>
+              <button type="button" id="btnResetLogoSection" class="btn-small btn-secondary" style="padding:0.25rem 0.55rem; font-size:0.72rem;" title="Reset all Text & Logo settings">? Reset</button>
             </div>
 
             <!-- Upload & Text Creation Buttons Row -->
@@ -516,7 +516,7 @@
                   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  ✨ Create 3D Text
+                  ? Create 3D Text
                 </button>
                 <button type="button" class="btn-secondary" id="btnOpenLibraryModal" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 0.4rem; color: var(--text-primary); font-size: 0.85rem; font-weight: 700; padding: 0.75rem 0.85rem;" title="Browse Built-in STL and Logo Library">
                   <svg width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -535,10 +535,10 @@
               <div id="logoFileDetails" class="logo-file-details" style="display: none; margin-top: 0.6rem; font-size: 0.85rem; color: var(--accent-teal); font-family: var(--font-mono); font-weight: 600;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                   <div style="display: flex; align-items: center; gap: 0.35rem; min-width: 0; flex: 1;">
-                    <span>📁</span>
+                    <span>??</span>
                     <span id="logoFileName">No file selected</span>
                   </div>
-                  <button type="button" id="btnRemoveLogo" class="decal-file-remove" title="Remove 3D Logo / Text">✕ Remove</button>
+                  <button type="button" id="btnRemoveLogo" class="decal-file-remove" title="Remove 3D Logo / Text">? Remove</button>
                 </div>
               </div>
             </div>
@@ -553,10 +553,10 @@
                 </label>
                 <div class="segmented-control">
                   <button type="button" id="btnModeDeboss" class="segmented-btn active-deboss" title="Cut 3D text inward into the tube wall (Recessed Engraved)">
-                    🔻 Cut (Deboss)
+                    ?? Cut (Deboss)
                   </button>
                   <button type="button" id="btnModeEmboss" class="segmented-btn" title="Extrude 3D text outward off the tube wall (Raised Emboss)">
-                    🔺 Extrude (Emboss)
+                    ?? Extrude (Emboss)
                   </button>
                 </div>
               </div>
@@ -570,7 +570,7 @@
 
                 <label style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.85rem; cursor: pointer; color: var(--text-primary);">
                   <input type="checkbox" id="toggleSolidBacker">
-                  <span style="font-weight: 600;">🛡️ Solid Backer Plaque (Clears Background Pattern)</span>
+                  <span style="font-weight: 600;">??? Solid Backer Plaque (Clears Background Pattern)</span>
                 </label>
               </div>
 
@@ -600,8 +600,8 @@
                   <div class="control-label-row">
                     <label for="inputLogoDepth">Cut Depth / Height: <span id="readoutLogoDepth">2.5 mm</span></label>
                     <div style="display:flex; gap:0.25rem;">
-                      <button type="button" id="btnSetPassthroughDepth" class="btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; color:#38bdf8;" title="Set depth to 100% Full Passthrough Window">🕳️ Passthrough</button>
-                      <button type="button" class="btn-slider-reset" data-slider="inputLogoDepth" data-default="2.5" title="Reset Depth to 2.5mm">↺</button>
+                      <button type="button" id="btnSetPassthroughDepth" class="btn-secondary" style="padding:0.15rem 0.4rem; font-size:0.68rem; color:#38bdf8;" title="Set depth to 100% Full Passthrough Window">??? Passthrough</button>
+                      <button type="button" class="btn-slider-reset" data-slider="inputLogoDepth" data-default="2.5" title="Reset Depth to 2.5mm">?</button>
                     </div>
                   </div>
                   <input type="range" id="inputLogoDepth" min="0.5" max="6.0" step="0.1" value="2.5">
@@ -610,7 +610,7 @@
                 <div class="control-group">
                   <div class="control-label-row">
                     <label for="inputLogoY">Height (Y): <span id="readoutLogoY">0.0 mm</span></label>
-                    <button type="button" class="btn-slider-reset" data-slider="inputLogoY" data-default="0.0" title="Reset Y to 0mm">↺</button>
+                    <button type="button" class="btn-slider-reset" data-slider="inputLogoY" data-default="0.0" title="Reset Y to 0mm">?</button>
                   </div>
                   <input type="range" id="inputLogoY" min="-35.0" max="35.0" step="1.0" value="0.0">
                 </div>
@@ -620,16 +620,16 @@
               <div class="control-grid-2col">
                 <div class="control-group">
                   <div class="control-label-row">
-                    <label for="inputLogoTheta">Radial Angle: <span id="readoutLogoTheta">0°</span></label>
-                    <button type="button" class="btn-slider-reset" data-slider="inputLogoTheta" data-default="0" title="Reset Radial Angle to 0°">↺</button>
+                    <label for="inputLogoTheta">Radial Angle: <span id="readoutLogoTheta">0�</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="inputLogoTheta" data-default="0" title="Reset Radial Angle to 0�">?</button>
                   </div>
                   <input type="range" id="inputLogoTheta" min="-180" max="180" step="5" value="0">
                 </div>
 
                 <div class="control-group">
                   <div class="control-label-row">
-                    <label for="inputLogoRotate">In-Plane Rotate: <span id="readoutLogoRotate">0.00°</span></label>
-                    <button type="button" class="btn-slider-reset" data-slider="inputLogoRotate" data-default="0" title="Reset Rotation to 0°">↺</button>
+                    <label for="inputLogoRotate">In-Plane Rotate: <span id="readoutLogoRotate">0.00�</span></label>
+                    <button type="button" class="btn-slider-reset" data-slider="inputLogoRotate" data-default="0" title="Reset Rotation to 0�">?</button>
                   </div>
                   <input type="range" id="inputLogoRotate" min="0" max="360" step="1" value="0">
                 </div>
@@ -640,8 +640,8 @@
                 <div class="control-label-row">
                   <label for="inputLogoAxisRadius">Distance from Center Axis: <span id="readoutLogoAxisRadius" style="color: #38bdf8; font-weight: 700;">11.0 mm (Flush Surface)</span></label>
                   <div style="display: flex; gap: 0.25rem;">
-                    <button type="button" id="btnSnapFlushRadius" class="btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem; color: #38bdf8;" title="Snap distance to nominal cylinder outer surface">🎯 Snap Flush</button>
-                    <button type="button" class="btn-slider-reset" data-slider="inputLogoAxisRadius" data-default="11.0" title="Reset Radius to 11.0mm">↺</button>
+                    <button type="button" id="btnSnapFlushRadius" class="btn-secondary" style="padding: 0.15rem 0.4rem; font-size: 0.68rem; color: #38bdf8;" title="Snap distance to nominal cylinder outer surface">?? Snap Flush</button>
+                    <button type="button" class="btn-slider-reset" data-slider="inputLogoAxisRadius" data-default="11.0" title="Reset Radius to 11.0mm">?</button>
                   </div>
                 </div>
                 <input type="range" id="inputLogoAxisRadius" min="5.0" max="25.0" step="0.1" value="11.0">
@@ -654,31 +654,31 @@
 
           <!-- Section 5: Geometry Nodes & View Options -->
           <div class="control-section">
-            <h3 class="section-title">💎 Geometry Nodes & Reference View</h3>
+            <h3 class="section-title">?? Geometry Nodes & Reference View</h3>
             
             <div class="toggle-control-list">
               <label class="toggle-label">
                 <input type="checkbox" id="toggleGeoNodes">
                 <span class="toggle-custom"></span>
-                <span>🌿 Blender Geometry Nodes Scatter Mode (Cutters / Instanced Scatter)</span>
+                <span>?? Blender Geometry Nodes Scatter Mode (Cutters / Instanced Scatter)</span>
               </label>
 
               <label class="toggle-label">
                 <input type="checkbox" id="toggleGlassTube" checked>
                 <span class="toggle-custom"></span>
-                <span>🧪 Show 16mm Glass Tube Reference</span>
+                <span>?? Show 16mm Glass Tube Reference</span>
               </label>
 
               <label class="toggle-label">
                 <input type="checkbox" id="toggleLipRetainer">
                 <span class="toggle-custom"></span>
-                <span>🛑 Bottom Glass Tube Endstop Lip (Default: OFF)</span>
+                <span>?? Bottom Glass Tube Endstop Lip (Default: OFF)</span>
               </label>
 
               <label class="toggle-label">
                 <input type="checkbox" id="toggleFacetedShading" checked>
                 <span class="toggle-custom"></span>
-                <span>🎨 Shaded with CAD Edges (SOLIDWORKS Style)</span>
+                <span>?? Shaded with CAD Edges (SOLIDWORKS Style)</span>
               </label>
             </div>
           </div>
@@ -690,7 +690,7 @@
                 <input type="checkbox" id="toggleCleanFloatingIslands" checked>
                 <span class="toggle-custom"></span>
                 <span style="font-size: 0.8rem; font-weight: 600; color: #e2e8f0; line-height: 1.3;">
-                  🧹 Auto-Remove Floating Islands (Clean Stencils & D/O Counters)
+                  ?? Auto-Remove Floating Islands (Clean Stencils & D/O Counters)
                 </span>
               </label>
             </div>
@@ -700,18 +700,18 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
               </svg>
-              <span id="btnPreviewCSGText">✨ Preview Finished 3D CSG</span>
+              <span id="btnPreviewCSGText">? Preview Finished 3D CSG</span>
             </button>
 
             <button id="btnExportSTL" class="btn-success btn-large" style="width: 100%;">
               <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              📥 Export 3D Printable STL
+              ?? Export 3D Printable STL
             </button>
             
             <button id="btnResetView" class="btn-secondary" style="margin-top: 0.5rem; width: 100%;">
-              🎥 Reset Viewport Camera
+              ?? Reset Viewport Camera
             </button>
           </div>
 
@@ -861,7 +861,7 @@
 
         <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
           <button type="button" id="applyTextBtn" class="btn-primary" style="flex: 2; padding: 0.85rem; font-size: 0.95rem;">
-            ✨ Apply 3D Text to Sleeve
+            ? Apply 3D Text to Sleeve
           </button>
         </div>
       </div>
@@ -872,7 +872,7 @@
   <div id="stlProgressModal" class="modal-overlay" style="display: none; z-index: 10000;">
     <div class="modal-card" style="max-width: 440px; text-align: center; padding: 2rem 1.5rem;">
       <div style="margin-bottom: 1.25rem;">
-        <div class="brand-badge" style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; font-size: 1.4rem;">⚙️</div>
+        <div class="brand-badge" style="margin: 0 auto 0.75rem auto; width: 48px; height: 48px; font-size: 1.4rem;">??</div>
         <h3 id="progressModalTitle" style="font-size: 1.2rem; margin-bottom: 0.35rem; color: var(--text-primary);">Processing 3D Boolean CAD Engine</h3>
         <p id="progressModalStatus" style="font-size: 0.85rem; color: var(--text-secondary); font-family: var(--font-mono);">Executing exact CSG deboss cut...</p>
       </div>
@@ -884,7 +884,7 @@
 
       <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); font-family: var(--font-mono);">
         <span id="progressPercentReadout">15%</span>
-        <span id="progressTimerReadout" style="color: #38bdf8; font-weight: 700;">⏱️ Elapsed: 0.0s</span>
+        <span id="progressTimerReadout" style="color: #38bdf8; font-weight: 700;">?? Elapsed: 0.0s</span>
       </div>
     </div>
   </div>
@@ -893,7 +893,7 @@
   <footer>
     <div class="container footer-content">
       <div class="footer-text">
-        © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
+        � <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
       </div>
     </div>
   </footer>

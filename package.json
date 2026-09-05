@@ -4,8 +4,9 @@
   "description": "Quinn Foster personal website and 3D STL experience hub",
   "main": "index.html",
   "scripts": {
-    "start": "npx serve .",
-    "dev": "npx serve ."
+    "start": "npx serve -l 3000 .",
+    "dev": "npx serve -l 3000 .",
+    "game": "npx serve -l 3000 ."
   },
   "keywords": [],
   "author": "Quinn Foster",

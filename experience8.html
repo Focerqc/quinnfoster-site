@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 8 — Photorealistic 3D BLDC Stator Winding, Slot Fill & Star/Delta Connection Visualizer | Quinn Foster">
-  <title>Experience 8 — 3D Stator Winding & Star/Delta Circuit Visualizer | Quinn Foster</title>
+  <meta name="description" content="Experience 8 � Photorealistic 3D BLDC Stator Winding, Slot Fill & Star/Delta Connection Visualizer | Quinn Foster">
+  <title>Experience 8 � 3D Stator Winding & Star/Delta Circuit Visualizer | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.8">
+  <link rel="stylesheet" href="css/styles.css?v=9.9">
 </head>
 <body>
 
@@ -118,17 +118,17 @@
         <div class="exp8-hero-title-col">
           <div class="viewport-badge" style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
             <span class="pulse-dot"></span>
-            Superflux & Cannoncore Hub Motor Topology · 3D Physical Architecture
+            Superflux & Cannoncore Hub Motor Topology � 3D Physical Architecture
           </div>
           <h1 class="exp8-main-title">Experience 8: Photorealistic 3D Stator Winding & Star/Delta Visualizer</h1>
           <p class="exp8-main-subtitle">
-            Physically rendered 27-slot stator core with parametric copper coil bundles, dynamic slot fill factor, inter-slot jumper routing, phase leads (U/V/W), and switchable Star (Wye) vs. Delta (Δ) termination wiring.
+            Physically rendered 27-slot stator core with parametric copper coil bundles, dynamic slot fill factor, inter-slot jumper routing, phase leads (U/V/W), and switchable Star (Wye) vs. Delta (?) termination wiring.
           </p>
         </div>
 
         <div class="exp8-hero-actions">
           <button type="button" id="btnCopyWindingSpec" class="btn-primary btn-small" title="Copy full motor winding spec sheet for workshop build">
-            📋 Copy Spec Sheet
+            ?? Copy Spec Sheet
           </button>
         </div>
       </div>
@@ -142,10 +142,10 @@
           <!-- View Switcher Tabs Bar -->
           <div class="exp7-view-tabs-bar">
             <button type="button" class="view-tab-btn active" data-view="view-3d">
-              <span>🕹️ 3D Real Stator Winding</span>
+              <span>??? 3D Real Stator Winding</span>
             </button>
             <button type="button" class="view-tab-btn" data-view="view-schematic">
-              <span>📐 2D Topological Circuit</span>
+              <span>?? 2D Topological Circuit</span>
             </button>
           </div>
 
@@ -157,20 +157,20 @@
               <div class="exp8-toolbar-group">
                 <span class="exp8-toolbar-label">Solo Phase:</span>
                 <button type="button" class="btn-phase-solo active-all" data-solo="all">All Phases</button>
-                <button type="button" class="btn-phase-solo" data-solo="A">● Phase A (U)</button>
-                <button type="button" class="btn-phase-solo" data-solo="B">● Phase B (V)</button>
-                <button type="button" class="btn-phase-solo" data-solo="C">● Phase C (W)</button>
+                <button type="button" class="btn-phase-solo" data-solo="A">? Phase A (U)</button>
+                <button type="button" class="btn-phase-solo" data-solo="B">? Phase B (V)</button>
+                <button type="button" class="btn-phase-solo" data-solo="C">? Phase C (W)</button>
               </div>
 
               <div class="exp8-toolbar-group">
                 <button type="button" id="btnWireAppearance" class="btn-mode-toggle" title="Cycle between Phase-Coded, Pure Copper, and Copper with Phase Labels">
-                  🎨 Mode: Phase-Coded
+                  ?? Mode: Phase-Coded
                 </button>
                 <button id="btnToggleAutoSpin" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.74rem;">
-                  ⏸ Auto-Spin: OFF
+                  ? Auto-Spin: OFF
                 </button>
                 <button id="btnViewportReset" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.74rem;">
-                  ↺ Reset Camera
+                  ? Reset Camera
                 </button>
               </div>
             </div>
@@ -187,14 +187,14 @@
             <div class="exp8-toolbar-row" style="background: rgba(15, 23, 42, 0.95);">
               <div class="exp8-toolbar-group" style="flex: 1; max-width: 48%;">
                 <label for="statorOpacitySlider" style="font-size: 0.74rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.35rem;">
-                  <span>🔍 Stator X-Ray / Opacity:</span>
+                  <span>?? Stator X-Ray / Opacity:</span>
                 </label>
                 <input type="range" id="statorOpacitySlider" min="0.0" max="1.0" step="0.05" value="1.0" style="flex: 1;">
               </div>
 
               <div class="exp8-toolbar-group" style="flex: 1; max-width: 48%;">
                 <label for="explodedSlider" style="font-size: 0.74rem; font-weight: 700; color: #a855f7; display: flex; align-items: center; gap: 0.35rem;">
-                  <span>💥 Pull Magnets / Airgap:</span>
+                  <span>?? Pull Magnets / Airgap:</span>
                 </label>
                 <input type="range" id="explodedSlider" min="0.0" max="1.0" step="0.02" value="0.0" style="flex: 1;">
               </div>
@@ -207,7 +207,7 @@
                 <strong id="terminationModeLabel" style="color: #38bdf8;">Star (Wye / Y) Topology</strong>
               </div>
               <div class="exp8-quick-bar-item" style="margin-left: auto;">
-                <span>Orbit: Left Click + Drag · Zoom: Scroll · Pan: Right Click</span>
+                <span>Orbit: Left Click + Drag � Zoom: Scroll � Pan: Right Click</span>
               </div>
             </div>
           </div>
@@ -227,32 +227,32 @@
           <!-- Section 0: Quick Build Presets -->
           <div class="control-section exp7-preset-card">
             <div class="section-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>⚡ Winding Presets</span>
+              <span>? Winding Presets</span>
               <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">Click to load baseline</span>
             </div>
             <div class="exp7-preset-grid">
               <button type="button" class="btn-winding-preset active" data-preset="superflux-standard">
                 <strong>Superflux Standard</strong>
-                <span>27N30P · 6T · 18x28AWG · Wye</span>
+                <span>27N30P � 6T � 18x28AWG � Wye</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="torque-monster">
                 <strong>High Torque Monster</strong>
-                <span>27N30P · 8T · 14x28AWG · Wye</span>
+                <span>27N30P � 8T � 14x28AWG � Wye</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="speed-runner">
                 <strong>High Speed Racer</strong>
-                <span>27N30P · 5T · 22x28AWG · Delta</span>
+                <span>27N30P � 5T � 22x28AWG � Delta</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="single-strand-fat">
                 <strong>Single Wire (Fat)</strong>
-                <span>27N30P · 6T · 1x18AWG · Wye</span>
+                <span>27N30P � 6T � 1x18AWG � Wye</span>
               </button>
             </div>
           </div>
 
           <!-- Section 1: Phase Termination & Schema -->
           <div class="control-section">
-            <h3 class="section-title">⚙️ Phase Termination & Architecture</h3>
+            <h3 class="section-title">?? Phase Termination & Architecture</h3>
             
             <div class="control-grid-2col">
               <div class="control-group">
@@ -269,8 +269,8 @@
               <div class="control-group">
                 <label>Phase Termination:</label>
                 <div class="conn-toggle-group">
-                  <button type="button" class="btn-conn-toggle active" data-conn="wye">⭐ Wye (Star / Y)</button>
-                  <button type="button" class="btn-conn-toggle" data-conn="delta">🔺 Delta (Δ)</button>
+                  <button type="button" class="btn-conn-toggle active" data-conn="wye">? Wye (Star / Y)</button>
+                  <button type="button" class="btn-conn-toggle" data-conn="delta">?? Delta (?)</button>
                 </div>
               </div>
             </div>
@@ -279,7 +279,7 @@
             <div class="exp7-schema-card">
               <div class="exp7-schema-header">
                 <span class="schema-label">WINDING SCHEMA (27 SLOTS):</span>
-                <span style="font-size: 0.72rem; color: #94a3b8;">Uppercase = CW (+), Lowercase = CCW (−)</span>
+                <span style="font-size: 0.72rem; color: #94a3b8;">Uppercase = CW (+), Lowercase = CCW (-)</span>
               </div>
               <div class="exp7-schema-string" id="windingSchemaDisplay">AacCcbBbaAacCcbBbaAacCcbBba</div>
               
@@ -293,7 +293,7 @@
 
           <!-- Section 2: Wire Sizing & Physical Slot Fill Factor Gauge -->
           <div class="control-section">
-            <h3 class="section-title">🧵 Wire Strands & Physical Slot Fill</h3>
+            <h3 class="section-title">?? Wire Strands & Physical Slot Fill</h3>
             
             <div class="control-grid-3col">
               <div class="control-group">
@@ -328,7 +328,7 @@
             <!-- Live Slot Fill Factor Progress Bar -->
             <div class="exp7-fill-gauge-container">
               <div class="fill-gauge-header">
-                <span>Slot Fill Factor: <strong id="fillFactorVal">35.6%</strong> (Usable Area: 98.5 mm²)</span>
+                <span>Slot Fill Factor: <strong id="fillFactorVal">35.6%</strong> (Usable Area: 98.5 mm�)</span>
                 <span id="fillFactorStatus" class="fill-badge fill-optimal">Optimal / Balanced</span>
               </div>
               <div class="fill-track">
@@ -349,19 +349,19 @@
                 <span class="mini-val" id="copperWeightDisplay">340 g</span>
               </div>
               <div class="mini-stat-card">
-                <span class="mini-label">Phase Resistance (Rph @ 80°C)</span>
-                <span class="mini-val" id="rphDisplay">42.5 mΩ</span>
+                <span class="mini-label">Phase Resistance (Rph @ 80�C)</span>
+                <span class="mini-val" id="rphDisplay">42.5 mO</span>
               </div>
               <div class="mini-stat-card">
                 <span class="mini-label">Terminal Resistance (Rtt)</span>
-                <span class="mini-val" id="rttDisplay">85.0 mΩ</span>
+                <span class="mini-val" id="rttDisplay">85.0 mO</span>
               </div>
             </div>
           </div>
 
           <!-- Section 3: Performance & Speeds Dashboard -->
           <div class="control-section exp7-performance-card">
-            <h3 class="section-title">🚀 Motor Performance & Calculated Speeds</h3>
+            <h3 class="section-title">?? Motor Performance & Calculated Speeds</h3>
             
             <div class="control-grid-2col">
               <div class="control-group">
@@ -399,7 +399,7 @@
               <div class="perf-metric-card">
                 <span class="perf-metric-title">Continuous Torque & Loss</span>
                 <span class="perf-metric-val highlight-torque" id="torqueDisplay">26.8 Nm (@ 50A)</span>
-                <div style="font-size: 0.72rem; color: #f87171; margin-top: 0.2rem;">I²R Thermal Loss: <strong id="copperLossDisplay">35.4 W</strong></div>
+                <div style="font-size: 0.72rem; color: #f87171; margin-top: 0.2rem;">I�R Thermal Loss: <strong id="copperLossDisplay">35.4 W</strong></div>
               </div>
             </div>
           </div>
@@ -415,7 +415,7 @@
   <footer>
     <div class="container footer-content">
       <div class="footer-text">
-        © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
+        � <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
       </div>
       <div class="social-links">
         <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub">

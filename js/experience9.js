@@ -94,6 +94,29 @@
       inGap: false,
       inMegaDrop: false,
     },
+    camera: {
+      frustumSize: 18,
+      targetFrustum: 18,
+      minFrustum: 9,
+      maxFrustum: 34,
+    },
+    grind: {
+      active: false,
+      type: '50-50', // 'noseslide', 'tailslide', 'boardslide', '50-50'
+      balance: 0.0,  // -1.0 (tipped forward) to +1.0 (tipped back)
+      balanceVel: 0.0,
+      timer: 0.0,
+      railX: 0,
+      railMinZ: 0,
+      railMaxZ: 0,
+    },
+    aerial: {
+      airYaw: 0,
+      airPitch: 0,
+      spin180Done: false,
+      spin360Done: false,
+      flipDone: false,
+    },
     input: {
       up: false,
       down: false,
@@ -103,6 +126,13 @@
       jumpPressed: false,
       joystickActive: false,
       joystickVector: { x: 0, y: 0 },
+      // Right Twist / Flip / Balance Stick (Arrows on desktop)
+      twistUp: false,
+      twistDown: false,
+      twistLeft: false,
+      twistRight: false,
+      rightJoystickActive: false,
+      rightJoystickVector: { x: 0, y: 0 },
     },
     obstacles: [],
     trailSigns: [],
@@ -117,7 +147,10 @@
   let compassArrow, compassDist;
   let areaToast, areaBadge, areaName, trickToast, trickText;
   let btnRespawn, btnFullscreen, btnTouchJump;
+  let btnZoomIn, btnZoomOut;
   let joystickZone, joystickBase, joystickThumb;
+  let rightJoystickZone, rightJoystickBase, rightJoystickThumb;
+  let balanceHud, balanceLabel, balanceNeedle;
   let cpButtons = [];
 
   // --- Three.js Globals ---
@@ -166,12 +199,25 @@
     btnFullscreen = document.getElementById('btnFullscreen');
     btnTouchJump = document.getElementById('btnTouchJump');
 
+    btnZoomIn = document.getElementById('btnZoomIn');
+    btnZoomOut = document.getElementById('btnZoomOut');
+
     joystickZone = document.getElementById('joystickZone');
     joystickBase = document.getElementById('joystickBase');
     joystickThumb = document.getElementById('joystickThumb');
 
+    rightJoystickZone = document.getElementById('rightJoystickZone');
+    rightJoystickBase = document.getElementById('rightJoystickBase');
+    rightJoystickThumb = document.getElementById('rightJoystickThumb');
+
+    balanceHud = document.getElementById('balanceHud');
+    balanceLabel = document.getElementById('balanceLabel');
+    balanceNeedle = document.getElementById('balanceNeedle');
+
     if (btnRespawn) btnRespawn.addEventListener('click', respawnPlayer);
     if (btnFullscreen) btnFullscreen.addEventListener('click', toggleFullscreen);
+    if (btnZoomIn) btnZoomIn.addEventListener('click', () => adjustZoom(-3));
+    if (btnZoomOut) btnZoomOut.addEventListener('click', () => adjustZoom(+3));
 
     // Checkpoint navigation buttons
     cpButtons = Array.from(document.querySelectorAll('.exp9-cp-btn'));
@@ -210,9 +256,9 @@
     scene.background = new THREE.Color(0x0a0f1d);
     scene.fog = new THREE.FogExp2(0x0a0f1d, 0.0075);
 
-    // Fixed 2.5D Isometric Orthographic Camera
+    // 2.5D Isometric Orthographic Camera with Dynamic Zoom
     const aspect = container.clientWidth / container.clientHeight;
-    const frustumSize = 18; // Viewport width in meters
+    const frustumSize = state.camera.frustumSize; // Viewport width in meters
     camera = new THREE.OrthographicCamera(
       (-frustumSize * aspect) / 2,
       (frustumSize * aspect) / 2,
@@ -238,19 +284,19 @@
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // --- Lighting ---
-    // Ambient fill
-    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.7);
+    // --- Lighting (Balanced for High-Contrast Hill & Slope Visibility) ---
+    // Ambient fill (reduced to prevent washing out slopes)
+    const ambientLight = new THREE.AmbientLight(0xdbeafe, 0.35);
     scene.add(ambientLight);
 
     // Hemisphere light (sky vs ground bounce)
-    const hemiLight = new THREE.HemisphereLight(0xecfeff, 0x1e293b, 0.45);
+    const hemiLight = new THREE.HemisphereLight(0xecfeff, 0x1e293b, 0.3);
     hemiLight.position.set(0, 60, 0);
     scene.add(hemiLight);
 
-    // Directional Sun Light
-    sunLight = new THREE.DirectionalLight(0xfffbeb, 1.15);
-    sunLight.position.set(45, 75, 35);
+    // Directional Sun Light (strong directional shading for hills and berms)
+    sunLight = new THREE.DirectionalLight(0xfffbeb, 1.35);
+    sunLight.position.set(50, 75, 40);
     sunLight.castShadow = true;
     sunLight.shadow.mapSize.width = 2048;
     sunLight.shadow.mapSize.height = 2048;
@@ -266,8 +312,9 @@
     scene.add(sunLight);
     scene.add(sunLight.target);
 
-    // Create Root Board Group
+    // Create Root Board Group (Rotation order 'YXZ' allows correct pitch along heading)
     boardGroup = new THREE.Group();
+    boardGroup.rotation.order = 'YXZ';
     boardGroup.position.set(state.player.x, state.player.y, state.player.z);
     scene.add(boardGroup);
 
@@ -331,12 +378,52 @@
         h = Math.max(h, 4.2 + peakFactor * 2.8); // Peaks up to 7.0m
       }
     }
-    // B. South: Cactus Canyon (Desert washes, rolling dunes, banked berm curves)
+    // B. South: Cactus Canyon & Banked Berms Trail Circuit
     else if (z > 18 && Math.abs(x) <= Math.abs(z) * 1.6) {
       const s = (z - 18);
-      const dunes = Math.sin(x * 0.12) * 1.4 * Math.cos(s * 0.08) + Math.cos((x + s) * 0.07) * 1.0;
-      const bankedFlanks = Math.max(0, (Math.abs(x) - 16) * 0.22);
-      h = 1.2 + dunes + bankedFlanks;
+      // Base rolling desert dunes
+      const dunes = Math.sin(x * 0.10) * 1.1 * Math.cos(s * 0.07) + Math.cos((x + s) * 0.06) * 0.8;
+      const canyonFlanks = Math.max(0, (Math.abs(x) - 18) * 0.22);
+      h = 1.0 + dunes + canyonFlanks;
+
+      // 1. Entrance Roller Pump Track (z: 21 to 38, near center)
+      if (Math.abs(x) < 8 && z >= 20 && z <= 40) {
+        const roller = Math.sin((z - 20) * 0.65) * 0.5;
+        h += roller;
+      }
+
+      // 2. East Banked Berm Turn (Apex near x=24, z=48)
+      // Carves riders into a high-banked right sweep
+      const distBermE = Math.hypot(x - 24, z - 48);
+      if (distBermE < 16) {
+        const outsideRise = Math.max(0, (x - 16) / 8.5) * 2.5; // Outer wall up to 2.5m
+        const bowlPocket = -Math.cos((distBermE / 16) * Math.PI * 0.5) * 0.6;
+        h += outsideRise + bowlPocket;
+      }
+
+      // 3. South Sweeper Berm Turn (Apex near x=0, z=76)
+      // High-speed banked turn around the southern canyon rim
+      const distBermS = Math.hypot(x, z - 76);
+      if (distBermS < 18) {
+        const outsideRise = Math.max(0, (z - 68) / 8.5) * 2.8; // Outer wall up to 2.8m
+        const bowlPocket = -Math.cos((distBermS / 18) * Math.PI * 0.5) * 0.7;
+        h += outsideRise + bowlPocket;
+      }
+
+      // 4. West Banked Berm Turn (Apex near x=-24, z=52)
+      // Carves riders back northward toward town
+      const distBermW = Math.hypot(x - (-24), z - 52);
+      if (distBermW < 16) {
+        const outsideRise = Math.max(0, (-x - 16) / 8.5) * 2.5; // Outer wall up to 2.5m
+        const bowlPocket = -Math.cos((distBermW / 16) * Math.PI * 0.5) * 0.6;
+        h += outsideRise + bowlPocket;
+      }
+
+      // 5. Central Infield Tabletop Roller / Hump (x ~ 0, z ~ 56)
+      const distInfield = Math.hypot(x, z - 56);
+      if (distInfield < 9) {
+        h += Math.cos((distInfield / 9) * Math.PI * 0.5) * 1.25;
+      }
     }
     // C. East: Pine Ridge (Forest singletrack, wooded knolls, stream ravine)
     else if (x > 18 && Math.abs(z) <= Math.abs(x) * 1.6) {
@@ -359,6 +446,33 @@
     }
 
     return THREE.MathUtils.lerp(0.08, Math.max(0.05, h), plazaBlend);
+  }
+
+  /**
+   * Helper to check if a world point lies along the Desert Berm dirt trail circuit
+   */
+  function isDesertBermTrail(x, z) {
+    if (z < 20 || z > 86 || Math.abs(x) > 38) return 0;
+
+    // Entrance pump rollers
+    if (Math.abs(x) < 6 && z >= 20 && z <= 38) return 1;
+
+    // East Berm Arc (around 24, 48)
+    const dE = Math.hypot(x - 24, z - 48);
+    if (dE >= 6 && dE <= 15.5) return Math.max(0, 1 - Math.abs(dE - 11) / 4.5);
+
+    // South Sweeper Arc (around 0, 76)
+    const dS = Math.hypot(x, z - 76);
+    if (dS >= 6 && dS <= 17) return Math.max(0, 1 - Math.abs(dS - 12) / 5);
+
+    // West Berm Arc (around -24, 52)
+    const dW = Math.hypot(x - (-24), z - 52);
+    if (dW >= 6 && dW <= 15.5) return Math.max(0, 1 - Math.abs(dW - 11) / 4.5);
+
+    // Connecting straightaways
+    if (Math.abs(x) < 7 && z >= 36 && z <= 52) return 0.8;
+
+    return 0;
   }
 
   // ==========================================================================
@@ -390,7 +504,14 @@
           col = new THREE.Color(0x334155).lerp(new THREE.Color(0x1e293b), Math.min(1, (-gz - 20) / 65));
         } else if (gz > 20 && Math.abs(gx) < Math.abs(gz) * 1.6) {
           // South: Cactus Canyon (Warm terracotta / red sand)
-          col = new THREE.Color(0xc26d42).lerp(new THREE.Color(0x9a3412), Math.min(1, (gz - 20) / 65));
+          col = new THREE.Color(0xd97736).lerp(new THREE.Color(0x9a3412), Math.min(1, (gz - 20) / 65));
+
+          // Highlight sculpted dirt trail loops with packed singletrack dirt color
+          const trailFactor = isDesertBermTrail(gx, gz);
+          if (trailFactor > 0.05) {
+            const dirtTrackCol = new THREE.Color(0x78350f).lerp(new THREE.Color(0xb45309), 0.6);
+            col.lerp(dirtTrackCol, trailFactor * 0.85);
+          }
         } else if (gx > 20 && Math.abs(gz) < Math.abs(gx) * 1.6) {
           // East: Pine Ridge (Deep moss forest loam)
           col = new THREE.Color(0x2f603c).lerp(new THREE.Color(0x1e3a29), Math.min(1, (gx - 20) / 65));
@@ -400,15 +521,35 @@
         }
       }
 
+      // Topographic elevation contour lines (subtle dark rings every 0.5 meters)
+      // Gives instant depth perception and clarity to all slopes and hills
+      const contourMod = Math.abs((gy % 0.5) - 0.25);
+      const isContour = contourMod > 0.21;
+
+      // Slope steepness shading (steeper slopes are shaded darker to reveal contours)
+      const epsG = 0.5;
+      const hE = getTerrainElevation(gx + epsG, gz);
+      const hW = getTerrainElevation(gx - epsG, gz);
+      const hS = getTerrainElevation(gx, gz + epsG);
+      const hN = getTerrainElevation(gx, gz - epsG);
+      const slopeGrad = Math.hypot((hE - hW) / (2 * epsG), (hS - hN) / (2 * epsG));
+      const slopeShade = Math.max(0.68, 1.0 - slopeGrad * 0.32);
+
+      if (isContour && dist > 20) {
+        col.multiplyScalar(0.78); // Crisp contour stripe
+      }
+      col.multiplyScalar(slopeShade); // Depth-enhancing slope shading
+
       colors.push(col.r, col.g, col.b);
     }
 
     groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     groundGeo.computeVertexNormals();
 
-    const groundMat = new THREE.MeshLambertMaterial({
+    const groundMat = new THREE.MeshStandardMaterial({
       vertexColors: true,
-      roughness: 0.9,
+      roughness: 0.85,
+      metalness: 0.05,
     });
     const groundMesh = new THREE.Mesh(groundGeo, groundMat);
     groundMesh.receiveShadow = true;
@@ -487,38 +628,43 @@
       height: ledgeHeight + 0.06,
     });
 
-    // B. Low Grind Rail (South-West Plaza)
-    const railLength = 11.0;
-    const railHeight = 0.40;
-    const railGeo = new THREE.CylinderGeometry(0.045, 0.045, railLength, 12);
-    railGeo.rotateX(Math.PI / 2);
-    const railMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.9, roughness: 0.25 });
-    const rail = new THREE.Mesh(railGeo, railMat);
-    rail.position.set(-8, railHeight + 0.06, 7);
-    rail.castShadow = true;
-    scene.add(rail);
+    // B. Low Grind Rails (Plaza Skate Features)
+    function createGrindRail(x, z, length = 11.0, height = 0.40, colorHex = 0xfacc15) {
+      const railGeo = new THREE.CylinderGeometry(0.045, 0.045, length, 12);
+      railGeo.rotateX(Math.PI / 2);
+      const railMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.9, roughness: 0.25 });
+      const railMesh = new THREE.Mesh(railGeo, railMat);
+      railMesh.position.set(x, height + 0.06, z);
+      railMesh.castShadow = true;
+      scene.add(railMesh);
 
-    [-4, 0, 4].forEach((offset) => {
-      const postGeo = new THREE.CylinderGeometry(0.035, 0.035, railHeight, 8);
-      const postMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
-      const post = new THREE.Mesh(postGeo, postMat);
-      post.position.set(-8, (railHeight / 2) + 0.06, 7 + offset);
-      post.castShadow = true;
-      scene.add(post);
-    });
+      const postSpacing = length / 3;
+      [-postSpacing, 0, postSpacing].forEach((offset) => {
+        const postGeo = new THREE.CylinderGeometry(0.035, 0.035, height, 8);
+        const postMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
+        const post = new THREE.Mesh(postGeo, postMat);
+        post.position.set(x, (height / 2) + 0.06, z + offset);
+        post.castShadow = true;
+        scene.add(post);
+      });
 
-    registerObstacle({
-      type: 'rail',
-      x: -8,
-      z: 7,
-      width: 0.4,
-      length: railLength,
-      height: railHeight + 0.06,
-    });
+      registerObstacle({
+        type: 'rail',
+        x: x,
+        z: z,
+        width: 0.48,
+        length: length,
+        height: height + 0.06,
+      });
+    }
+
+    // Yellow South-West Rail & Cyan North-East Rail
+    createGrindRail(-8, 7, 11.0, 0.40, 0xfacc15);
+    createGrindRail(8, -7, 11.0, 0.40, 0x38bdf8);
 
     // C. Plaza Kicker Ramps
-    createKickerRamp(-4, -13, 2.5, 3.2, 0.7, 0); // North launch
-    createKickerRamp(12, 6, 2.5, 3.2, 0.65, Math.PI / 2); // East launch
+    createKickerRamp(-4, -13, 2.6, 3.4, 0.72, 0); // North launch
+    createKickerRamp(12, 6, 2.6, 3.4, 0.68, -Math.PI / 2); // East launch
 
     // D. Curbs
     createCurbs();
@@ -930,29 +1076,50 @@
       baseY: kickerBottomY,
       height: kickerH,
     });
+
+    // Register Mega Drop Downhill Landing Ramp (The metal scaffold ramp)
+    registerObstacle({
+      type: 'megadrop_landing',
+      x: x,
+      z: z + runwayLen + kickerLen + 7.0 + (landLen / 2),
+      width: runwayWidth + 1.2,
+      length: landLen,
+      topY: kickerBottomY + 1.2,
+      bottomY: 0.2,
+    });
   }
 
-  // Generic Kicker Ramp
+  // Generic Kicker Ramp with Precise Wedge Geometry & Lip Coping
   function createKickerRamp(x, z, width, length, height, rotation) {
     const baseY = getTerrainElevation(x, z);
     const rampGroup = new THREE.Group();
+    const halfL = length / 2;
 
+    // Wedge Shape in Z-Y: entrance at +Z (South), launch lip at -Z (North)
     const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(0, height);
-    shape.lineTo(length, 0);
+    shape.moveTo(halfL, 0); // Ground entrance
+    shape.quadraticCurveTo(0, height * 0.28, -halfL, height); // Smooth transition up to lip
+    shape.lineTo(-halfL, 0); // Vertical back drop
     shape.closePath();
 
-    const geom = new THREE.ExtrudeGeometry(shape, { steps: 1, depth: width, bevelEnabled: false });
-    geom.center();
+    const geom = new THREE.ExtrudeGeometry(shape, { depth: width, bevelEnabled: false });
+    geom.center(); // Centered in X, Y, Z
 
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0xcd853f, roughness: 0.7, metalness: 0.1 });
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.65, metalness: 0.1 });
     const rampMesh = new THREE.Mesh(geom, woodMat);
     rampMesh.position.set(0, height / 2, 0);
-    rampMesh.rotation.y = -Math.PI / 2;
+    rampMesh.rotation.y = Math.PI / 2; // Extrusion aligns width with local X
     rampMesh.castShadow = true;
     rampMesh.receiveShadow = true;
     rampGroup.add(rampMesh);
+
+    // High-visibility launch coping along the takeoff lip
+    const lipGeo = new THREE.BoxGeometry(width, 0.05, 0.08);
+    const lipMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.85, roughness: 0.2 });
+    const lipMesh = new THREE.Mesh(lipGeo, lipMat);
+    lipMesh.position.set(0, height + 0.02, -halfL);
+    lipMesh.castShadow = true;
+    rampGroup.add(lipMesh);
 
     rampGroup.position.set(x, baseY, z);
     rampGroup.rotation.y = rotation;
@@ -1390,24 +1557,54 @@
       if (e.code === 'Digit4' || e.code === 'Numpad4') { teleportToCheckpoint(3); return; }
       if (e.code === 'Digit5' || e.code === 'Numpad5') { teleportToCheckpoint(4); return; }
 
-      // 3. MOVEMENT INPUTS
+      // 3. ZOOM HOTKEYS
+      if (e.code === 'BracketLeft' || e.code === 'Minus' || e.code === 'NumpadSubtract') {
+        adjustZoom(+2.5); // Zoom out
+        return;
+      }
+      if (e.code === 'BracketRight' || e.code === 'Equal' || e.code === 'NumpadAdd') {
+        adjustZoom(-2.5); // Zoom in
+        return;
+      }
+
+      // 4. MOVEMENT & TRICK / BALANCE INPUTS
       switch (e.code) {
+        // Left Stick / Movement (WASD on desktop)
         case 'KeyW':
-        case 'ArrowUp':
           state.input.up = true;
           break;
         case 'KeyS':
-        case 'ArrowDown':
           state.input.down = true;
           break;
         case 'KeyA':
-        case 'ArrowLeft':
           state.input.left = true;
           break;
         case 'KeyD':
-        case 'ArrowRight':
           state.input.right = true;
           break;
+
+        // Right Stick / Twist, Flip & Grind Balance (Arrow Keys on desktop)
+        case 'ArrowUp':
+          state.input.twistUp = true;
+          if (state.grind.active) {
+            // Tapping Up applies corrective torque impulse to push nose up / balance
+            state.grind.balanceVel -= 2.6;
+          }
+          break;
+        case 'ArrowDown':
+          state.input.twistDown = true;
+          if (state.grind.active) {
+            // Tapping Down applies corrective torque impulse to push nose down / balance
+            state.grind.balanceVel += 2.6;
+          }
+          break;
+        case 'ArrowLeft':
+          state.input.twistLeft = true;
+          break;
+        case 'ArrowRight':
+          state.input.twistRight = true;
+          break;
+
         case 'Space':
           if (!state.input.jump) state.input.jumpPressed = true;
           state.input.jump = true;
@@ -1421,20 +1618,28 @@
     window.addEventListener('keyup', (e) => {
       switch (e.code) {
         case 'KeyW':
-        case 'ArrowUp':
           state.input.up = false;
           break;
         case 'KeyS':
-        case 'ArrowDown':
           state.input.down = false;
           break;
         case 'KeyA':
-        case 'ArrowLeft':
           state.input.left = false;
           break;
         case 'KeyD':
-        case 'ArrowRight':
           state.input.right = false;
+          break;
+        case 'ArrowUp':
+          state.input.twistUp = false;
+          break;
+        case 'ArrowDown':
+          state.input.twistDown = false;
+          break;
+        case 'ArrowLeft':
+          state.input.twistLeft = false;
+          break;
+        case 'ArrowRight':
+          state.input.twistRight = false;
           break;
         case 'Space':
           state.input.jump = false;
@@ -1448,9 +1653,18 @@
       state.input.down = false;
       state.input.left = false;
       state.input.right = false;
+      state.input.twistUp = false;
+      state.input.twistDown = false;
+      state.input.twistLeft = false;
+      state.input.twistRight = false;
       state.input.jump = false;
       state.input.jumpPressed = false;
       state.input.joystickActive = false;
+      state.input.rightJoystickActive = false;
+      state.input.joystickVector.x = 0;
+      state.input.joystickVector.y = 0;
+      state.input.rightJoystickVector.x = 0;
+      state.input.rightJoystickVector.y = 0;
     }
 
     window.addEventListener('blur', resetInputs);
@@ -1458,45 +1672,91 @@
       if (document.hidden) resetInputs();
     });
 
+    // Mouse Wheel Zoom
+    if (container) {
+      container.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        adjustZoom(Math.sign(e.deltaY) * 2.2);
+      }, { passive: false });
+    }
+
+    // Mobile Pinch-to-Zoom
+    let lastPinchDist = null;
+    if (container) {
+      container.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 2) {
+          lastPinchDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 2 && lastPinchDist !== null) {
+          const currentDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const delta = (lastPinchDist - currentDist) * 0.08;
+          adjustZoom(delta);
+          lastPinchDist = currentDist;
+        }
+      }, { passive: true });
+
+      container.addEventListener('touchend', (e) => {
+        if (e.touches.length < 2) lastPinchDist = null;
+      }, { passive: true });
+    }
+
     // Touch Jump Button
     if (btnTouchJump) {
-      btnTouchJump.addEventListener('touchstart', (e) => {
+      btnTouchJump.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         state.input.jumpPressed = true;
         state.input.jump = true;
-      }, { passive: false });
-      btnTouchJump.addEventListener('touchend', () => {
+      });
+      btnTouchJump.addEventListener('pointerup', () => {
         state.input.jump = false;
       });
-      btnTouchJump.addEventListener('mousedown', () => {
-        state.input.jumpPressed = true;
-        state.input.jump = true;
-      });
-      btnTouchJump.addEventListener('mouseup', () => {
+      btnTouchJump.addEventListener('pointercancel', () => {
         state.input.jump = false;
       });
     }
 
-    // Virtual Touch Joystick
+    // Virtual Touch & Mouse Drag Joysticks (Left Drive + Right Twist & Balance)
     setupVirtualJoystick();
+    setupRightVirtualJoystick();
+  }
+
+  function adjustZoom(delta) {
+    state.camera.targetFrustum = THREE.MathUtils.clamp(
+      state.camera.targetFrustum + delta,
+      state.camera.minFrustum,
+      state.camera.maxFrustum
+    );
   }
 
   function setupVirtualJoystick() {
     if (!joystickZone || !joystickBase || !joystickThumb) return;
 
-    let touchId = null;
+    let activePointerId = null;
     let baseRect = null;
-    const maxRadius = 45;
+    const maxRadius = 42;
 
-    function handleStart(clientX, clientY, id) {
-      touchId = id;
+    function handleStart(clientX, clientY, pointerId, target) {
+      activePointerId = pointerId;
       state.input.joystickActive = true;
+      joystickThumb.classList.add('active');
       baseRect = joystickBase.getBoundingClientRect();
+      if (target && target.setPointerCapture && pointerId !== undefined) {
+        try { target.setPointerCapture(pointerId); } catch (e) {}
+      }
       handleMove(clientX, clientY);
     }
 
     function handleMove(clientX, clientY) {
-      if (!baseRect) return;
+      if (!state.input.joystickActive || !baseRect) return;
       const centerX = baseRect.left + baseRect.width / 2;
       const centerY = baseRect.top + baseRect.height / 2;
 
@@ -1514,39 +1774,116 @@
       state.input.joystickVector.y = -dy / maxRadius;
     }
 
-    function handleEnd() {
-      touchId = null;
+    function handleEnd(pointerId, target) {
+      if (activePointerId !== null && pointerId !== undefined && pointerId !== activePointerId) return;
+      activePointerId = null;
       state.input.joystickActive = false;
       state.input.joystickVector.x = 0;
       state.input.joystickVector.y = 0;
+      joystickThumb.classList.remove('active');
       joystickThumb.style.transform = 'translate(0px, 0px)';
+      if (target && target.releasePointerCapture && pointerId !== undefined) {
+        try { target.releasePointerCapture(pointerId); } catch (e) {}
+      }
     }
 
-    joystickZone.addEventListener('touchstart', (e) => {
+    // Unified Pointer Events (mouse drag on desktop + multi-touch on mobile)
+    joystickZone.addEventListener('pointerdown', (e) => {
       e.preventDefault();
-      const t = e.changedTouches[0];
-      handleStart(t.clientX, t.clientY, t.identifier);
-    }, { passive: false });
+      handleStart(e.clientX, e.clientY, e.pointerId, joystickZone);
+    });
 
-    window.addEventListener('touchmove', (e) => {
-      if (touchId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        if (t.identifier === touchId) {
-          handleMove(t.clientX, t.clientY);
-          break;
-        }
+    window.addEventListener('pointermove', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        e.preventDefault();
+        handleMove(e.clientX, e.clientY);
       }
-    }, { passive: false });
+    });
 
-    window.addEventListener('touchend', (e) => {
-      if (touchId === null) return;
-      for (let i = 0; i < e.changedTouches.length; i++) {
-        const t = e.changedTouches[i];
-        if (t.identifier === touchId) {
-          handleEnd();
-          break;
-        }
+    window.addEventListener('pointerup', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        handleEnd(e.pointerId, joystickZone);
+      }
+    });
+
+    window.addEventListener('pointercancel', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        handleEnd(e.pointerId, joystickZone);
+      }
+    });
+  }
+
+  function setupRightVirtualJoystick() {
+    if (!rightJoystickZone || !rightJoystickBase || !rightJoystickThumb) return;
+
+    let activePointerId = null;
+    let baseRect = null;
+    const maxRadius = 42;
+
+    function handleStart(clientX, clientY, pointerId, target) {
+      activePointerId = pointerId;
+      state.input.rightJoystickActive = true;
+      rightJoystickThumb.classList.add('active');
+      baseRect = rightJoystickBase.getBoundingClientRect();
+      if (target && target.setPointerCapture && pointerId !== undefined) {
+        try { target.setPointerCapture(pointerId); } catch (e) {}
+      }
+      handleMove(clientX, clientY);
+    }
+
+    function handleMove(clientX, clientY) {
+      if (!state.input.rightJoystickActive || !baseRect) return;
+      const centerX = baseRect.left + baseRect.width / 2;
+      const centerY = baseRect.top + baseRect.height / 2;
+
+      let dx = clientX - centerX;
+      let dy = clientY - centerY;
+      const dist = Math.hypot(dx, dy);
+
+      if (dist > maxRadius) {
+        dx = (dx / dist) * maxRadius;
+        dy = (dy / dist) * maxRadius;
+      }
+
+      rightJoystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
+      state.input.rightJoystickVector.x = dx / maxRadius;
+      state.input.rightJoystickVector.y = -dy / maxRadius;
+    }
+
+    function handleEnd(pointerId, target) {
+      if (activePointerId !== null && pointerId !== undefined && pointerId !== activePointerId) return;
+      activePointerId = null;
+      state.input.rightJoystickActive = false;
+      state.input.rightJoystickVector.x = 0;
+      state.input.rightJoystickVector.y = 0;
+      rightJoystickThumb.classList.remove('active');
+      rightJoystickThumb.style.transform = 'translate(0px, 0px)';
+      if (target && target.releasePointerCapture && pointerId !== undefined) {
+        try { target.releasePointerCapture(pointerId); } catch (e) {}
+      }
+    }
+
+    rightJoystickZone.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      handleStart(e.clientX, e.clientY, e.pointerId, rightJoystickZone);
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        e.preventDefault();
+        handleMove(e.clientX, e.clientY);
+      }
+    });
+
+    window.addEventListener('pointerup', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        handleEnd(e.pointerId, rightJoystickZone);
+      }
+    });
+
+    window.addEventListener('pointercancel', (e) => {
+      if (activePointerId !== null && e.pointerId === activePointerId) {
+        handleEnd(e.pointerId, rightJoystickZone);
       }
     });
   }
@@ -1575,6 +1912,9 @@
     state.player.roll = 0;
     state.player.isAirborne = false;
     state.player.airtime = 0;
+    state.player.isGrinding = false;
+    state.grind.active = false;
+    if (balanceHud) balanceHud.classList.remove('active');
     state.player.inTabletop = false;
     state.player.inGap = false;
     state.player.inMegaDrop = false;
@@ -1635,7 +1975,46 @@
     const worldDirZ = (-inputX - inputY) * 0.7071;
     const inputMagnitude = Math.min(1.0, Math.hypot(inputX, inputY));
 
-    // 2. Acceleration & Downhill Roll Momentum
+    // 2. Downhill Slope Gravity, Grade Acceleration & Uphill Drag
+    if (!p.isAirborne && !state.grind.active) {
+      const epsG = 0.45;
+      const hE = getTerrainElevation(p.x + epsG, p.z);
+      const hW = getTerrainElevation(p.x - epsG, p.z);
+      const hS = getTerrainElevation(p.x, p.z + epsG);
+      const hN = getTerrainElevation(p.x, p.z - epsG);
+
+      // Gradient vector points uphill (positive height increase)
+      const gradX = (hE - hW) / (2 * epsG);
+      const gradZ = (hS - hN) / (2 * epsG);
+
+      // Downhill gravitational pull vector (points directly downhill)
+      // When carving across a hill, this forces the rider to steer into the hill ("fight gravity")
+      const SLOPE_GRAVITY_FORCE = 16.0;
+      const downhillX = -gradX;
+      const downhillZ = -gradZ;
+
+      p.vx += downhillX * SLOPE_GRAVITY_FORCE * dt;
+      p.vz += downhillZ * SLOPE_GRAVITY_FORCE * dt;
+
+      // Grade along board heading (positive = pointing uphill, negative = pointing downhill)
+      const forwardDirX = Math.sin(p.heading);
+      const forwardDirZ = Math.cos(p.heading);
+      const forwardGrade = forwardDirX * gradX + forwardDirZ * gradZ;
+
+      if (forwardGrade > 0.04) {
+        // Uphill resistance: gravity opposes velocity, slowing the board
+        const uphillDrag = Math.min(forwardGrade * 20.0, 18.0);
+        p.vx -= forwardDirX * uphillDrag * dt;
+        p.vz -= forwardDirZ * uphillDrag * dt;
+      } else if (forwardGrade < -0.04) {
+        // Downhill acceleration: gravity boosts board speed downhill
+        const downhillBoost = Math.min(-forwardGrade * 18.0, 24.0);
+        p.vx += forwardDirX * downhillBoost * dt;
+        p.vz += forwardDirZ * downhillBoost * dt;
+      }
+    }
+
+    // Motor Acceleration or Coasting
     if (inputMagnitude > 0.05) {
       const targetVx = worldDirX * MAX_SPEED * inputMagnitude;
       const targetVz = worldDirZ * MAX_SPEED * inputMagnitude;
@@ -1644,14 +2023,20 @@
       p.vz = THREE.MathUtils.lerp(p.vz, targetVz, ACCELERATION * dt * 0.15);
     } else {
       // Coasting friction
-      p.vx = THREE.MathUtils.lerp(p.vx, 0, DECELERATION * dt * 0.2);
-      p.vz = THREE.MathUtils.lerp(p.vz, 0, DECELERATION * dt * 0.2);
+      p.vx = THREE.MathUtils.lerp(p.vx, 0, DECELERATION * dt * 0.14);
+      p.vz = THREE.MathUtils.lerp(p.vz, 0, DECELERATION * dt * 0.14);
     }
 
+    // Downhill top speed cap allows speed up to 18.5 m/s (~41 MPH!)
+    const currentSpeed = Math.hypot(p.vx, p.vz);
+    if (currentSpeed > 18.5) {
+      p.vx = (p.vx / currentSpeed) * 18.5;
+      p.vz = (p.vz / currentSpeed) * 18.5;
+    }
     p.speed = Math.hypot(p.vx, p.vz);
 
-    // 3. Heading (Board faces direction of motion)
-    if (p.speed > 0.35) {
+    // 3. Heading (Board faces direction of motion when rolling on ground)
+    if (!p.isAirborne && p.speed > 0.35 && !state.grind.active) {
       const targetHeading = Math.atan2(p.vx, p.vz);
       let angleDiff = targetHeading - p.heading;
       while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
@@ -1661,26 +2046,29 @@
       // Carve Bank Roll
       const rollTarget = THREE.MathUtils.clamp(-angleDiff * 1.5, -0.15, 0.15);
       p.roll = THREE.MathUtils.lerp(p.roll, rollTarget, dt * 10);
-    } else {
+    } else if (!p.isAirborne && !state.grind.active) {
       p.roll = THREE.MathUtils.lerp(p.roll, 0, dt * 8);
     }
 
     // 4. Terrain Slope Pitch & Carving Roll Alignment
-    if (!p.isAirborne) {
+    if (!p.isAirborne && !state.grind.active) {
       const eps = 0.45;
       const hForward = getTerrainElevation(p.x + Math.sin(p.heading) * eps, p.z + Math.cos(p.heading) * eps);
       const hBackward = getTerrainElevation(p.x - Math.sin(p.heading) * eps, p.z - Math.cos(p.heading) * eps);
       const hRight = getTerrainElevation(p.x + Math.cos(p.heading) * eps, p.z - Math.sin(p.heading) * eps);
       const hLeft = getTerrainElevation(p.x - Math.cos(p.heading) * eps, p.z + Math.sin(p.heading) * eps);
 
-      const slopePitch = Math.atan2(hForward - hBackward, eps * 2);
+      // In Three.js with 'YXZ' rotation order, local +Z is forward.
+      // Negative rotation around local X elevates the front nose (+Y).
+      // When going uphill (hForward > hBackward), pitch must be negative so nose lifts up!
+      const slopePitch = -Math.atan2(hForward - hBackward, eps * 2);
       const slopeRoll = Math.atan2(hRight - hLeft, eps * 2);
 
-      // Rider acceleration tilt (pitch nose down on speedup, up on brake)
+      // Rider acceleration tilt (pitch nose down slightly on acceleration, up on brake)
       const accelRate = (inputMagnitude * MAX_SPEED - p.speed) / MAX_SPEED;
-      const riderPitch = THREE.MathUtils.clamp(-accelRate * 0.08, -0.06, 0.06);
+      const riderPitch = THREE.MathUtils.clamp(-accelRate * 0.04, -0.03, 0.03);
 
-      p.pitch = THREE.MathUtils.lerp(p.pitch, slopePitch + riderPitch, dt * 10);
+      p.pitch = THREE.MathUtils.lerp(p.pitch, slopePitch + riderPitch, dt * 14);
       p.roll = THREE.MathUtils.lerp(p.roll, slopeRoll + p.roll, dt * 8);
     }
 
@@ -1694,18 +2082,73 @@
     handleObstaclesAndGround(dt);
 
     // Bunny Hop Jump Input
-    if (state.input.jumpPressed && !p.isAirborne) {
+    if (state.input.jumpPressed && !p.isAirborne && !state.grind.active) {
       p.vy = JUMP_VELOCITY;
       p.isAirborne = true;
       p.airtime = 0;
       state.input.jumpPressed = false;
+      state.aerial.airYaw = 0;
+      state.aerial.airPitch = 0;
+      state.aerial.spin180Done = false;
+      state.aerial.spin360Done = false;
+      state.aerial.flipDone = false;
     }
 
-    // Airborne Gravity Simulation
+    // Airborne Gravity Simulation & Aerial Rigid-Body Rotation
     if (p.isAirborne) {
       p.vy += GRAVITY * dt;
       p.y += p.vy * dt;
       p.airtime += dt;
+
+      // In-Air Rigid Body+Board Aerial Rotation (Spins & Flips)
+      if (!state.grind.active) {
+        let twistX = 0;
+        let twistY = 0;
+        if (state.input.rightJoystickActive) {
+          twistX = state.input.rightJoystickVector.x;
+          twistY = state.input.rightJoystickVector.y;
+        } else {
+          if (state.input.twistRight) twistX += 1;
+          if (state.input.twistLeft) twistX -= 1;
+          if (state.input.twistUp) twistY += 1;
+          if (state.input.twistDown) twistY -= 1;
+        }
+
+        // Horizontal Twist (Yaw Spin: 180, 360)
+        if (Math.abs(twistX) > 0.05) {
+          const spinDelta = twistX * 8.2 * dt;
+          p.heading += spinDelta;
+          state.aerial.airYaw += spinDelta;
+
+          if (!state.aerial.spin180Done && Math.abs(state.aerial.airYaw) >= Math.PI * 0.88) {
+            state.aerial.spin180Done = true;
+            showTrickToast('180 SPIN! +250 🔄');
+          }
+          if (!state.aerial.spin360Done && Math.abs(state.aerial.airYaw) >= Math.PI * 1.88) {
+            state.aerial.spin360Done = true;
+            showTrickToast('360 SPIN! +500 🌪️');
+          }
+        }
+
+        // Vertical Twist (Pitch Flips: Backflip / Frontflip)
+        if (Math.abs(twistY) > 0.05) {
+          // Pulling down / stick back (twistY < 0): Backflip
+          // Pushing up / stick forward (twistY > 0): Frontflip
+          const flipDelta = -twistY * 7.5 * dt;
+          p.pitch += flipDelta;
+          state.aerial.airPitch += flipDelta;
+
+          if (!state.aerial.flipDone) {
+            if (state.aerial.airPitch >= Math.PI * 1.80) {
+              state.aerial.flipDone = true;
+              showTrickToast('BACKFLIP! +750 🌀');
+            } else if (state.aerial.airPitch <= -Math.PI * 1.80) {
+              state.aerial.flipDone = true;
+              showTrickToast('FRONTFLIP! +750 🔄');
+            }
+          }
+        }
+      }
 
       // Landing check
       if (p.y <= p.groundY) {
@@ -1713,10 +2156,23 @@
         p.vy = 0;
         p.isAirborne = false;
 
-        if (p.airtime > 0.45) {
+        // Wrap pitch to [-PI, PI]
+        while (p.pitch > Math.PI) p.pitch -= Math.PI * 2;
+        while (p.pitch < -Math.PI) p.pitch += Math.PI * 2;
+
+        if (Math.abs(p.pitch) > 1.25) {
+          showTrickToast('SKETCHY LANDING! ⚠️');
+          p.vx *= 0.55;
+          p.vz *= 0.55;
+        } else if (p.airtime > 0.45 && !state.aerial.spin180Done && !state.aerial.flipDone) {
           showTrickToast('BIG AIR! +150');
         }
         p.airtime = 0;
+        state.aerial.airYaw = 0;
+        state.aerial.airPitch = 0;
+        state.aerial.spin180Done = false;
+        state.aerial.spin360Done = false;
+        state.aerial.flipDone = false;
       }
     } else {
       // Ground elevation clamping
@@ -1764,25 +2220,40 @@
       const halfW = obs.width / 2;
       const halfL = obs.length / 2;
 
-      // AABB overlap check
-      if (
-        p.x >= obs.x - halfW &&
-        p.x <= obs.x + halfW &&
-        p.z >= obs.z - halfL &&
-        p.z <= obs.z + halfL
-      ) {
-        if (obs.type === 'kicker') {
-          const relZ = (p.z - obs.z);
-          const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
-          const rampY = obs.baseY + ratio * obs.height;
+      // 1. KICKER RAMPS (Rotated local coordinate collision)
+      if (obs.type === 'kicker') {
+        const dx = p.x - obs.x;
+        const dz = p.z - obs.z;
+        const cosR = Math.cos(-obs.rotation);
+        const sinR = Math.sin(-obs.rotation);
+        const localX = dx * cosR + dz * sinR;
+        const localZ = -dx * sinR + dz * cosR;
+
+        if (Math.abs(localX) <= halfW && Math.abs(localZ) <= halfL) {
+          // Entrance at localZ = +halfL, Lip at localZ = -halfL
+          const ratio = THREE.MathUtils.clamp((halfL - localZ) / obs.length, 0, 1);
+          const rampY = obs.baseY + Math.pow(ratio, 1.25) * obs.height;
           targetGround = Math.max(targetGround, rampY);
 
-          if (ratio > 0.85 && p.speed > 3.0 && !p.isAirborne) {
-            p.vy = JUMP_VELOCITY * 1.18;
+          if (ratio > 0.82 && p.speed > 2.8 && !p.isAirborne) {
+            p.vy = JUMP_VELOCITY * 1.22;
             p.isAirborne = true;
             showTrickToast('KICKER POP! +200');
           }
-        } else if (obs.type === 'tabletop') {
+        }
+        continue;
+      }
+
+      // Standard AABB overlap check for non-rotated obstacles
+      const effectiveHalfW = obs.type === 'rail' ? 0.65 : halfW;
+      const effectiveHalfL = obs.type === 'rail' ? halfL + 0.35 : halfL;
+      if (
+        p.x >= obs.x - effectiveHalfW &&
+        p.x <= obs.x + effectiveHalfW &&
+        p.z >= obs.z - effectiveHalfL &&
+        p.z <= obs.z + effectiveHalfL
+      ) {
+        if (obs.type === 'tabletop') {
           // RelRun goes from 0 (takeoff) to length (landing)
           const relRun = (obs.z + halfL) - p.z;
           if (relRun >= 0 && relRun <= obs.length) {
@@ -1793,6 +2264,11 @@
                 p.vy = JUMP_VELOCITY * 1.15;
                 p.isAirborne = true;
                 p.inTabletop = true;
+                state.aerial.airYaw = 0;
+                state.aerial.airPitch = 0;
+                state.aerial.spin180Done = false;
+                state.aerial.spin360Done = false;
+                state.aerial.flipDone = false;
               }
             } else if (relRun <= obs.takeoffLen + obs.deckLen) {
               deckY += obs.height;
@@ -1820,6 +2296,11 @@
             p.vy = JUMP_VELOCITY * 1.35;
             p.isAirborne = true;
             p.inGap = true;
+            state.aerial.airYaw = 0;
+            state.aerial.airPitch = 0;
+            state.aerial.spin180Done = false;
+            state.aerial.spin360Done = false;
+            state.aerial.flipDone = false;
             showTrickToast('GAP LAUNCH! 🚀');
           }
         } else if (obs.type === 'gap_landing') {
@@ -1851,6 +2332,11 @@
               if (!p.isAirborne && p.speed > 3.5 && dropRatio > 0.85) {
                 p.vy = JUMP_VELOCITY * 1.2;
                 p.isAirborne = true;
+                state.aerial.airYaw = 0;
+                state.aerial.airPitch = 0;
+                state.aerial.spin180Done = false;
+                state.aerial.spin360Done = false;
+                state.aerial.flipDone = false;
                 showTrickToast('WHALE TAIL DROP! +300');
               }
             }
@@ -1876,14 +2362,161 @@
             p.vy = JUMP_VELOCITY * 1.85; // Massive mega kicker launch impulse (14.5 m/s)
             p.isAirborne = true;
             p.airtime = 0;
+            state.aerial.airYaw = 0;
+            state.aerial.airPitch = 0;
+            state.aerial.spin180Done = false;
+            state.aerial.spin360Done = false;
+            state.aerial.flipDone = false;
             showTrickToast('MEGA DROP SUPER AIR! +500');
           }
+        } else if (obs.type === 'megadrop_landing') {
+          // Smooth transition along the black metal scaffold landing ramp
+          const relZ = THREE.MathUtils.clamp((p.z - (obs.z - halfL)) / obs.length, 0, 1);
+          const landY = obs.topY - relZ * (obs.topY - obs.bottomY);
+          targetGround = Math.max(targetGround, landY);
+
+          // If airborne and catching the landing slope
+          if (p.isAirborne && p.y <= landY + 0.35) {
+            p.y = landY;
+            p.vy = 0;
+            p.isAirborne = false;
+            p.vz += 8.0 * dt;
+            p.speed = Math.hypot(p.vx, p.vz);
+            showTrickToast('MEGA DROP LANDED! +500');
+          }
         } else if (obs.type === 'rail') {
-          if (p.y >= obs.height - 0.15) {
+          if (p.y >= obs.height - 0.28 && p.y <= obs.height + 0.65) {
             targetGround = Math.max(targetGround, obs.height);
-            p.isGrinding = true;
-            emitGrindSparks(p.x, obs.height, p.z);
-            showTrickToast('RAIL GRIND! +50/s');
+
+            // If not currently grinding, lock into rail
+            if (!state.grind.active) {
+              let twistY = 0;
+              if (state.input.rightJoystickActive) {
+                twistY = state.input.rightJoystickVector.y;
+              } else {
+                if (state.input.twistUp) twistY += 1;
+                if (state.input.twistDown) twistY -= 1;
+              }
+
+              // Determine grind trick:
+              // twistY > 0.2: Up / Noseslide
+              // twistY < -0.2: Down / Tailslide
+              // Cross angle: Boardslide
+              // Neutral: 50-50
+              let grindType = '50-50';
+              if (twistY > 0.2) {
+                grindType = 'noseslide';
+              } else if (twistY < -0.2) {
+                grindType = 'tailslide';
+              } else if (Math.abs(Math.cos(p.heading)) < 0.65) {
+                grindType = 'boardslide';
+              }
+
+              state.grind.active = true;
+              state.grind.type = grindType;
+              state.grind.balance = (Math.random() - 0.5) * 0.16;
+              state.grind.balanceVel = (Math.random() - 0.5) * 0.35;
+              state.grind.timer = 0;
+              state.grind.railX = obs.x;
+              state.grind.railMinZ = obs.z - halfL;
+              state.grind.railMaxZ = obs.z + halfL;
+
+              if (balanceHud) balanceHud.classList.add('active');
+              if (balanceLabel) balanceLabel.textContent = grindType.toUpperCase();
+              showTrickToast(`LOCKED: ${grindType.toUpperCase()}! 🔥`);
+            }
+
+            // Grind physics loop
+            if (state.grind.active) {
+              p.isGrinding = true;
+              p.isAirborne = false;
+              p.vy = 0;
+              p.y = obs.height;
+              state.grind.timer += dt;
+
+              // Pull board smoothly onto rail line
+              p.x = THREE.MathUtils.lerp(p.x, obs.x, dt * 18);
+
+              // Maintain forward glide along the rail (never stall out)
+              const grindSign = Math.sign(p.vz) || 1;
+              const minGrindSpeed = 4.5;
+              if (Math.abs(p.vz) < minGrindSpeed) {
+                p.vz = grindSign * minGrindSpeed;
+              }
+              p.vx = THREE.MathUtils.lerp(p.vx, 0, dt * 10);
+              p.speed = Math.hypot(p.vx, p.vz);
+
+              // Trick-specific board pitch & spark emitter
+              if (state.grind.type === 'noseslide') {
+                // Nose rests down on rail, tail tilted up in air
+                p.pitch = -0.26 + state.grind.balance * 0.12;
+                emitGrindSparks(p.x, obs.height + 0.02, p.z - 0.36);
+              } else if (state.grind.type === 'tailslide') {
+                // Tail rests down on rail, nose tilted up in air
+                p.pitch = 0.26 + state.grind.balance * 0.12;
+                emitGrindSparks(p.x, obs.height + 0.02, p.z + 0.36);
+              } else {
+                // Boardslide or 50-50
+                p.pitch = state.grind.balance * 0.14;
+                emitGrindSparks(p.x, obs.height + 0.02, p.z);
+              }
+
+              // Balance mini-game drift simulation:
+              // Natural instability pushes needle away from center
+              state.grind.balanceVel += (state.grind.balance * 2.2 + (Math.random() - 0.5) * 1.4) * dt;
+              // Mild damping
+              state.grind.balanceVel *= (1.0 - 0.45 * dt);
+
+              // Continuous correction from right joystick (mobile or gamepad)
+              if (state.input.rightJoystickActive) {
+                state.grind.balanceVel -= state.input.rightJoystickVector.y * 3.8 * dt;
+              }
+
+              // Integrate balance position
+              state.grind.balance += state.grind.balanceVel * dt;
+
+              // Update HUD Needle
+              if (balanceNeedle) {
+                const needleOffset = THREE.MathUtils.clamp(state.grind.balance, -1.2, 1.2) * 65;
+                balanceNeedle.style.transform = `translateX(${needleOffset}px)`;
+                if (Math.abs(state.grind.balance) > 0.6) {
+                  balanceNeedle.classList.add('danger');
+                } else {
+                  balanceNeedle.classList.remove('danger');
+                }
+              }
+
+              // 1. SLIP OFF RAIL (Bail if balance exceeds limits)
+              if (Math.abs(state.grind.balance) > 1.0) {
+                showTrickToast('SLIPPED OFF RAIL! 💥');
+                state.grind.active = false;
+                p.isGrinding = false;
+                p.x += (state.grind.balance > 0 ? 0.42 : -0.42);
+                p.vx = (state.grind.balance > 0 ? 2.0 : -2.0);
+                if (balanceHud) balanceHud.classList.remove('active');
+              }
+
+              // 2. HOP OFF RAIL (Space / Hop button)
+              if (state.input.jumpPressed) {
+                state.input.jumpPressed = false;
+                p.vy = JUMP_VELOCITY * 1.15;
+                p.isAirborne = true;
+                state.grind.active = false;
+                p.isGrinding = false;
+                if (balanceHud) balanceHud.classList.remove('active');
+                const pts = Math.round(state.grind.timer * 160 + 250);
+                showTrickToast(`${state.grind.type.toUpperCase()} POP-OFF! +${pts} 🛹`);
+              }
+
+              // 3. REACHED END OF RAIL (Dismount)
+              if (p.z < obs.z - halfL - 0.25 || p.z > obs.z + halfL + 0.25) {
+                state.grind.active = false;
+                p.isGrinding = false;
+                if (balanceHud) balanceHud.classList.remove('active');
+                const pts = Math.round(state.grind.timer * 120 + 200);
+                showTrickToast(`${state.grind.type.toUpperCase()} LANDED! +${pts} ✨`);
+              }
+            }
           }
         } else {
           // Ledges, curbs, boardwalks
@@ -1894,6 +2527,32 @@
       }
     }
 
+    // Clean up grind HUD if no longer grinding on any obstacle
+    if (state.grind.active && !p.isGrinding) {
+      state.grind.active = false;
+      if (balanceHud) balanceHud.classList.remove('active');
+    }
+
+    // Multi-point ground clearance check to guarantee nose and tail bumpers never clip:
+    const bumperDist = 0.38; // Distance from axle to bumper tip
+    const noseX = p.x + Math.sin(p.heading) * bumperDist;
+    const noseZ = p.z + Math.cos(p.heading) * bumperDist;
+    const tailX = p.x - Math.sin(p.heading) * bumperDist;
+    const tailZ = p.z - Math.cos(p.heading) * bumperDist;
+
+    const hNose = getTerrainElevation(noseX, noseZ);
+    const hTail = getTerrainElevation(tailX, tailZ);
+
+    // Height offset of nose/tail relative to center axle:
+    // With rotation order 'YXZ', pitch < 0 is nose up (+Y), tail down (-Y).
+    const noseDeltaY = -Math.sin(p.pitch) * bumperDist;
+    const tailDeltaY = Math.sin(p.pitch) * bumperDist;
+
+    // Minimum center height so bumpers clear local ground by at least 0.055m
+    const minCenterForNose = hNose - noseDeltaY + 0.055;
+    const minCenterForTail = hTail - tailDeltaY + 0.055;
+
+    targetGround = Math.max(targetGround, minCenterForNose, minCenterForTail);
     p.groundY = targetGround;
   }
 
@@ -1979,11 +2638,32 @@
 
     camera.lookAt(p.x, p.y + 0.3, p.z);
 
+    // Smooth camera zoom interpolation
+    const cs = state.camera;
+    if (Math.abs(cs.frustumSize - cs.targetFrustum) > 0.02) {
+      cs.frustumSize = THREE.MathUtils.lerp(cs.frustumSize, cs.targetFrustum, 0.16);
+      updateCameraProjection();
+    }
+
     // Follow sun light target so shadow is always sharp
     if (sunLight) {
       sunLight.position.set(p.x + 45, p.y + 75, p.z + 35);
       sunLight.target.position.set(p.x, p.y, p.z);
     }
+  }
+
+  function updateCameraProjection() {
+    if (!container || !camera) return;
+    const width = container.clientWidth;
+    const height = container.clientHeight;
+    const aspect = width / height;
+    const f = state.camera.frustumSize;
+
+    camera.left = (-f * aspect) / 2;
+    camera.right = (f * aspect) / 2;
+    camera.top = f / 2;
+    camera.bottom = -f / 2;
+    camera.updateProjectionMatrix();
   }
 
   function updateHUD() {
@@ -2017,15 +2697,7 @@
 
     const width = container.clientWidth;
     const height = container.clientHeight;
-    const aspect = width / height;
-    const frustumSize = 18;
-
-    camera.left = (-frustumSize * aspect) / 2;
-    camera.right = (frustumSize * aspect) / 2;
-    camera.top = frustumSize / 2;
-    camera.bottom = -frustumSize / 2;
-    camera.updateProjectionMatrix();
-
+    updateCameraProjection();
     renderer.setSize(width, height);
   }
 

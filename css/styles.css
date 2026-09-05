@@ -4589,7 +4589,127 @@ input:checked + .slider-round:before {
   text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
 }
 
-/* Virtual Joystick Zone (Bottom Left) */
+/* Action Controls: Zoom Buttons Group */
+.exp9-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.15rem;
+}
+
+.exp9-zoom-btn {
+  padding: 0.35rem 0.5rem;
+  min-width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: calc(var(--radius-md) - 2px);
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.1s ease;
+}
+
+.exp9-zoom-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+.exp9-zoom-btn:active {
+  transform: scale(0.95);
+}
+
+/* Interactive Rail Grind Balance HUD */
+.exp9-balance-hud {
+  position: absolute;
+  bottom: 22%;
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  opacity: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.65), 0 0 24px rgba(245, 158, 11, 0.25);
+  border-radius: var(--radius-lg);
+  padding: 0.65rem 1.4rem 0.55rem;
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 25;
+}
+
+.exp9-balance-hud.active {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+.exp9-balance-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #facc15;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  text-transform: uppercase;
+}
+
+.exp9-balance-track {
+  position: relative;
+  width: 170px;
+  height: 12px;
+  background: rgba(30, 41, 59, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp9-balance-sweetspot {
+  position: absolute;
+  width: 52px;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.2) 0%, rgba(34, 197, 94, 0.75) 50%, rgba(34, 197, 94, 0.2) 100%);
+  border-left: 1px dashed rgba(34, 197, 94, 0.8);
+  border-right: 1px dashed rgba(34, 197, 94, 0.8);
+  border-radius: 4px;
+}
+
+.exp9-balance-needle {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 6px;
+  background: #f8fafc;
+  border-radius: 3px;
+  box-shadow: 0 0 8px #ffffff, 0 2px 4px rgba(0, 0, 0, 0.8);
+  transform: translateX(0);
+  transition: background 0.1s ease;
+}
+
+.exp9-balance-needle.danger {
+  background: #ef4444;
+  box-shadow: 0 0 10px #ef4444;
+}
+
+.exp9-balance-hint {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: 0.03em;
+}
+
+/* Virtual Left Drive Joystick (Bottom Left) */
 .exp9-joystick-zone {
   position: absolute;
   bottom: 1.5rem;
@@ -4600,6 +4720,14 @@ input:checked + .slider-round:before {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.exp9-joystick-zone:active {
+  cursor: grabbing;
 }
 
 .exp9-joystick-base {
@@ -4613,6 +4741,7 @@ input:checked + .slider-round:before {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
 }
 
 .exp9-joystick-thumb {
@@ -4623,15 +4752,70 @@ input:checked + .slider-round:before {
   border-radius: 50%;
   box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
   pointer-events: none;
-  transition: transform 0.04s linear;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.exp9-joystick-thumb.active {
+  transition: none !important;
+}
+
+/* Virtual Right Twist & Trick Joystick (Bottom Right) */
+.exp9-right-joystick-zone {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 7.2rem;
+  width: 120px;
+  height: 120px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: grab;
+}
+
+.exp9-right-joystick-zone:active {
+  cursor: grabbing;
+}
+
+.exp9-right-joystick-base {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(245, 158, 11, 0.35);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+}
+
+.exp9-right-joystick-thumb {
+  width: 44px;
+  height: 44px;
+  background: radial-gradient(circle, #f59e0b 0%, #d97706 100%);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.55);
+  pointer-events: none;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.exp9-right-joystick-thumb.active {
+  transition: none !important;
 }
 
 /* Touch Jump Button (Bottom Right) */
 .exp9-jump-btn-zone {
   position: absolute;
-  bottom: 1.5rem;
-  right: 1.5rem;
+  bottom: 2.1rem;
+  right: 1.2rem;
   pointer-events: auto;
+  touch-action: manipulation;
 }
 
 .exp9-jump-btn {

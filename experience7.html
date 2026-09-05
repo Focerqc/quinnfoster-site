@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 7 — Interactive BLDC Outrunner Stator Winding Tool & Performance Simulator for 27-Slot Hub Motors | Quinn Foster">
-  <title>Experience 7 — BLDC Stator Winding & Performance Simulator | Quinn Foster</title>
+  <meta name="description" content="Experience 7 � Interactive BLDC Outrunner Stator Winding Tool & Performance Simulator for 27-Slot Hub Motors | Quinn Foster">
+  <title>Experience 7 � BLDC Stator Winding & Performance Simulator | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,7 +18,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.8">
+  <link rel="stylesheet" href="css/styles.css?v=9.9">
 </head>
 <body>
 
@@ -122,13 +122,13 @@
           </div>
           <h1 class="exp7-main-title">Interactive BLDC Outrunner Stator Winding & Performance Simulator</h1>
           <p class="exp7-main-subtitle">
-            27-Slot Outrunner Stator (115mm OD × 60mm ID × 90mm Stack). Visualizes tooth phase grouping, parallel strand bundles, turns, slot fill factor, airgap flux, and calculated Kv/Kt performance.
+            27-Slot Outrunner Stator (115mm OD � 60mm ID � 90mm Stack). Visualizes tooth phase grouping, parallel strand bundles, turns, slot fill factor, airgap flux, and calculated Kv/Kt performance.
           </p>
         </div>
 
         <div class="exp7-hero-actions">
           <button type="button" id="btnCopyWindingSpec" class="btn-primary btn-small" title="Copy full motor winding spec sheet for workshop build">
-            📋 Copy Spec Sheet
+            ?? Copy Spec Sheet
           </button>
         </div>
       </div>
@@ -142,16 +142,16 @@
           <!-- View Switcher Tabs Bar -->
           <div class="exp7-view-tabs-bar">
             <button type="button" class="view-tab-btn" data-view="view-3d">
-              <span>🕹️ 3D Real Stator</span>
+              <span>??? 3D Real Stator</span>
             </button>
             <button type="button" class="view-tab-btn active" data-view="view-2d-circular">
-              <span>⭕ 2D Circular Stator</span>
+              <span>? 2D Circular Stator</span>
             </button>
             <button type="button" class="view-tab-btn" data-view="view-2d-linear">
-              <span>📏 2D Linear Unrolled</span>
+              <span>?? 2D Linear Unrolled</span>
             </button>
             <button type="button" class="view-tab-btn" data-view="view-guide">
-              <span>📋 Workshop Guide</span>
+              <span>?? Workshop Guide</span>
             </button>
           </div>
 
@@ -159,16 +159,16 @@
           <div id="view-3d" class="view-pane-content">
             <div class="viewport-header" style="background: rgba(15, 23, 42, 0.7); border-radius: var(--radius-sm) var(--radius-sm) 0 0;">
               <div class="exp7-phase-legend">
-                <span class="legend-chip phase-a">● Phase A (Yellow)</span>
-                <span class="legend-chip phase-b">● Phase B (Blue)</span>
-                <span class="legend-chip phase-c">● Phase C (Green)</span>
+                <span class="legend-chip phase-a">? Phase A (Yellow)</span>
+                <span class="legend-chip phase-b">? Phase B (Blue)</span>
+                <span class="legend-chip phase-c">? Phase C (Green)</span>
               </div>
               <div class="viewport-header-actions">
                 <button id="btnToggleAutoSpin" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
-                  ⏸ Auto-Spin: OFF
+                  ? Auto-Spin: OFF
                 </button>
                 <button id="btnViewportReset" class="btn-secondary btn-small" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
-                  ↺ Reset Camera
+                  ? Reset Camera
                 </button>
               </div>
             </div>
@@ -183,7 +183,7 @@
             <!-- Exploded View Slider Floating Toolbar -->
             <div class="exp7-exploded-toolbar">
               <label for="explodedSlider" style="font-size: 0.75rem; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 0.4rem;">
-                <span>💥 Exploded View (Pull Magnets / Airgap):</span>
+                <span>?? Exploded View (Pull Magnets / Airgap):</span>
               </label>
               <input type="range" id="explodedSlider" min="0.0" max="1.0" step="0.02" value="0.0" style="flex: 1; max-width: 280px;">
             </div>
@@ -200,7 +200,7 @@
                 <span class="legend-chip phase-a">Phase A</span>
                 <span class="legend-chip phase-b">Phase B</span>
                 <span class="legend-chip phase-c">Phase C</span>
-                <span class="legend-chip" style="color: #facc15; border-color: #facc1544;">★ Hall Sensors</span>
+                <span class="legend-chip" style="color: #facc15; border-color: #facc1544;">? Hall Sensors</span>
               </div>
             </div>
             <div id="circularSvgContainer" class="circular-svg-wrapper"></div>
@@ -232,32 +232,32 @@
           <!-- Section 0: Quick Build Presets -->
           <div class="control-section exp7-preset-card">
             <div class="section-title" style="margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
-              <span>⚡ Popular Winding Presets</span>
+              <span>? Popular Winding Presets</span>
               <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">Click to load baseline</span>
             </div>
             <div class="exp7-preset-grid">
               <button type="button" class="btn-winding-preset active" data-preset="superflux-standard">
                 <strong>Superflux Standard</strong>
-                <span>27N30P · 6T · 18x28AWG · Wye</span>
+                <span>27N30P � 6T � 18x28AWG � Wye</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="torque-monster">
                 <strong>High Torque Monster</strong>
-                <span>27N30P · 8T · 14x28AWG · Wye</span>
+                <span>27N30P � 8T � 14x28AWG � Wye</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="speed-runner">
                 <strong>High Speed Racer</strong>
-                <span>27N30P · 5T · 22x28AWG · Delta</span>
+                <span>27N30P � 5T � 22x28AWG � Delta</span>
               </button>
               <button type="button" class="btn-winding-preset" data-preset="single-strand-fat">
                 <strong>Single Wire (Fat)</strong>
-                <span>27N30P · 6T · 1x18AWG · Wye</span>
+                <span>27N30P � 6T � 1x18AWG � Wye</span>
               </button>
             </div>
           </div>
 
           <!-- Section 1: Winding Topology & Pole Configuration -->
           <div class="control-section">
-            <h3 class="section-title">⚙️ Winding Topology & Architecture</h3>
+            <h3 class="section-title">?? Winding Topology & Architecture</h3>
             
             <div class="control-grid-2col">
               <!-- Rotor Pole Configuration (Fixed 30 Poles) -->
@@ -276,8 +276,8 @@
               <div class="control-group">
                 <label>Phase Termination:</label>
                 <div class="conn-toggle-group">
-                  <button type="button" class="btn-conn-toggle active" data-conn="wye">⭐ Wye (Star / Y)</button>
-                  <button type="button" class="btn-conn-toggle" data-conn="delta">🔺 Delta (Δ)</button>
+                  <button type="button" class="btn-conn-toggle active" data-conn="wye">? Wye (Star / Y)</button>
+                  <button type="button" class="btn-conn-toggle" data-conn="delta">?? Delta (?)</button>
                 </div>
               </div>
             </div>
@@ -286,7 +286,7 @@
             <div class="exp7-schema-card">
               <div class="exp7-schema-header">
                 <span class="schema-label">WINDING SCHEMA (27 SLOTS):</span>
-                <span style="font-size: 0.72rem; color: #94a3b8;">Uppercase = CW (+), Lowercase = CCW (−)</span>
+                <span style="font-size: 0.72rem; color: #94a3b8;">Uppercase = CW (+), Lowercase = CCW (-)</span>
               </div>
               <div class="exp7-schema-string" id="windingSchemaDisplay">AacCcbBbaAacCcbBbaAacCcbBba</div>
               
@@ -294,14 +294,14 @@
                 <div class="schema-tag">Winding Factor ($k_{w1}$): <strong id="kw1Display">0.9598</strong></div>
                 <div class="schema-tag">Cogging Steps: <strong id="lcmDisplay">270</strong></div>
                 <div class="schema-tag">Periodicity (GCD): <strong id="gcdDisplay">3</strong></div>
-                <div class="schema-tag">Slot Elec Angle: <strong id="gammaEDisplay">200.0°</strong></div>
+                <div class="schema-tag">Slot Elec Angle: <strong id="gammaEDisplay">200.0�</strong></div>
               </div>
             </div>
           </div>
 
           <!-- Section 2: Wire Sizing & Live Slot Fill Factor Gauge -->
           <div class="control-section">
-            <h3 class="section-title">🧵 Wire Strands & Slot Fill Factor</h3>
+            <h3 class="section-title">?? Wire Strands & Slot Fill Factor</h3>
             
             <div class="control-grid-3col">
               <!-- Wire Gauge (AWG) -->
@@ -339,7 +339,7 @@
             <!-- Live Slot Fill Factor Progress Bar -->
             <div class="exp7-fill-gauge-container">
               <div class="fill-gauge-header">
-                <span>Slot Fill Factor: <strong id="fillFactorVal">35.6%</strong> (Usable Area: 98.5 mm²)</span>
+                <span>Slot Fill Factor: <strong id="fillFactorVal">35.6%</strong> (Usable Area: 98.5 mm�)</span>
                 <span id="fillFactorStatus" class="fill-badge fill-optimal">Optimal / Balanced</span>
               </div>
               <div class="fill-track">
@@ -360,19 +360,19 @@
                 <span class="mini-val" id="copperWeightDisplay">340 g</span>
               </div>
               <div class="mini-stat-card">
-                <span class="mini-label">Phase Resistance (Rph @ 80°C)</span>
-                <span class="mini-val" id="rphDisplay">42.5 mΩ</span>
+                <span class="mini-label">Phase Resistance (Rph @ 80�C)</span>
+                <span class="mini-val" id="rphDisplay">42.5 mO</span>
               </div>
               <div class="mini-stat-card">
                 <span class="mini-label">Terminal Resistance (Rtt)</span>
-                <span class="mini-val" id="rttDisplay">85.0 mΩ</span>
+                <span class="mini-val" id="rttDisplay">85.0 mO</span>
               </div>
             </div>
           </div>
 
           <!-- Section 3: Magnet Grade & Airgap Physics -->
           <div class="control-section">
-            <h3 class="section-title">🧲 Magnet Grade & Stator Airgap</h3>
+            <h3 class="section-title">?? Magnet Grade & Stator Airgap</h3>
             
             <div class="control-grid-2col">
               <!-- Magnet Grade -->
@@ -411,7 +411,7 @@
 
           <!-- Section 4: Motor Performance & Speed Simulator -->
           <div class="control-section exp7-performance-card">
-            <h3 class="section-title">🚀 Calculated Motor Performance & Speeds</h3>
+            <h3 class="section-title">?? Calculated Motor Performance & Speeds</h3>
             
             <div class="control-grid-2col">
               <!-- Battery Voltage Slider -->
@@ -452,7 +452,7 @@
               <div class="perf-metric-card">
                 <span class="perf-metric-title">Continuous Torque & Copper Loss</span>
                 <span class="perf-metric-val highlight-torque" id="torqueDisplay">26.8 Nm (@ 50A)</span>
-                <div style="font-size: 0.72rem; color: #f87171; margin-top: 0.2rem;">I²R Thermal Loss: <strong id="copperLossDisplay">35.4 W</strong></div>
+                <div style="font-size: 0.72rem; color: #f87171; margin-top: 0.2rem;">I�R Thermal Loss: <strong id="copperLossDisplay">35.4 W</strong></div>
               </div>
             </div>
           </div>
@@ -468,7 +468,7 @@
   <footer>
     <div class="container footer-content">
       <div class="footer-text">
-        © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
+        � <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
       </div>
       <div class="social-links">
         <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub">
