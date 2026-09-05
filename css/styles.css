@@ -4712,15 +4712,15 @@ input:checked + .slider-round:before {
 /* Virtual Left Drive Joystick (Bottom Left) */
 .exp9-joystick-zone {
   position: absolute;
-  bottom: 1.5rem;
-  left: 1.5rem;
+  bottom: max(3.8rem, calc(2.8rem + env(safe-area-inset-bottom)));
+  left: max(2.2rem, calc(1.6rem + env(safe-area-inset-left)));
   width: 120px;
   height: 120px;
   pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: none;
+  touch-action: none !important;
   user-select: none;
   -webkit-user-select: none;
   cursor: grab;
@@ -4741,7 +4741,7 @@ input:checked + .slider-round:before {
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: none;
+  touch-action: none !important;
 }
 
 .exp9-joystick-thumb {
@@ -4762,15 +4762,15 @@ input:checked + .slider-round:before {
 /* Virtual Right Twist & Trick Joystick (Bottom Right) */
 .exp9-right-joystick-zone {
   position: absolute;
-  bottom: 1.5rem;
-  right: 7.2rem;
+  bottom: max(3.8rem, calc(2.8rem + env(safe-area-inset-bottom)));
+  right: max(8.8rem, calc(7.8rem + env(safe-area-inset-right)));
   width: 120px;
   height: 120px;
   pointer-events: auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: none;
+  touch-action: none !important;
   user-select: none;
   -webkit-user-select: none;
   cursor: grab;
@@ -4791,7 +4791,7 @@ input:checked + .slider-round:before {
   display: flex;
   align-items: center;
   justify-content: center;
-  touch-action: none;
+  touch-action: none !important;
 }
 
 .exp9-right-joystick-thumb {
@@ -4812,8 +4812,8 @@ input:checked + .slider-round:before {
 /* Touch Jump Button (Bottom Right) */
 .exp9-jump-btn-zone {
   position: absolute;
-  bottom: 2.1rem;
-  right: 1.2rem;
+  bottom: max(4.4rem, calc(3.4rem + env(safe-area-inset-bottom)));
+  right: max(1.8rem, calc(1.4rem + env(safe-area-inset-right)));
   pointer-events: auto;
   touch-action: manipulation;
 }
@@ -5065,6 +5065,25 @@ input:checked + .slider-round:before {
   border-radius: 4px;
 }
 
+/* Touchscreen & Tablet Device Ergonomics (iPad & Mobile) */
+@media (pointer: coarse) {
+  .exp9-desktop-controls-hint {
+    display: none !important;
+  }
+  .exp9-joystick-zone {
+    bottom: max(4.0rem, calc(2.8rem + env(safe-area-inset-bottom)));
+    left: max(2.4rem, calc(1.8rem + env(safe-area-inset-left)));
+  }
+  .exp9-right-joystick-zone {
+    bottom: max(4.0rem, calc(2.8rem + env(safe-area-inset-bottom)));
+    right: max(9.0rem, calc(8.0rem + env(safe-area-inset-right)));
+  }
+  .exp9-jump-btn-zone {
+    bottom: max(4.6rem, calc(3.4rem + env(safe-area-inset-bottom)));
+    right: max(2.0rem, calc(1.5rem + env(safe-area-inset-right)));
+  }
+}
+
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .exp9-viewport-container {
@@ -5105,6 +5124,106 @@ input:checked + .slider-round:before {
   .exp9-cp-btn {
     padding: 0.2rem 0.45rem;
     font-size: 0.7rem;
+  }
+}
+
+/* ==========================================================================
+   Experience 9: Pure Fullscreen Standalone Mode & Zero-Scroll Locking
+   ========================================================================== */
+html.exp9-standalone-page,
+body.exp9-standalone-page {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: auto !important;
+  touch-action: none !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -webkit-touch-callout: none !important;
+  background: #0a0f1d !important;
+}
+
+body.exp9-standalone-page .exp9-viewport-container {
+  position: fixed !important;
+  inset: 0 !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  max-width: 100vw !important;
+  max-height: 100dvh !important;
+  min-height: 100% !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  touch-action: none !important;
+  overscroll-behavior: none !important;
+  z-index: 1;
+}
+
+body.exp9-standalone-page #gameCanvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100vw !important;
+  height: 100dvh !important;
+  display: block !important;
+  touch-action: none !important;
+}
+
+/* Exit Button: Danger / Glass Accent */
+.exp9-hud-btn.exp9-exit-btn {
+  background: rgba(239, 68, 68, 0.2);
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  text-decoration: none;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.exp9-hud-btn.exp9-exit-btn:hover {
+  background: rgba(239, 68, 68, 0.4);
+  border-color: rgba(239, 68, 68, 0.8);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.45);
+}
+
+.exp9-hud-btn.exp9-exit-btn:active {
+  transform: scale(0.96);
+}
+
+/* Safe Area Inset Support for Standalone HUD */
+body.exp9-standalone-page .exp9-hud-layer {
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-right: max(1.25rem, env(safe-area-inset-right));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  padding-left: max(1.25rem, env(safe-area-inset-left));
+}
+
+@media (max-width: 640px) {
+  body.exp9-standalone-page .exp9-hud-layer {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+    padding-right: max(0.5rem, env(safe-area-inset-right));
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+    padding-left: max(0.5rem, env(safe-area-inset-left));
   }
 }
 

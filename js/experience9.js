@@ -169,6 +169,8 @@
     initControls();
     initParticlesAndFX();
     window.addEventListener('resize', onWindowResize);
+    document.addEventListener('fullscreenchange', onWindowResize);
+    document.addEventListener('webkitfullscreenchange', onWindowResize);
     onWindowResize();
 
     // Start Animation Loop
@@ -1543,6 +1545,20 @@
   // 8. Controls, Scroll-Lock & Stuck-Movement Prevention
   // ==========================================================================
   function initControls() {
+    // 0. GLOBAL SCROLL & GESTURE LOCK
+    // Prevents iPad / iPhone rubber-band bounce, document scroll, and accidental fullscreen exits
+    document.addEventListener('touchmove', (e) => {
+      // Allow horizontal scroll inside checkpoints bar if it overflows
+      if (e.target.closest && e.target.closest('.exp9-checkpoints-bar')) {
+        return;
+      }
+      e.preventDefault();
+    }, { passive: false });
+
+    document.addEventListener('gesturestart', (e) => e.preventDefault());
+    document.addEventListener('gesturechange', (e) => e.preventDefault());
+    document.addEventListener('gestureend', (e) => e.preventDefault());
+
     // Keyboard Handler
     window.addEventListener('keydown', (e) => {
       // 1. SCROLL-LOCK: Prevent page scrolling on arrow keys and spacebar
@@ -1682,6 +1698,7 @@
 
     // Touch Jump Button
     if (btnTouchJump) {
+      btnTouchJump.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
       btnTouchJump.addEventListener('pointerdown', (e) => {
         e.preventDefault();
         state.input.jumpPressed = true;
@@ -1758,6 +1775,10 @@
       }
     }
 
+    // Prevent Safari/iPadOS gesture interference
+    joystickZone.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    joystickZone.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
     // Unified Pointer Events (mouse drag on desktop + multi-touch on mobile)
     joystickZone.addEventListener('pointerdown', (e) => {
       e.preventDefault();
@@ -1833,6 +1854,10 @@
         try { target.releasePointerCapture(pointerId); } catch (e) {}
       }
     }
+
+    // Prevent Safari/iPadOS gesture interference
+    rightJoystickZone.addEventListener('touchstart', (e) => e.preventDefault(), { passive: false });
+    rightJoystickZone.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
 
     rightJoystickZone.addEventListener('pointerdown', (e) => {
       e.preventDefault();
@@ -2666,19 +2691,37 @@
   function onWindowResize() {
     if (!container || !renderer || !camera) return;
 
-    const width = container.clientWidth;
-    const height = container.clientHeight;
+    const width = container.clientWidth || window.innerWidth;
+    const height = container.clientHeight || window.innerHeight;
     updateCameraProjection();
     renderer.setSize(width, height);
   }
 
   function toggleFullscreen() {
-    if (!document.fullscreenElement) {
-      container.requestFullscreen().catch((err) => {
-        console.warn('Fullscreen error:', err);
-      });
+    const doc = document;
+    const isFs = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement || doc.msFullscreenElement;
+
+    if (!isFs) {
+      const el = container || doc.documentElement;
+      if (el.requestFullscreen) {
+        el.requestFullscreen().catch((err) => {
+          console.warn('Fullscreen error:', err);
+        });
+      } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen();
+      } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen();
+      }
     } else {
-      document.exitFullscreen();
+      if (doc.exitFullscreen) {
+        doc.exitFullscreen().catch((err) => {
+          console.warn('Exit fullscreen error:', err);
+        });
+      } else if (doc.webkitExitFullscreen) {
+        doc.webkitExitFullscreen();
+      } else if (doc.msExitFullscreen) {
+        doc.msExitFullscreen();
+      }
     }
   }
 
