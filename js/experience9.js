@@ -1672,41 +1672,12 @@
       if (document.hidden) resetInputs();
     });
 
-    // Mouse Wheel Zoom
+    // Mouse Wheel Zoom (Desktop)
     if (container) {
       container.addEventListener('wheel', (e) => {
         e.preventDefault();
         adjustZoom(Math.sign(e.deltaY) * 2.2);
       }, { passive: false });
-    }
-
-    // Mobile Pinch-to-Zoom
-    let lastPinchDist = null;
-    if (container) {
-      container.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 2) {
-          lastPinchDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-        }
-      }, { passive: true });
-
-      container.addEventListener('touchmove', (e) => {
-        if (e.touches.length === 2 && lastPinchDist !== null) {
-          const currentDist = Math.hypot(
-            e.touches[0].clientX - e.touches[1].clientX,
-            e.touches[0].clientY - e.touches[1].clientY
-          );
-          const delta = (lastPinchDist - currentDist) * 0.08;
-          adjustZoom(delta);
-          lastPinchDist = currentDist;
-        }
-      }, { passive: true });
-
-      container.addEventListener('touchend', (e) => {
-        if (e.touches.length < 2) lastPinchDist = null;
-      }, { passive: true });
     }
 
     // Touch Jump Button
