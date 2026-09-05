@@ -4225,86 +4225,31 @@ input:checked + .slider-round:before {
 }
 
 /* ==========================================================================
-   Experience 9: Isometric PEV Trail Carve & Street Park Game Styles
+   Experience 9: GamerWheels Game Styles
    ========================================================================== */
 
-.exp9-card-wrapper {
-  padding: 1.5rem;
-  background: var(--surface-card);
-  border: 1px solid var(--surface-border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
+.exp9-page-main {
+  max-width: 1440px;
+}
+
+.exp9-game-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 2rem;
 }
 
-.exp9-header-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1.5rem;
-  margin-bottom: 1.25rem;
-  flex-wrap: wrap;
-}
-
-.exp9-title-col {
-  flex: 1 1 500px;
-}
-
-.exp9-title {
-  font-size: 1.75rem;
-  font-weight: 800;
-  color: #f8fafc;
-  margin-bottom: 0.35rem;
-  line-height: 1.25;
-}
-
-.exp9-subtitle {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-  margin: 0;
-}
-
-.exp9-quick-stats {
-  display: flex;
-  gap: 0.75rem;
-  align-items: center;
-}
-
-.exp9-stat-pill {
-  display: flex;
-  flex-direction: column;
-  padding: 0.45rem 0.85rem;
-  background: rgba(15, 23, 42, 0.75);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--radius-md);
-  min-width: 110px;
-}
-
-.exp9-stat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.exp9-stat-val {
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: #a5b4fc;
-}
-
-/* Game Viewport Container */
+/* Proper Full Game Viewport Frame */
 .exp9-viewport-container {
   position: relative;
   width: 100%;
-  height: 640px;
+  height: 750px;
   background: #090e17;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  border-radius: var(--radius-md);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 35px rgba(99, 102, 241, 0.15);
   user-select: none;
   touch-action: none;
 }
@@ -4329,12 +4274,54 @@ input:checked + .slider-round:before {
   justify-content: space-between;
 }
 
-/* Top Left Speedo & Compass */
+/* Top Left: Brand, Speedo & Compass */
 .exp9-hud-top-left {
   display: flex;
-  gap: 0.85rem;
+  gap: 0.75rem;
   align-items: center;
   pointer-events: auto;
+}
+
+/* Corner Game Brand Card */
+.exp9-brand-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 86px;
+  padding: 0.5rem 1rem;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+}
+
+.exp9-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #a5b4fc;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+
+.exp9-brand-terrain {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.exp9-brand-title {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #ffffff 40%, #c7d2fe 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .exp9-speedo-card {
@@ -4708,12 +4695,95 @@ input:checked + .slider-round:before {
   margin: 0 0.15rem;
 }
 
+/* Collapsible Game Info Accordion */
+.exp9-accordion-wrapper {
+  width: 100%;
+  margin-top: 0.25rem;
+}
+
+.exp9-accordion-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exp9-accordion-btn:hover {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(99, 102, 241, 0.35);
+  color: #ffffff;
+}
+
+.exp9-accordion-btn.active {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(99, 102, 241, 0.5);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  color: #ffffff;
+}
+
+.exp9-accordion-btn-left {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: #a5b4fc;
+}
+
+.exp9-accordion-title {
+  color: #f8fafc;
+}
+
+.exp9-accordion-btn-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.exp9-accordion-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.exp9-accordion-chevron {
+  transition: transform 0.25s ease;
+  color: #a5b4fc;
+}
+
+.exp9-accordion-btn.active .exp9-accordion-chevron {
+  transform: rotate(180deg);
+}
+
+.exp9-accordion-panel {
+  display: none;
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-top: none;
+  border-bottom-left-radius: var(--radius-md);
+  border-bottom-right-radius: var(--radius-md);
+}
+
+.exp9-accordion-panel.open {
+  display: block;
+}
+
 /* Trails Breakdown Grid */
 .exp9-info-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
   gap: 1.5rem;
-  margin-top: 1.75rem;
+  margin-top: 0;
 }
 
 .exp9-info-card {
@@ -4814,10 +4884,17 @@ input:checked + .slider-round:before {
 /* Mobile Responsiveness */
 @media (max-width: 768px) {
   .exp9-viewport-container {
-    height: 480px;
+    height: 540px;
   }
   .exp9-desktop-controls-hint {
     display: none;
+  }
+  .exp9-brand-card {
+    height: 72px;
+    padding: 0.35rem 0.65rem;
+  }
+  .exp9-brand-title {
+    font-size: 1.05rem;
   }
   .exp9-speedo-card {
     width: 72px;
@@ -4829,12 +4906,6 @@ input:checked + .slider-round:before {
   .exp9-compass-card {
     width: 50px;
     height: 50px;
-  }
-  .exp9-header-banner {
-    flex-direction: column;
-  }
-  .exp9-title {
-    font-size: 1.4rem;
   }
   .exp9-hud-top-row {
     flex-wrap: wrap;

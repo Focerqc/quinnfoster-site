@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Experience 9 — 2.5D Isometric PEV / Onewheel Free-Roam Trail Carve & Street Park Game | Quinn Foster">
-  <title>Experience 9 — Isometric PEV Trail Carve & Street Park | Quinn Foster</title>
+  <meta name="description" content="Experience 9 — GamerWheels | 2.5D Isometric PEV / Onewheel Free-Roam Trail Carve & Street Park Game | Quinn Foster">
+  <title>Experience 9 — GamerWheels | Quinn Foster</title>
 
   <!-- Preconnect Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.7">
+  <link rel="stylesheet" href="css/styles.css?v=9.8">
 </head>
 <body>
 
@@ -92,9 +92,9 @@
           <span class="num-badge">8</span>
           <span class="tab-btn-full-label">Experience 8 (3D Winding)</span>
         </a>
-        <a href="experience9.html" class="tab-btn tab-btn-num active" title="Experience 9 (PEV Trail Carve)">
+        <a href="experience9.html" class="tab-btn tab-btn-num active" title="Experience 9 (GamerWheels)">
           <span class="num-badge">9</span>
-          <span class="tab-btn-full-label">Experience 9 (PEV Trail Carve)</span>
+          <span class="tab-btn-full-label">Experience 9 (GamerWheels)</span>
         </a>
       </nav>
 
@@ -107,33 +107,9 @@
   </header>
 
   <!-- Main Content Container -->
-  <main class="container" style="padding-top: 0.5rem;">
-    <div class="experience-card exp9-card-wrapper">
-
-      <!-- Header Banner -->
-      <div class="exp9-header-banner">
-        <div class="exp9-title-col">
-          <div class="viewport-badge" style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
-            <span class="pulse-dot"></span>
-            Fungineers Funwheel X7 Onewheel · 2.5D Isometric Physics Engine
-          </div>
-          <h1 class="exp9-title">Experience 9: Isometric PEV Trail Carve & Street Park</h1>
-          <p class="exp9-subtitle">
-            Hop on Quinn's custom Funwheel X7 build in free-roam. Carve through the central town square, hit grind rails, ledges, and kicker ramps, then cruise out into 4 distinct wilderness trailheads.
-          </p>
-        </div>
-
-        <div class="exp9-quick-stats">
-          <div class="exp9-stat-pill">
-            <span class="exp9-stat-label">Terrain</span>
-            <span class="exp9-stat-val" id="hudTerrainVal">Central Plaza</span>
-          </div>
-          <div class="exp9-stat-pill">
-            <span class="exp9-stat-label">Board</span>
-            <span class="exp9-stat-val">X7 Superflux</span>
-          </div>
-        </div>
-      </div>
+  <!-- Main Content Container -->
+  <main class="container exp9-page-main" style="padding-top: 0.5rem;">
+    <div class="exp9-game-wrapper">
 
       <!-- Main Game Viewport Frame -->
       <div class="exp9-viewport-container" id="gameContainer">
@@ -142,10 +118,19 @@
         <!-- Dynamic Game HUD Overlay -->
         <div class="exp9-hud-layer">
           
-          <!-- Top Row: Speedo & Compass (Left), Checkpoints Bar (Center), Action Controls (Right) -->
+          <!-- Top Row: Game Brand, Speedo & Compass (Left), Checkpoints Bar (Center), Action Controls (Right) -->
           <div class="exp9-hud-top-row">
-            <!-- Top Left: Speedometer & Compass -->
+            <!-- Top Left: Game Brand, Speedometer & Compass -->
             <div class="exp9-hud-top-left">
+              <!-- Corner Game Name & Terrain Badge -->
+              <div class="exp9-brand-card">
+                <div class="exp9-brand-badge">
+                  <span class="pulse-dot"></span>
+                  <span class="exp9-brand-terrain" id="hudTerrainVal">Central Plaza</span>
+                </div>
+                <div class="exp9-brand-title">GamerWheels</div>
+              </div>
+
               <div class="exp9-speedo-card">
                 <div class="exp9-speedo-num" id="hudSpeedVal">0.0</div>
                 <div class="exp9-speedo-unit">MPH</div>
@@ -240,76 +225,96 @@
         </div>
       </div>
 
-      <!-- Trails & Park Features Breakdown -->
-      <div class="exp9-info-grid">
-        
-        <!-- Trailhead Directory Card -->
-        <div class="exp9-info-card">
-          <div class="exp9-card-header">
-            <div class="feature-icon" style="font-size: 1.25rem;">🌲</div>
-            <div>
-              <h3>Wilderness Trailheads & Jump Lines</h3>
-              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Ride outward or press 1–5 to warp instantly to jump lines:</p>
-            </div>
+      <!-- Collapsible Game Info & Guide Dropdown -->
+      <div class="exp9-accordion-wrapper">
+        <button type="button" class="exp9-accordion-btn" id="btnGameInfoToggle" aria-expanded="false" aria-controls="gameInfoPanel">
+          <div class="exp9-accordion-btn-left">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span class="exp9-accordion-title">Game Info, Trailhead Directory & Vehicle Specs</span>
           </div>
+          <div class="exp9-accordion-btn-right">
+            <span class="exp9-accordion-hint" id="accordionHintText">Show Info</span>
+            <svg class="exp9-accordion-chevron" id="accordionChevron" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </button>
 
-          <div class="exp9-trail-list">
-            <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-jump">NORTH · CP 2</div>
-              <div class="exp9-trail-title">🚀 Thunder Peak Mega Drop</div>
-              <div class="exp9-trail-desc">7-meter tall scaffold roll-in tower accelerating downhill into a massive canyon kicker launch.</div>
+        <div class="exp9-accordion-panel" id="gameInfoPanel">
+          <!-- Trails & Park Features Breakdown -->
+          <div class="exp9-info-grid">
+            
+            <!-- Trailhead Directory Card -->
+            <div class="exp9-info-card">
+              <div class="exp9-card-header">
+                <div class="feature-icon" style="font-size: 1.25rem;">🌲</div>
+                <div>
+                  <h3>Wilderness Trailheads & Jump Lines</h3>
+                  <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Ride outward or press 1–5 to warp instantly to jump lines:</p>
+                </div>
+              </div>
+
+              <div class="exp9-trail-list">
+                <div class="exp9-trail-item">
+                  <div class="exp9-trail-tag badge-jump">NORTH · CP 2</div>
+                  <div class="exp9-trail-title">🚀 Thunder Peak Mega Drop</div>
+                  <div class="exp9-trail-desc">7-meter tall scaffold roll-in tower accelerating downhill into a massive canyon kicker launch.</div>
+                </div>
+
+                <div class="exp9-trail-item">
+                  <div class="exp9-trail-tag badge-jump">EAST · CP 3</div>
+                  <div class="exp9-trail-title">🐋 Pine Ridge Whale Tail</div>
+                  <div class="exp9-trail-desc">Wooden slopestyle step-up ramp leading onto an arched spine whale-tail transition and drop kicker.</div>
+                </div>
+
+                <div class="exp9-trail-item">
+                  <div class="exp9-trail-tag badge-jump">WEST · CP 4</div>
+                  <div class="exp9-trail-title">🛹 Slickrock Tabletop & Gap</div>
+                  <div class="exp9-trail-desc">Full 13m tabletop jump (takeoff, deck, transition) and canyon gap transfer with hazard markers.</div>
+                </div>
+
+                <div class="exp9-trail-item">
+                  <div class="exp9-trail-tag badge-chill">SOUTH · CP 5</div>
+                  <div class="exp9-trail-title">🌵 Cactus Canyon Berms</div>
+                  <div class="exp9-trail-desc">Rolling desert dunes, high-speed banked berm carving bowls, and step-down drop ramps.</div>
+                </div>
+              </div>
             </div>
 
-            <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-jump">EAST · CP 3</div>
-              <div class="exp9-trail-title">🐋 Pine Ridge Whale Tail</div>
-              <div class="exp9-trail-desc">Wooden slopestyle step-up ramp leading onto an arched spine whale-tail transition and drop kicker.</div>
+            <!-- Street Park & Hardware Card -->
+            <div class="exp9-info-card">
+              <div class="exp9-card-header">
+                <div class="feature-icon" style="font-size: 1.25rem;">🛹</div>
+                <div>
+                  <h3>Contoured Terrain & Obstacle Stunts</h3>
+                  <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Physics engine features & 3D hardware alignment</p>
+                </div>
+              </div>
+
+              <div class="exp9-features-list">
+                <div class="exp9-feat-row">
+                  <strong>Contoured 3D Terrain:</strong>
+                  <span>Non-flat rolling hills, mountain ridges, and curved berms dynamically tilt the Onewheel's pitch and roll as you carve.</span>
+                </div>
+                <div class="exp9-feat-row">
+                  <strong>Tabletops, Gaps & Whale Tails:</strong>
+                  <span>Hit ramps with speed for automatic launch boosts, trick bonuses, and clean transition landings.</span>
+                </div>
+                <div class="exp9-feat-row">
+                  <strong>Mega Drop Runway:</strong>
+                  <span>Drop in from the 7m peak for 35+ MPH downhill acceleration straight into the biggest launch kicker in the park.</span>
+                </div>
+                <div class="exp9-feat-row">
+                  <strong>Horizontal Fungineers X7 CAD:</strong>
+                  <span>Aligned along the horizontal wheelbase with forward white LED projector beam and rear red taillight.</span>
+                </div>
+              </div>
             </div>
 
-            <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-jump">WEST · CP 4</div>
-              <div class="exp9-trail-title">🛹 Slickrock Tabletop & Gap</div>
-              <div class="exp9-trail-desc">Full 13m tabletop jump (takeoff, deck, transition) and canyon gap transfer with hazard markers.</div>
-            </div>
-
-            <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-chill">SOUTH · CP 5</div>
-              <div class="exp9-trail-title">🌵 Cactus Canyon Berms</div>
-              <div class="exp9-trail-desc">Rolling desert dunes, high-speed banked berm carving bowls, and step-down drop ramps.</div>
-            </div>
           </div>
         </div>
-
-        <!-- Street Park & Hardware Card -->
-        <div class="exp9-info-card">
-          <div class="exp9-card-header">
-            <div class="feature-icon" style="font-size: 1.25rem;">🛹</div>
-            <div>
-              <h3>Contoured Terrain & Obstacle Stunts</h3>
-              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Physics engine features & 3D hardware alignment</p>
-            </div>
-          </div>
-
-          <div class="exp9-features-list">
-            <div class="exp9-feat-row">
-              <strong>Contoured 3D Terrain:</strong>
-              <span>Non-flat rolling hills, mountain ridges, and curved berms dynamically tilt the Onewheel's pitch and roll as you carve.</span>
-            </div>
-            <div class="exp9-feat-row">
-              <strong>Tabletops, Gaps & Whale Tails:</strong>
-              <span>Hit ramps with speed for automatic launch boosts, trick bonuses, and clean transition landings.</span>
-            </div>
-            <div class="exp9-feat-row">
-              <strong>Mega Drop Runway:</strong>
-              <span>Drop in from the 7m peak for 35+ MPH downhill acceleration straight into the biggest launch kicker in the park.</span>
-            </div>
-            <div class="exp9-feat-row">
-              <strong>Horizontal Fungineers X7 CAD:</strong>
-              <span>Aligned along the horizontal wheelbase with forward white LED projector beam and rear red taillight.</span>
-            </div>
-          </div>
-        </div>
-
       </div>
 
     </div>
@@ -332,6 +337,6 @@
   <!-- Main Navigation & Menu Script -->
   <script src="js/main.js?v=1.2"></script>
   <!-- Game Logic Engine -->
-  <script src="js/experience9.js?v=2.0"></script>
+  <script src="js/experience9.js?v=2.1"></script>
 </body>
 </html>

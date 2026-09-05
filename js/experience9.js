@@ -1,5 +1,5 @@
 /**
- * Experience 9: 2.5D Isometric PEV / Onewheel Trail Carve & Street Park
+ * Experience 9: GamerWheels — 2.5D Isometric PEV Physics Engine
  * Author: Quinn Foster
  * Engine: Three.js Orthographic 2.5D Isometric Physics & Renderer
  * Version: 2.0 (Non-flat Contoured Terrain, Advanced Jumps, Model Fixes & Checkpoints)
@@ -183,6 +183,23 @@
         }
       });
     });
+
+    // Collapsible Game Info Accordion Toggle
+    const btnGameInfoToggle = document.getElementById('btnGameInfoToggle');
+    const gameInfoPanel = document.getElementById('gameInfoPanel');
+    const accordionHintText = document.getElementById('accordionHintText');
+
+    if (btnGameInfoToggle && gameInfoPanel) {
+      btnGameInfoToggle.addEventListener('click', () => {
+        const isOpen = gameInfoPanel.classList.contains('open');
+        btnGameInfoToggle.setAttribute('aria-expanded', !isOpen);
+        btnGameInfoToggle.classList.toggle('active', !isOpen);
+        gameInfoPanel.classList.toggle('open', !isOpen);
+        if (accordionHintText) {
+          accordionHintText.textContent = !isOpen ? 'Hide Info' : 'Show Info';
+        }
+      });
+    }
   }
 
   // ==========================================================================
