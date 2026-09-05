@@ -156,7 +156,7 @@
   // --- Three.js Globals ---
   let scene, camera, renderer;
   let boardGroup, wheelMesh, chassisMesh, shadowMesh;
-  let headlightSpot, taillightGlow;
+  let headlightSpot, taillightSpot, taillightLens;
   let sunLight;
   let particleGroup;
 
@@ -477,12 +477,52 @@
     return 0;
   }
 
+  // Procedural Topographical Grid Texture for crystal-clear slope & contour visibility
+  function createTopographicalGridTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d');
+
+    // Clean neutral base
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, 256, 256);
+
+    // Primary 2m Grid Outer Border (accent line)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.25)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(0, 0, 256, 256);
+
+    // Secondary sub-grid lines (1m subdivisions)
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.10)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(128, 0); ctx.lineTo(128, 256);
+    ctx.moveTo(0, 128); ctx.lineTo(256, 128);
+    ctx.stroke();
+
+    // Center crosshair for enhanced perspective
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.32)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(128, 120); ctx.lineTo(128, 136);
+    ctx.moveTo(120, 128); ctx.lineTo(136, 128);
+    ctx.stroke();
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    // 300m world width with 150 repeats = 1 grid tile exactly every 2.0 meters
+    texture.repeat.set(150, 150);
+    return texture;
+  }
+
   // ==========================================================================
   // 4. World Generation: Topography, Park, Stunt Jumps & Biomes
   // ==========================================================================
   function buildWorld() {
-    // 1. Base Contoured Terrain Mesh (100x100 grid for smooth hills)
-    const groundGeo = new THREE.PlaneGeometry(300, 300, 100, 100);
+    // 1. Base Contoured Terrain Mesh (160x160 grid for smooth hills)
+    const groundGeo = new THREE.PlaneGeometry(300, 300, 160, 160);
     groundGeo.rotateX(-Math.PI / 2);
 
     const colors = [];
@@ -523,24 +563,26 @@
         }
       }
 
-      // Topographic elevation contour lines (subtle dark rings every 0.5 meters)
-      // Gives instant depth perception and clarity to all slopes and hills
-      const contourMod = Math.abs((gy % 0.5) - 0.25);
-      const isContour = contourMod > 0.21;
-
-      // Slope steepness shading (steeper slopes are shaded darker to reveal contours)
+      // Exact slope gradient calculation
       const epsG = 0.5;
       const hE = getTerrainElevation(gx + epsG, gz);
       const hW = getTerrainElevation(gx - epsG, gz);
       const hS = getTerrainElevation(gx, gz + epsG);
       const hN = getTerrainElevation(gx, gz - epsG);
-      const slopeGrad = Math.hypot((hE - hW) / (2 * epsG), (hS - hN) / (2 * epsG));
-      const slopeShade = Math.max(0.68, 1.0 - slopeGrad * 0.32);
+      const slopeX = (hE - hW) / (2 * epsG);
+      const slopeZ = (hS - hN) / (2 * epsG);
+      const slopeGrad = Math.hypot(slopeX, slopeZ);
 
+      // Contrast slope shading: steep slopes become visibly darker, revealing ridges and drops
+      const slopeFactor = THREE.MathUtils.clamp(1.0 - slopeGrad * 0.45, 0.45, 1.0);
+      col.multiplyScalar(slopeFactor);
+
+      // Topographic elevation contour lines (dark rings every 0.5 and 1.0 meters)
+      const contourMod = Math.abs((gy % 0.5) - 0.25);
+      const isContour = contourMod > 0.21;
       if (isContour && dist > 20) {
-        col.multiplyScalar(0.78); // Crisp contour stripe
+        col.multiplyScalar(0.76); // Crisp contour stripe
       }
-      col.multiplyScalar(slopeShade); // Depth-enhancing slope shading
 
       colors.push(col.r, col.g, col.b);
     }
@@ -548,7 +590,9 @@
     groundGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
     groundGeo.computeVertexNormals();
 
+    const topoTexture = createTopographicalGridTexture();
     const groundMat = new THREE.MeshStandardMaterial({
+      map: topoTexture,
       vertexColors: true,
       roughness: 0.85,
       metalness: 0.05,
@@ -599,77 +643,306 @@
     populateScenery();
   }
 
-  // Central Street Park Obstacles
-  function createStreetParkFeatures() {
-    // A. Concrete Skate Ledge (North-East Plaza)
-    const ledgeWidth = 1.6;
-    const ledgeLength = 8.5;
-    const ledgeHeight = 0.42;
-    const ledgeGeo = new THREE.BoxGeometry(ledgeWidth, ledgeHeight, ledgeLength);
-    const ledgeMat = new THREE.MeshStandardMaterial({ color: 0x7a859b, roughness: 0.6 });
-    const ledge = new THREE.Mesh(ledgeGeo, ledgeMat);
-    ledge.position.set(9, ledgeHeight / 2 + 0.06, -6);
-    ledge.castShadow = true;
-    ledge.receiveShadow = true;
-    scene.add(ledge);
+  // Solid mathematical 3D wedge prism (zero rotation/centroid distortion)
+  function createWedgeMesh(width, length, yStart, yEnd, mat) {
+    const halfW = width / 2;
+    const geo = new THREE.BufferGeometry();
+    const vertices = new Float32Array([
+      // Top slope (2 triangles)
+      -halfW, yStart, 0,   halfW, yStart, 0,   halfW, yEnd, length,
+      -halfW, yStart, 0,   halfW, yEnd, length, -halfW, yEnd, length,
+      // Bottom face
+      -halfW, 0, length,   halfW, 0, length,   halfW, 0, 0,
+      -halfW, 0, length,   halfW, 0, 0,        -halfW, 0, 0,
+      // Left side face
+      -halfW, 0, 0,        -halfW, yStart, 0,  -halfW, yEnd, length,
+      -halfW, 0, 0,        -halfW, yEnd, length, -halfW, 0, length,
+      // Right side face
+      halfW, 0, length,    halfW, yEnd, length, halfW, yStart, 0,
+      halfW, 0, length,    halfW, yStart, 0,   halfW, 0, 0,
+      // Front face (at 0)
+      halfW, 0, 0,         halfW, yStart, 0,   -halfW, yStart, 0,
+      halfW, 0, 0,         -halfW, yStart, 0,  -halfW, 0, 0,
+      // Back face (at length)
+      -halfW, 0, length,   -halfW, yEnd, length, halfW, yEnd, length,
+      -halfW, 0, length,   halfW, yEnd, length,  halfW, 0, length,
+    ]);
+    geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    return mesh;
+  }
 
-    // Metal coping along ledge edge
-    const copingGeo = new THREE.CylinderGeometry(0.04, 0.04, ledgeLength, 8);
-    const copingMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 });
+  // Curved Quarter Bank Mesh with Steel Coping
+  function createQuarterBankMesh(width, length, height, facingAngle, mat) {
+    const group = new THREE.Group();
+    const halfW = width / 2;
+    const segments = 10;
+    const geo = new THREE.BufferGeometry();
+    const pos = [];
+
+    for (let i = 0; i < segments; i++) {
+      const t0 = i / segments;
+      const t1 = (i + 1) / segments;
+      const z0 = t0 * length;
+      const z1 = t1 * length;
+      const y0 = Math.pow(t0, 1.6) * height;
+      const y1 = Math.pow(t1, 1.6) * height;
+
+      // Top curved face
+      pos.push(-halfW, y0, z0,  halfW, y0, z0,  halfW, y1, z1);
+      pos.push(-halfW, y0, z0,  halfW, y1, z1, -halfW, y1, z1);
+      // Bottom face
+      pos.push(-halfW, 0, z1,   halfW, 0, z1,   halfW, 0, z0);
+      pos.push(-halfW, 0, z1,   halfW, 0, z0,  -halfW, 0, z0);
+      // Left side
+      pos.push(-halfW, 0, z0,  -halfW, y0, z0, -halfW, y1, z1);
+      pos.push(-halfW, 0, z0,  -halfW, y1, z1, -halfW, 0, z1);
+      // Right side
+      pos.push(halfW, 0, z1,    halfW, y1, z1,  halfW, y0, z0);
+      pos.push(halfW, 0, z1,    halfW, y0, z0,  halfW, 0, z0);
+    }
+    // Back wall at length
+    pos.push(-halfW, 0, length, -halfW, height, length, halfW, height, length);
+    pos.push(-halfW, 0, length,  halfW, height, length, halfW, 0, length);
+
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+    group.add(mesh);
+
+    // Steel Coping Pipe along top lip
+    const copingGeo = new THREE.CylinderGeometry(0.045, 0.045, width, 12);
+    copingGeo.rotateZ(Math.PI / 2);
+    const copingMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.9, roughness: 0.2 });
     const coping = new THREE.Mesh(copingGeo, copingMat);
-    coping.position.set(9 + ledgeWidth / 2, ledgeHeight + 0.06, -6);
+    coping.position.set(0, height + 0.03, length);
     coping.castShadow = true;
-    scene.add(coping);
+    group.add(coping);
+
+    group.rotation.y = facingAngle;
+    return group;
+  }
+
+  // Authentic Street Skate Park (Multi-Line Flow: Funbox, Banks, Ledges, Rails)
+  function createStreetParkFeatures() {
+    const concreteMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.65 });
+    const bankMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.6 });
+    const woodDeckMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
+    const copingMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.88, roughness: 0.2 });
+
+    // =========================================================================
+    // 1. CENTRAL FUNBOX / PYRAMID (x: 0, z: 0)
+    // =========================================================================
+    const funboxH = 0.52;
+    const deckSize = 4.6;
+
+    // A. Center Flat Deck
+    const centerDeck = new THREE.Mesh(new THREE.BoxGeometry(deckSize, funboxH, deckSize), concreteMat);
+    centerDeck.position.set(0, funboxH / 2 + 0.06, 0);
+    centerDeck.castShadow = true;
+    centerDeck.receiveShadow = true;
+    scene.add(centerDeck);
+
+    registerObstacle({
+      type: 'deck',
+      x: 0,
+      z: 0,
+      width: deckSize,
+      length: deckSize,
+      height: funboxH + 0.06,
+    });
+
+    // B. North Bank (Slopes up to center deck from z = -5.9 to z = -2.3)
+    const bankNorth = createWedgeMesh(deckSize, 3.6, 0.06, funboxH + 0.06, bankMat);
+    bankNorth.position.set(0, 0, -5.9);
+    scene.add(bankNorth);
+    registerObstacle({
+      type: 'bank_z',
+      x: 0,
+      zStart: -5.9,
+      zEnd: -2.3,
+      width: deckSize,
+      yStart: 0.06,
+      yEnd: funboxH + 0.06,
+    });
+
+    // C. South Bank (Slopes up to center deck from z = 5.9 to z = 2.3)
+    const bankSouth = createWedgeMesh(deckSize, 3.6, funboxH + 0.06, 0.06, bankMat);
+    bankSouth.position.set(0, 0, 2.3);
+    scene.add(bankSouth);
+    registerObstacle({
+      type: 'bank_z',
+      x: 0,
+      zStart: 2.3,
+      zEnd: 5.9,
+      width: deckSize,
+      yStart: funboxH + 0.06,
+      yEnd: 0.06,
+    });
+
+    // D. West Bank (Slopes up to center deck from x = -5.9 to x = -2.3)
+    const bankWest = createWedgeMesh(deckSize, 3.6, 0.06, funboxH + 0.06, bankMat);
+    bankWest.rotation.y = -Math.PI / 2;
+    bankWest.position.set(-2.3, 0, 0);
+    scene.add(bankWest);
+    registerObstacle({
+      type: 'bank_x',
+      z: 0,
+      xStart: -5.9,
+      xEnd: -2.3,
+      length: deckSize,
+      yStart: 0.06,
+      yEnd: funboxH + 0.06,
+    });
+
+    // E. East Bank (Slopes up to center deck from x = 5.9 to x = 2.3)
+    const bankEast = createWedgeMesh(deckSize, 3.6, funboxH + 0.06, 0.06, bankMat);
+    bankEast.rotation.y = -Math.PI / 2;
+    bankEast.position.set(5.9, 0, 0);
+    scene.add(bankEast);
+    registerObstacle({
+      type: 'bank_x',
+      z: 0,
+      xStart: 2.3,
+      xEnd: 5.9,
+      length: deckSize,
+      yStart: funboxH + 0.06,
+      yEnd: 0.06,
+    });
+
+    // F. Center Down-Rail (Electric Cyan Rail down the North/South axis)
+    createGrindRail(0, 0, 9.5, 0.42 + funboxH, 0x38bdf8);
+
+    // G. Funbox Hubba Ledge with Steel Coping (East Flank)
+    const hubbaW = 0.55;
+    const hubbaL = 6.8;
+    const hubbaH = funboxH + 0.16;
+    const hubbaMesh = new THREE.Mesh(new THREE.BoxGeometry(hubbaW, hubbaH, hubbaL), concreteMat);
+    hubbaMesh.position.set(deckSize / 2 + hubbaW / 2, hubbaH / 2 + 0.06, 0);
+    hubbaMesh.castShadow = true;
+    hubbaMesh.receiveShadow = true;
+    scene.add(hubbaMesh);
+
+    const hubbaCoping = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, hubbaL, 8), copingMat);
+    hubbaCoping.position.set(deckSize / 2 + hubbaW, hubbaH + 0.06, 0);
+    hubbaCoping.castShadow = true;
+    scene.add(hubbaCoping);
 
     registerObstacle({
       type: 'ledge',
-      x: 9,
-      z: -6,
-      width: ledgeWidth + 0.2,
-      length: ledgeLength,
-      height: ledgeHeight + 0.06,
+      x: deckSize / 2 + hubbaW / 2,
+      z: 0,
+      width: hubbaW + 0.2,
+      length: hubbaL,
+      height: hubbaH + 0.06,
     });
 
-    // B. Low Grind Rails (Plaza Skate Features)
-    function createGrindRail(x, z, length = 11.0, height = 0.40, colorHex = 0xfacc15) {
-      const railGeo = new THREE.CylinderGeometry(0.045, 0.045, length, 12);
-      railGeo.rotateX(Math.PI / 2);
-      const railMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.9, roughness: 0.25 });
-      const railMesh = new THREE.Mesh(railGeo, railMat);
-      railMesh.position.set(x, height + 0.06, z);
-      railMesh.castShadow = true;
-      scene.add(railMesh);
+    // =========================================================================
+    // 2. PERIMETER QUARTER BANK TRANSITIONS (North & South Returns)
+    // =========================================================================
+    // North Bank Return (Faces South into the park)
+    const qbNorth = createQuarterBankMesh(15.0, 3.2, 0.85, Math.PI, bankMat);
+    qbNorth.position.set(0, 0.06, -15.5);
+    scene.add(qbNorth);
+    registerObstacle({
+      type: 'bank_z',
+      x: 0,
+      zStart: -12.3,
+      zEnd: -15.5,
+      width: 15.0,
+      yStart: 0.06,
+      yEnd: 0.91,
+    });
 
-      const postSpacing = length / 3;
-      [-postSpacing, 0, postSpacing].forEach((offset) => {
-        const postGeo = new THREE.CylinderGeometry(0.035, 0.035, height, 8);
-        const postMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
-        const post = new THREE.Mesh(postGeo, postMat);
-        post.position.set(x, (height / 2) + 0.06, z + offset);
-        post.castShadow = true;
-        scene.add(post);
-      });
+    // South Bank Return (Faces North into the park)
+    const qbSouth = createQuarterBankMesh(15.0, 3.2, 0.85, 0, bankMat);
+    qbSouth.position.set(0, 0.06, 12.3);
+    scene.add(qbSouth);
+    registerObstacle({
+      type: 'bank_z',
+      x: 0,
+      zStart: 12.3,
+      zEnd: 15.5,
+      width: 15.0,
+      yStart: 0.06,
+      yEnd: 0.91,
+    });
 
-      registerObstacle({
-        type: 'rail',
-        x: x,
-        z: z,
-        width: 0.48,
-        length: length,
-        height: height + 0.06,
-      });
-    }
+    // =========================================================================
+    // 3. WEST STREET LINE (Double-Tier Manual Pad & Gold Flatbar Rail)
+    // =========================================================================
+    // Stage 1 Low Manny Pad (0.22m)
+    const mp1 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.22, 3.6), concreteMat);
+    mp1.position.set(-10.5, 0.11 + 0.06, -1.8);
+    mp1.castShadow = true;
+    mp1.receiveShadow = true;
+    scene.add(mp1);
+    registerObstacle({ type: 'deck', x: -10.5, z: -1.8, width: 2.4, length: 3.6, height: 0.28 });
 
-    // Yellow South-West Rail & Cyan North-East Rail
-    createGrindRail(-8, 7, 11.0, 0.40, 0xfacc15);
-    createGrindRail(8, -7, 11.0, 0.40, 0x38bdf8);
+    // Stage 2 Elevated Manny Pad (0.38m)
+    const mp2 = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.38, 3.6), concreteMat);
+    mp2.position.set(-10.5, 0.19 + 0.06, 1.8);
+    mp2.castShadow = true;
+    mp2.receiveShadow = true;
+    scene.add(mp2);
+    registerObstacle({ type: 'deck', x: -10.5, z: 1.8, width: 2.4, length: 3.6, height: 0.44 });
 
-    // C. Plaza Kicker Ramps
-    createKickerRamp(-4, -13, 2.6, 3.4, 0.72, 0); // North launch
-    createKickerRamp(12, 6, 2.6, 3.4, 0.68, -Math.PI / 2); // East launch
+    // Anodized Gold Flatbar Rail (Parallel to manny pad)
+    createGrindRail(-13.2, 0, 9.0, 0.38, 0xfacc15);
 
-    // D. Curbs
+    // =========================================================================
+    // 4. EAST STREET LINE (Euro Gap Step-Up & Neon Violet Rail)
+    // =========================================================================
+    // Euro Gap Launch Kicker (South approach)
+    createKickerRamp(10.5, 3.5, 2.8, 2.8, 0.62, Math.PI);
+    // Elevated Landing Deck (North of kicker with 1.4m gap)
+    const euroDeck = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.55, 3.8), woodDeckMat);
+    euroDeck.position.set(10.5, 0.55 / 2 + 0.06, -1.2);
+    euroDeck.castShadow = true;
+    euroDeck.receiveShadow = true;
+    scene.add(euroDeck);
+    registerObstacle({ type: 'deck', x: 10.5, z: -1.2, width: 3.2, length: 3.8, height: 0.61 });
+
+    // Neon Violet Flatbar Rail
+    createGrindRail(13.4, 0, 9.0, 0.38, 0xa855f7);
+
+    // Curbs surrounding the plaza
     createCurbs();
+  }
+
+  // Grind Rail Builder with Stanchions & Spark Collider
+  function createGrindRail(x, z, length = 11.0, height = 0.40, colorHex = 0xfacc15) {
+    const railGeo = new THREE.CylinderGeometry(0.045, 0.045, length, 12);
+    railGeo.rotateX(Math.PI / 2);
+    const railMat = new THREE.MeshStandardMaterial({ color: colorHex, metalness: 0.9, roughness: 0.22 });
+    const railMesh = new THREE.Mesh(railGeo, railMat);
+    railMesh.position.set(x, height + 0.06, z);
+    railMesh.castShadow = true;
+    scene.add(railMesh);
+
+    const postSpacing = length / 3;
+    [-postSpacing, 0, postSpacing].forEach((offset) => {
+      const postGeo = new THREE.CylinderGeometry(0.035, 0.035, height, 8);
+      const postMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8 });
+      const post = new THREE.Mesh(postGeo, postMat);
+      post.position.set(x, (height / 2) + 0.06, z + offset);
+      post.castShadow = true;
+      scene.add(post);
+    });
+
+    registerObstacle({
+      type: 'rail',
+      x: x,
+      z: z,
+      width: 0.52,
+      length: length,
+      height: height + 0.06,
+    });
   }
 
   // Curbs surrounding the plaza
@@ -967,127 +1240,129 @@
 
     const towerTopY = 7.0;
     const kickerBottomY = 2.0;
-    const runwayLen = 22.0;
-    const runwayWidth = 4.2;
+    const kickerLipY = 4.8;
+    const landingTopY = 3.6;
+    const landingBottomY = 0.4;
 
-    const metalScaffoldMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.85, roughness: 0.3 });
-    const runwayMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5, metalness: 0.2 });
+    const scaffoldMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7, roughness: 0.35 });
+    const runwayMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.45, metalness: 0.15 });
+    const kickerMat = new THREE.MeshStandardMaterial({ color: 0xf97316, roughness: 0.4, metalness: 0.2 });
+    const landingMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.65 });
+    const railMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.5 });
+    const copingMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, metalness: 0.88, roughness: 0.2 });
 
-    // 1. High Tower Staging Platform (6m x 6m at Y = 7.0m)
-    const platformGeo = new THREE.BoxGeometry(6.0, 0.3, 6.0);
+    // 1. High Tower Staging Platform (Flat 6m x 5m at Y = 7.0m, z: -76.5 to -71.5)
+    const platformGeo = new THREE.BoxGeometry(6.0, 0.35, 5.0);
     const platformMesh = new THREE.Mesh(platformGeo, runwayMat);
-    platformMesh.position.set(0, towerTopY, -3.0);
+    platformMesh.position.set(0, towerTopY - 0.175, -2.0);
     platformMesh.castShadow = true;
     platformMesh.receiveShadow = true;
     group.add(platformMesh);
 
-    // Safety railings on platform
-    const railMat = new THREE.MeshStandardMaterial({ color: 0xef4444 });
-    const railingGeo = new THREE.BoxGeometry(0.08, 0.85, 5.8);
-    const railLeft = new THREE.Mesh(railingGeo, railMat);
-    railLeft.position.set(-2.9, towerTopY + 0.45, -3.0);
-    group.add(railLeft);
-    const railRight = new THREE.Mesh(railingGeo, railMat);
-    railRight.position.set(2.9, towerTopY + 0.45, -3.0);
-    group.add(railRight);
+    // Platform Safety Railings
+    const railL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 5.0), railMat);
+    railL.position.set(-2.95, towerTopY + 0.45, -2.0);
+    group.add(railL);
+    const railR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.9, 5.0), railMat);
+    railR.position.set(2.95, towerTopY + 0.45, -2.0);
+    group.add(railR);
+    const railBack = new THREE.Mesh(new THREE.BoxGeometry(6.0, 0.9, 0.1), railMat);
+    railBack.position.set(0, towerTopY + 0.45, -4.45);
+    group.add(railBack);
 
-    // Scaffolding Pillars
-    [-2.6, 2.6].forEach((px) => {
-      [-5.6, -0.4].forEach((pz) => {
-        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, towerTopY, 8), metalScaffoldMat);
+    // Scaffolding Support Pillars
+    [-2.7, 2.7].forEach((px) => {
+      [-4.2, -0.2].forEach((pz) => {
+        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, towerTopY, 8), scaffoldMat);
         pillar.position.set(px, towerTopY / 2, pz);
         pillar.castShadow = true;
         group.add(pillar);
       });
     });
 
-    // 2. Steep Downhill Roll-In Runway (Drops from 7.0m to 2.0m over 22 meters)
-    const dropShape = new THREE.Shape();
-    dropShape.moveTo(0, towerTopY);
-    dropShape.lineTo(runwayLen, kickerBottomY);
-    dropShape.lineTo(runwayLen, kickerBottomY - 0.3);
-    dropShape.lineTo(0, towerTopY - 0.3);
-    dropShape.closePath();
-
-    const runwayGeom = new THREE.ExtrudeGeometry(dropShape, { depth: runwayWidth, bevelEnabled: false });
-    runwayGeom.center();
-    const runwayMesh = new THREE.Mesh(runwayGeom, runwayMat);
-    runwayMesh.position.set(0, (towerTopY + kickerBottomY) / 2, (runwayLen / 2));
-    runwayMesh.rotation.y = Math.PI / 2;
-    runwayMesh.castShadow = true;
-    runwayMesh.receiveShadow = true;
+    // 2. Downhill Roll-In Runway (Drops from 7.0m to 2.0m over 22m, z: -71.5 to -49.5)
+    const runwayMesh = createWedgeMesh(4.8, 22.0, towerTopY, kickerBottomY, runwayMat);
+    runwayMesh.position.set(0, 0, 0.5);
     group.add(runwayMesh);
 
-    // 3. Giant Launch Kicker (2.6m high lip) at z = +runwayLen + 3
-    const kickerLen = 4.5;
-    const kickerH = 2.6;
-    const kickerShape = new THREE.Shape();
-    kickerShape.moveTo(0, kickerBottomY);
-    kickerShape.quadraticCurveTo(kickerLen * 0.7, kickerBottomY + 0.3, kickerLen, kickerBottomY + kickerH);
-    kickerShape.lineTo(kickerLen, 0);
-    kickerShape.lineTo(0, 0);
-    kickerShape.closePath();
+    // Runway safety curbs along sides
+    [-2.4, 2.4].forEach((cx) => {
+      const curbGeo = new THREE.BoxGeometry(0.12, 0.3, 22.0);
+      const curb = new THREE.Mesh(curbGeo, scaffoldMat);
+      curb.position.set(cx, (towerTopY + kickerBottomY) / 2 + 0.15, 11.5);
+      group.add(curb);
+    });
 
-    const kickerGeom = new THREE.ExtrudeGeometry(kickerShape, { depth: runwayWidth + 0.4, bevelEnabled: false });
-    kickerGeom.center();
-    const kickerMesh = new THREE.Mesh(kickerGeom, runwayMat);
-    kickerMesh.position.set(0, (kickerBottomY + kickerH) / 2, runwayLen + (kickerLen / 2));
-    kickerMesh.rotation.y = Math.PI / 2;
-    kickerMesh.castShadow = true;
-    kickerMesh.receiveShadow = true;
+    // 3. Mega Launch Kicker (Wedge from 2.0m up to 4.8m over 6m, z: -49.5 to -43.5)
+    const kickerMesh = createWedgeMesh(4.8, 6.0, kickerBottomY, kickerLipY, kickerMat);
+    kickerMesh.position.set(0, 0, 22.5);
     group.add(kickerMesh);
 
-    // 4. Downhill Landing Transition Slope
-    const landLen = 14.0;
-    const landShape = new THREE.Shape();
-    landShape.moveTo(0, kickerBottomY + 1.2);
-    landShape.lineTo(landLen, 0.2);
-    landShape.lineTo(0, 0);
-    landShape.closePath();
+    // Electric Cyan Coping at Launch Lip
+    const lipCoping = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.0, 12), copingMat);
+    lipCoping.rotateZ(Math.PI / 2);
+    lipCoping.position.set(0, kickerLipY + 0.04, 28.5);
+    lipCoping.castShadow = true;
+    group.add(lipCoping);
 
-    const landGeom = new THREE.ExtrudeGeometry(landShape, { depth: runwayWidth + 1.2, bevelEnabled: false });
-    landGeom.center();
-    const landMesh = new THREE.Mesh(landGeom, metalScaffoldMat);
-    landMesh.position.set(0, (kickerBottomY + 1.2) / 2, runwayLen + kickerLen + 7.0 + (landLen / 2));
-    landMesh.rotation.y = Math.PI / 2;
-    landMesh.castShadow = true;
-    landMesh.receiveShadow = true;
-    group.add(landMesh);
+    // 4. Downhill Landing Transition (High-contrast concrete, z: -35.5 to -17.5, drops 3.6m to 0.4m)
+    const landingMesh = createWedgeMesh(5.8, 18.0, landingTopY, landingBottomY, landingMat);
+    landingMesh.position.set(0, 0, 36.5);
+    group.add(landingMesh);
+
+    // Yellow / Black Hazard Chevrons along Landing Sides
+    const hazardMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.5 });
+    [-2.95, 2.95].forEach((hx) => {
+      const hCurb = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.35, 18.0), hazardMat);
+      hCurb.position.set(hx, (landingTopY + landingBottomY) / 2 + 0.18, 45.5);
+      group.add(hCurb);
+    });
 
     group.position.set(x, 0, z);
     scene.add(group);
 
-    // Register Mega Drop Runway Obstacle
+    // --- Registered Obstacle Colliders ---
+    // A. Stationary Platform (Zero downhill gravity)
+    registerObstacle({
+      type: 'megadrop_platform',
+      x: x,
+      z: z - 2.0,
+      width: 6.2,
+      length: 5.2,
+      height: towerTopY,
+    });
+
+    // B. Roll-in Runway (Active downhill acceleration)
     registerObstacle({
       type: 'megadrop_runway',
       x: x,
-      z: z + (runwayLen / 2),
-      width: runwayWidth,
-      length: runwayLen + 4,
-      topY: towerTopY,
-      bottomY: kickerBottomY,
+      zStart: z + 0.5,
+      zEnd: z + 22.5,
+      width: 5.0,
+      yStart: towerTopY,
+      yEnd: kickerBottomY,
     });
 
-    // Register Mega Launch Kicker
+    // C. Launch Kicker (Super Air boost at lip)
     registerObstacle({
       type: 'megadrop_kicker',
       x: x,
-      z: z + runwayLen + (kickerLen / 2),
-      width: runwayWidth + 0.4,
-      length: kickerLen,
-      baseY: kickerBottomY,
-      height: kickerH,
+      zStart: z + 22.5,
+      zEnd: z + 28.5,
+      width: 5.0,
+      yStart: kickerBottomY,
+      yEnd: kickerLipY,
     });
 
-    // Register Mega Drop Downhill Landing Ramp (The metal scaffold ramp)
+    // D. Downhill Landing Transition (Catches falling rider cleanly)
     registerObstacle({
       type: 'megadrop_landing',
       x: x,
-      z: z + runwayLen + kickerLen + 7.0 + (landLen / 2),
-      width: runwayWidth + 1.2,
-      length: landLen,
-      topY: kickerBottomY + 1.2,
-      bottomY: 0.2,
+      zStart: z + 36.5,
+      zEnd: z + 54.5,
+      width: 6.0,
+      yStart: landingTopY,
+      yEnd: landingBottomY,
     });
   }
 
@@ -1164,39 +1439,62 @@
     state.obstacles.push(obs);
   }
 
-  // Scenery (Populate on terrain elevation)
+  // Clear sightline culling helper: excludes scenery from blocking jump lines, runways, and park
+  function isExcludedSceneryZone(x, z) {
+    // 1. Central Skatepark
+    if (Math.abs(x) < 22 && Math.abs(z) < 22) return true;
+    // 2. North Mega Drop line (runway, kicker, landing, roll-out)
+    if (Math.abs(x) < 14 && z <= -16 && z >= -82) return true;
+    // 3. East Pine Ridge Whale Tail line (x ~ 55, z from -18 to +24)
+    if (Math.abs(x - 55) < 15 && z >= -18 && z <= 26) return true;
+    // 4. West Slickrock Tabletop & Canyon Gap jumps (x ~ -58, z from -26 to +26)
+    if (Math.abs(x - (-58)) < 15 && Math.abs(z) < 28) return true;
+    // 5. South Desert Berms trail circuit
+    if (isDesertBermTrail(x, z) > 0.05) return true;
+    return false;
+  }
+
+  // Scenery (Populate on terrain elevation with sightline culling)
   function populateScenery() {
     // North (Mountain rocks)
-    for (let i = 0; i < 22; i++) {
-      const rx = (Math.random() - 0.5) * 60;
-      const rz = -36 - Math.random() * 65;
-      createBoulder(rx, rz, 1.2 + Math.random() * 2.5, 0x475569);
-    }
-
-    // South (Desert cacti and red hoodoo boulders)
     for (let i = 0; i < 24; i++) {
-      const rx = (Math.random() - 0.5) * 60;
-      const rz = 36 + Math.random() * 65;
-      if (Math.random() > 0.45) {
-        createCactus(rx, rz, 1.8 + Math.random() * 1.5);
-      } else {
-        createBoulder(rx, rz, 1.5 + Math.random() * 2.5, 0x9a3412);
+      const rx = (Math.random() - 0.5) * 80;
+      const rz = -28 - Math.random() * 70;
+      if (!isExcludedSceneryZone(rx, rz)) {
+        createBoulder(rx, rz, 1.0 + Math.random() * 1.8, 0x475569);
       }
     }
 
-    // East (Pine Ridge forest)
-    for (let i = 0; i < 28; i++) {
-      const rx = 36 + Math.random() * 65;
-      const rz = (Math.random() - 0.5) * 60;
-      createPineTree(rx, rz, 2.5 + Math.random() * 2.2);
+    // South (Desert cacti and red hoodoo boulders)
+    for (let i = 0; i < 26; i++) {
+      const rx = (Math.random() - 0.5) * 80;
+      const rz = 28 + Math.random() * 70;
+      if (!isExcludedSceneryZone(rx, rz)) {
+        if (Math.random() > 0.45) {
+          createCactus(rx, rz, 1.4 + Math.random() * 1.0);
+        } else {
+          createBoulder(rx, rz, 1.2 + Math.random() * 1.8, 0x9a3412);
+        }
+      }
+    }
+
+    // East (Pine Ridge forest - Natural scale & zero jump obstruction)
+    for (let i = 0; i < 36; i++) {
+      const rx = 24 + Math.random() * 85;
+      const rz = (Math.random() - 0.5) * 90;
+      if (!isExcludedSceneryZone(rx, rz)) {
+        createPineTree(rx, rz, 1.0 + Math.random() * 0.7);
+      }
     }
     createBoardwalk(55, -8, 22, 3.2);
 
     // West (Slickrock boulders)
-    for (let i = 0; i < 22; i++) {
-      const rx = -36 - Math.random() * 65;
-      const rz = (Math.random() - 0.5) * 60;
-      createBoulder(rx, rz, 2.0 + Math.random() * 3.5, 0xc2410c);
+    for (let i = 0; i < 24; i++) {
+      const rx = -28 - Math.random() * 80;
+      const rz = (Math.random() - 0.5) * 85;
+      if (!isExcludedSceneryZone(rx, rz)) {
+        createBoulder(rx, rz, 1.4 + Math.random() * 2.0, 0xc2410c);
+      }
     }
   }
 
@@ -1341,15 +1639,77 @@
         // Re-add headlights (+Z forward) and taillights (-Z rear)
         setupBoardLights();
 
-        // Traverse to configure shadows and identify tire mesh
+        // Traverse to apply authentic materials, fix face culling, and identify tire
         let foundTire = null;
         model.traverse((child) => {
           if (child.isMesh) {
             child.castShadow = true;
             child.receiveShadow = true;
 
-            if (child.name && child.name.toLowerCase().includes('tire')) {
+            const name = (child.name || '').toLowerCase();
+
+            // Footpads (Stompie Front & Rear) -> Clean solid footpads with DoubleSide & smooth normals
+            if (name.includes('stompie') || name.includes('pad')) {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xf1f5f9,
+                roughness: 0.8,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+              });
+              if (child.geometry) {
+                child.geometry.computeVertexNormals();
+              }
+            }
+            // CNC Rails -> Anodized Metallic Red (authentic to user's Fungineers build)
+            else if (name.includes('rail')) {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0xef233c,
+                roughness: 0.32,
+                metalness: 0.78,
+                side: THREE.DoubleSide,
+              });
+            }
+            // Go-Kart Tire -> Vulcanized Black Tread
+            else if (name.includes('tire')) {
               foundTire = child;
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0x18181b,
+                roughness: 0.88,
+                metalness: 0.05,
+                side: THREE.DoubleSide,
+              });
+            }
+            // Bumpers -> Durable Dark Bumper Plastic
+            else if (name.includes('bumper')) {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0x0f172a,
+                roughness: 0.85,
+                metalness: 0.1,
+                side: THREE.DoubleSide,
+              });
+            }
+            // Superflux Motor Hub & Mounts -> Anodized Bronze
+            else if (name.includes('superflux') || name.includes('mount')) {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0x92400e,
+                roughness: 0.3,
+                metalness: 0.85,
+                side: THREE.DoubleSide,
+              });
+            }
+            // Battery & Controller Enclosures -> Matte Dark Slate CNC
+            else if (name.includes('box') || name.includes('lid')) {
+              child.material = new THREE.MeshStandardMaterial({
+                color: 0x1e293b,
+                roughness: 0.65,
+                metalness: 0.3,
+                side: THREE.DoubleSide,
+              });
+            } else {
+              // Ensure all other meshes are DoubleSide to prevent z-fighting / missing faces
+              if (child.material) {
+                child.material.side = THREE.DoubleSide;
+              }
             }
           }
         });
@@ -1388,7 +1748,7 @@
     // A. Central Go-Kart Tire (Axle along X)
     const tireGeo = new THREE.CylinderGeometry(TIRE_RADIUS, TIRE_RADIUS, 0.18, 24);
     tireGeo.rotateZ(Math.PI / 2);
-    const tireMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.85, metalness: 0.1 });
+    const tireMat = new THREE.MeshStandardMaterial({ color: 0x141416, roughness: 0.88, metalness: 0.05, side: THREE.DoubleSide });
     wheelMesh = new THREE.Mesh(tireGeo, tireMat);
     wheelMesh.position.set(0, TIRE_RADIUS, 0);
     wheelMesh.castShadow = true;
@@ -1397,12 +1757,12 @@
     // Motor Hub Anodized Bronze
     const hubGeo = new THREE.CylinderGeometry(0.08, 0.08, 0.185, 16);
     hubGeo.rotateZ(Math.PI / 2);
-    const hubMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.8, roughness: 0.25 });
+    const hubMat = new THREE.MeshStandardMaterial({ color: 0x92400e, metalness: 0.85, roughness: 0.3, side: THREE.DoubleSide });
     const hubMesh = new THREE.Mesh(hubGeo, hubMat);
     wheelMesh.add(hubMesh);
 
-    // B. CNC Rails (Anodized Slate Blue along Z length)
-    const railMat = new THREE.MeshStandardMaterial({ color: 0x3b82f6, metalness: 0.7, roughness: 0.3 });
+    // B. CNC Rails (Anodized Metallic Red along Z length)
+    const railMat = new THREE.MeshStandardMaterial({ color: 0xef233c, metalness: 0.78, roughness: 0.32, side: THREE.DoubleSide });
     const railGeo = new THREE.BoxGeometry(0.03, 0.045, 0.74);
 
     const railLeft = new THREE.Mesh(railGeo, railMat);
@@ -1416,7 +1776,7 @@
     boardGroup.add(railRight);
 
     // C. Footpads (+Z Front, -Z Rear)
-    const padMat = new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.95 });
+    const padMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.8, side: THREE.DoubleSide });
     const padGeo = new THREE.BoxGeometry(0.23, 0.03, 0.24);
 
     // Front Pad (+Z)
@@ -1432,7 +1792,7 @@
     boardGroup.add(padRear);
 
     // D. Bumpers (+Z Front, -Z Rear)
-    const bumperMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8 });
+    const bumperMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.85, side: THREE.DoubleSide });
     const bumperFront = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.04, 0.1), bumperMat);
     bumperFront.position.set(0, TIRE_RADIUS - 0.01, 0.34);
     boardGroup.add(bumperFront);
@@ -1446,29 +1806,41 @@
 
   // Headlight & Taillight System (+Z White Front, -Z Red Rear)
   function setupBoardLights() {
-    // 1. Front Headlight Beam (Bright White Spotlight shining towards +Z forward)
-    headlightSpot = new THREE.SpotLight(0xecfeff, 2.2, 14, 0.55, 0.4, 1.5);
-    headlightSpot.position.set(0, TIRE_RADIUS + 0.02, 0.34);
-    const targetObj = new THREE.Object3D();
-    targetObj.position.set(0, 0, 8); // Shines forward along +Z
-    boardGroup.add(targetObj);
-    headlightSpot.target = targetObj;
+    // 1. Front Headlight Beam (Bright White Spotlight shining forward along ground)
+    headlightSpot = new THREE.SpotLight(0xecfeff, 2.6, 16, 0.55, 0.35, 1.4);
+    headlightSpot.position.set(0, TIRE_RADIUS + 0.03, 0.34);
+    const frontTargetObj = new THREE.Object3D();
+    frontTargetObj.position.set(0, -0.15, 8); // Shines forward along +Z onto ground
+    boardGroup.add(frontTargetObj);
+    headlightSpot.target = frontTargetObj;
     boardGroup.add(headlightSpot);
 
     // Glowing LED Lens (Front - White)
-    const lensGeo = new THREE.BoxGeometry(0.14, 0.015, 0.02);
-    const lens = new THREE.Mesh(lensGeo, new THREE.MeshBasicMaterial({ color: 0xffffff }));
-    lens.position.set(0, TIRE_RADIUS + 0.015, 0.345);
-    boardGroup.add(lens);
+    const frontLensGeo = new THREE.BoxGeometry(0.18, 0.02, 0.02);
+    const frontLens = new THREE.Mesh(
+      frontLensGeo,
+      new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 1.4, roughness: 0.1 })
+    );
+    frontLens.position.set(0, TIRE_RADIUS + 0.015, 0.345);
+    boardGroup.add(frontLens);
 
-    // 2. Rear Taillight (Red LED glowing at -Z rear)
-    taillightGlow = new THREE.PointLight(0xef4444, 1.5, 4.0);
-    taillightGlow.position.set(0, TIRE_RADIUS + 0.02, -0.34);
-    boardGroup.add(taillightGlow);
+    // 2. Rear Taillight Beam (Focused Red Spotlight shining backwards towards -Z rear along ground)
+    taillightSpot = new THREE.SpotLight(0xff1414, 3.0, 14, 0.58, 0.45, 1.3);
+    taillightSpot.position.set(0, TIRE_RADIUS + 0.03, -0.34);
+    const rearTargetObj = new THREE.Object3D();
+    rearTargetObj.position.set(0, -0.15, -8); // Shines backwards along -Z onto ground behind board
+    boardGroup.add(rearTargetObj);
+    taillightSpot.target = rearTargetObj;
+    boardGroup.add(taillightSpot);
 
-    const redLens = new THREE.Mesh(lensGeo, new THREE.MeshBasicMaterial({ color: 0xef4444 }));
-    redLens.position.set(0, TIRE_RADIUS + 0.015, -0.345);
-    boardGroup.add(redLens);
+    // Glowing LED Lens (Rear - Red Light Bar on Bumper)
+    const rearLensGeo = new THREE.BoxGeometry(0.18, 0.02, 0.02);
+    taillightLens = new THREE.Mesh(
+      rearLensGeo,
+      new THREE.MeshStandardMaterial({ color: 0xff0000, emissive: 0xff1616, emissiveIntensity: 1.8, roughness: 0.15 })
+    );
+    taillightLens.position.set(0, TIRE_RADIUS + 0.015, -0.345);
+    boardGroup.add(taillightLens);
   }
 
   // ==========================================================================
@@ -1971,7 +2343,40 @@
     const worldDirZ = (-inputX - inputY) * 0.7071;
     const inputMagnitude = Math.min(1.0, Math.hypot(inputX, inputY));
 
-    // 2. Downhill Slope Gravity, Grade Acceleration & Uphill Drag
+    // Unit forward and lateral vectors based on current board heading
+    const fwdX = Math.sin(p.heading);
+    const fwdZ = Math.cos(p.heading);
+    const rightX = Math.cos(p.heading);
+    const rightZ = -Math.sin(p.heading);
+
+    // Decompose current velocity along forward and lateral axes
+    let vFwd = p.vx * fwdX + p.vz * fwdZ;
+    let vLat = p.vx * rightX + p.vz * rightZ;
+
+    // 2. Motor Acceleration & Steering (Forces applied relative to board heading)
+    if (inputMagnitude > 0.05) {
+      // Steer heading smoothly towards input direction
+      const desiredHeading = Math.atan2(worldDirX, worldDirZ);
+      let angleDiff = desiredHeading - p.heading;
+      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+      p.heading += angleDiff * Math.min(1.0, dt * TURN_SPEED);
+
+      // Carve Roll banking
+      const rollTarget = THREE.MathUtils.clamp(-angleDiff * 1.5, -0.15, 0.15);
+      p.roll = THREE.MathUtils.lerp(p.roll, rollTarget, dt * 10);
+
+      // Motor thrust accelerates forward along heading
+      const targetSpeed = MAX_SPEED * inputMagnitude;
+      vFwd = THREE.MathUtils.lerp(vFwd, targetSpeed, dt * 3.6);
+    } else {
+      // Coasting friction
+      vFwd = THREE.MathUtils.lerp(vFwd, 0, dt * 2.2);
+      p.roll = THREE.MathUtils.lerp(p.roll, 0, dt * 8);
+    }
+
+    // 3. Downhill Slope Gravity & Counter-Steering ("Fight Gravity")
+    // Gravity acts continuously whether touching controls or not!
     if (!p.isAirborne && !state.grind.active) {
       const epsG = 0.45;
       const hE = getTerrainElevation(p.x + epsG, p.z);
@@ -1979,49 +2384,31 @@
       const hS = getTerrainElevation(p.x, p.z + epsG);
       const hN = getTerrainElevation(p.x, p.z - epsG);
 
-      // Gradient vector points uphill (positive height increase)
       const gradX = (hE - hW) / (2 * epsG);
       const gradZ = (hS - hN) / (2 * epsG);
 
-      // Downhill gravitational pull vector (points directly downhill)
-      // When carving across a hill, this forces the rider to steer into the hill ("fight gravity")
-      const SLOPE_GRAVITY_FORCE = 16.0;
       const downhillX = -gradX;
       const downhillZ = -gradZ;
 
-      p.vx += downhillX * SLOPE_GRAVITY_FORCE * dt;
-      p.vz += downhillZ * SLOPE_GRAVITY_FORCE * dt;
+      // Project downhill gravity onto board forward and lateral axes
+      const gravFwd = downhillX * fwdX + downhillZ * fwdZ;
+      const gravLat = downhillX * rightX + downhillZ * rightZ;
 
-      // Grade along board heading (positive = pointing uphill, negative = pointing downhill)
-      const forwardDirX = Math.sin(p.heading);
-      const forwardDirZ = Math.cos(p.heading);
-      const forwardGrade = forwardDirX * gradX + forwardDirZ * gradZ;
+      const SLOPE_GRAV = 16.0;
+      vFwd += gravFwd * SLOPE_GRAV * dt;
+      vLat += gravLat * SLOPE_GRAV * dt;
 
-      if (forwardGrade > 0.04) {
-        // Uphill resistance: gravity opposes velocity, slowing the board
-        const uphillDrag = Math.min(forwardGrade * 20.0, 18.0);
-        p.vx -= forwardDirX * uphillDrag * dt;
-        p.vz -= forwardDirZ * uphillDrag * dt;
-      } else if (forwardGrade < -0.04) {
-        // Downhill acceleration: gravity boosts board speed downhill
-        const downhillBoost = Math.min(-forwardGrade * 18.0, 24.0);
-        p.vx += forwardDirX * downhillBoost * dt;
-        p.vz += forwardDirZ * downhillBoost * dt;
-      }
-    }
-
-    // Motor Acceleration or Coasting
-    if (inputMagnitude > 0.05) {
-      const targetVx = worldDirX * MAX_SPEED * inputMagnitude;
-      const targetVz = worldDirZ * MAX_SPEED * inputMagnitude;
-
-      p.vx = THREE.MathUtils.lerp(p.vx, targetVx, ACCELERATION * dt * 0.15);
-      p.vz = THREE.MathUtils.lerp(p.vz, targetVz, ACCELERATION * dt * 0.15);
+      // Lateral tire grip: resists sideways drift, but on steep slopes allows realistic sideslip!
+      // This forces the rider to actively counter-steer uphill into the slope to hold a line across steep hills!
+      const TIRE_LATERAL_GRIP = 5.2;
+      vLat = THREE.MathUtils.lerp(vLat, 0, dt * TIRE_LATERAL_GRIP);
     } else {
-      // Coasting friction
-      p.vx = THREE.MathUtils.lerp(p.vx, 0, DECELERATION * dt * 0.14);
-      p.vz = THREE.MathUtils.lerp(p.vz, 0, DECELERATION * dt * 0.14);
+      vLat = THREE.MathUtils.lerp(vLat, 0, dt * 4.0);
     }
+
+    // Reconstruct world velocity from forward and lateral components
+    p.vx = vFwd * fwdX + vLat * rightX;
+    p.vz = vFwd * fwdZ + vLat * rightZ;
 
     // Downhill top speed cap allows speed up to 18.5 m/s (~41 MPH!)
     const currentSpeed = Math.hypot(p.vx, p.vz);
@@ -2031,19 +2418,13 @@
     }
     p.speed = Math.hypot(p.vx, p.vz);
 
-    // 3. Heading (Board faces direction of motion when rolling on ground)
-    if (!p.isAirborne && p.speed > 0.35 && !state.grind.active) {
-      const targetHeading = Math.atan2(p.vx, p.vz);
-      let angleDiff = targetHeading - p.heading;
-      while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-      while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-      p.heading += angleDiff * TURN_SPEED * dt;
-
-      // Carve Bank Roll
-      const rollTarget = THREE.MathUtils.clamp(-angleDiff * 1.5, -0.15, 0.15);
-      p.roll = THREE.MathUtils.lerp(p.roll, rollTarget, dt * 10);
-    } else if (!p.isAirborne && !state.grind.active) {
-      p.roll = THREE.MathUtils.lerp(p.roll, 0, dt * 8);
+    // Taillight / Brake Light Dynamic Lighting (Brightens on brake/reverse, shines rearward)
+    if (taillightSpot && taillightLens) {
+      const isBraking = (vFwd < 0.2 && inputMagnitude > 0.1) || state.input.down;
+      const targetIntensity = isBraking ? 4.6 : 2.8;
+      const targetEmissive = isBraking ? 2.6 : 1.6;
+      taillightSpot.intensity = THREE.MathUtils.lerp(taillightSpot.intensity, targetIntensity, dt * 10);
+      taillightLens.material.emissiveIntensity = THREE.MathUtils.lerp(taillightLens.material.emissiveIntensity, targetEmissive, dt * 10);
     }
 
     // 4. Terrain Slope Pitch & Carving Roll Alignment
@@ -2065,7 +2446,7 @@
       const riderPitch = THREE.MathUtils.clamp(-accelRate * 0.04, -0.03, 0.03);
 
       p.pitch = THREE.MathUtils.lerp(p.pitch, slopePitch + riderPitch, dt * 14);
-      p.roll = THREE.MathUtils.lerp(p.roll, slopeRoll + p.roll, dt * 8);
+      p.roll = THREE.MathUtils.lerp(p.roll, p.roll * 0.75 + THREE.MathUtils.clamp(slopeRoll, -0.15, 0.15), dt * 8);
     }
 
     // 5. Position Integration & Boundary Clamping
@@ -2239,6 +2620,98 @@
         }
         continue;
       }
+      // 2. BANKED RAMPS (Skate plaza banks & quarter returns)
+      if (obs.type === 'bank_z') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const bankY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, bankY);
+        }
+        continue;
+      }
+
+      if (obs.type === 'bank_x') {
+        const minX = Math.min(obs.xStart, obs.xEnd);
+        const maxX = Math.max(obs.xStart, obs.xEnd);
+        if (Math.abs(p.z - obs.z) <= obs.length / 2 && p.x >= minX && p.x <= maxX) {
+          const ratio = THREE.MathUtils.clamp((p.x - obs.xStart) / (obs.xEnd - obs.xStart), 0, 1);
+          const bankY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, bankY);
+        }
+        continue;
+      }
+
+      // 3. FLAT DECKS & STAGING PLATFORMS
+      if (obs.type === 'deck' || obs.type === 'megadrop_platform') {
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && Math.abs(p.z - obs.z) <= obs.length / 2) {
+          targetGround = Math.max(targetGround, obs.height);
+        }
+        continue;
+      }
+
+      // 4. MEGA DROP STRUCTURE (Runway, Kicker, Landing)
+      if (obs.type === 'megadrop_runway') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const dropY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, dropY);
+
+          // Steep downhill gravity acceleration (South along +Z)
+          if (!p.isAirborne) {
+            p.vz += 26.0 * dt;
+            p.speed = Math.hypot(p.vx, p.vz);
+          }
+        }
+        continue;
+      }
+
+      if (obs.type === 'megadrop_kicker') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + Math.pow(ratio, 1.35) * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, rampY);
+
+          if (ratio > 0.82 && p.speed > 4.5 && !p.isAirborne) {
+            p.vy = JUMP_VELOCITY * 1.9; // Massive mega launch impulse
+            p.isAirborne = true;
+            p.airtime = 0;
+            state.aerial.airYaw = 0;
+            state.aerial.airPitch = 0;
+            state.aerial.spin180Done = false;
+            state.aerial.spin360Done = false;
+            state.aerial.flipDone = false;
+            showTrickToast('MEGA DROP SUPER AIR! 🚀 +500');
+          }
+        }
+        continue;
+      }
+
+      if (obs.type === 'megadrop_landing') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const landY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, landY);
+
+          // Catch landing slope cleanly
+          if (p.isAirborne && p.y <= landY + 0.4) {
+            p.y = landY;
+            p.vy = 0;
+            p.isAirborne = false;
+            p.vz += 8.0 * dt;
+            p.speed = Math.hypot(p.vx, p.vz);
+            showTrickToast('MEGA DROP LANDED! 🔥 +500');
+          }
+        }
+        continue;
+      }
 
       // Standard AABB overlap check for non-rotated obstacles
       const effectiveHalfW = obs.type === 'rail' ? 0.65 : halfW;
@@ -2337,48 +2810,6 @@
               }
             }
             targetGround = Math.max(targetGround, spineY);
-          }
-        } else if (obs.type === 'megadrop_runway') {
-          const ratio = THREE.MathUtils.clamp((p.z - (obs.z - halfL)) / obs.length, 0, 1);
-          const dropY = obs.topY - ratio * (obs.topY - obs.bottomY);
-          targetGround = Math.max(targetGround, dropY);
-
-          // Steep downhill gravity acceleration
-          if (!p.isAirborne) {
-            p.vz += 26.0 * dt; // accelerate South down the steep decline
-            p.speed = Math.hypot(p.vx, p.vz);
-          }
-        } else if (obs.type === 'megadrop_kicker') {
-          const relZ = (p.z - obs.z);
-          const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
-          const rampY = obs.baseY + Math.pow(ratio, 1.4) * obs.height;
-          targetGround = Math.max(targetGround, rampY);
-
-          if (ratio > 0.8 && p.speed > 5.0 && !p.isAirborne) {
-            p.vy = JUMP_VELOCITY * 1.85; // Massive mega kicker launch impulse (14.5 m/s)
-            p.isAirborne = true;
-            p.airtime = 0;
-            state.aerial.airYaw = 0;
-            state.aerial.airPitch = 0;
-            state.aerial.spin180Done = false;
-            state.aerial.spin360Done = false;
-            state.aerial.flipDone = false;
-            showTrickToast('MEGA DROP SUPER AIR! +500');
-          }
-        } else if (obs.type === 'megadrop_landing') {
-          // Smooth transition along the black metal scaffold landing ramp
-          const relZ = THREE.MathUtils.clamp((p.z - (obs.z - halfL)) / obs.length, 0, 1);
-          const landY = obs.topY - relZ * (obs.topY - obs.bottomY);
-          targetGround = Math.max(targetGround, landY);
-
-          // If airborne and catching the landing slope
-          if (p.isAirborne && p.y <= landY + 0.35) {
-            p.y = landY;
-            p.vy = 0;
-            p.isAirborne = false;
-            p.vz += 8.0 * dt;
-            p.speed = Math.hypot(p.vx, p.vz);
-            showTrickToast('MEGA DROP LANDED! +500');
           }
         } else if (obs.type === 'rail') {
           if (p.y >= obs.height - 0.28 && p.y <= obs.height + 0.65) {
