@@ -10,8 +10,8 @@
 
   // --- Constants & Config ---
   const GRAVITY = -28.0;         // m/s^2
-  const MAX_SPEED = 11.2;        // ~25.0 MPH (flat ground top speed)
-  const ACCELERATION = 24.0;     // m/s^2
+  const MAX_SPEED = 20.12;       // ~45.0 MPH (flat ground top speed)
+  const ACCELERATION = 14.0;     // m/s^2 progressive motor torque rate
   const DECELERATION = 16.0;     // m/s^2 (regenerative braking & coasting)
   const JUMP_VELOCITY = 7.8;     // m/s initial bunny-hop impulse
   const TIRE_RADIUS = 0.14;      // ~11 inch tire radius in meters
@@ -27,7 +27,7 @@
       z: 0,
       heading: -Math.PI * 0.75, // Screen-up facing
       spawnYOffset: 0.18,
-      desc: 'Central skate park with grind rails, ledges, and kickers'
+      desc: 'Central skate park with funboxes, tabletop jumps, rails, and ledges'
     },
     {
       id: 1,
@@ -41,23 +41,23 @@
     },
     {
       id: 2,
-      name: 'Whale Tail',
-      zone: 'Pine Ridge',
+      name: 'Pine Ridge Slopestyle',
+      zone: 'Pine Ridge Timber Course',
       x: 55,
-      z: 22,
+      z: 42,
       heading: Math.PI, // Facing North down the slopestyle line
-      spawnYOffset: 0.22,
-      desc: 'Slopestyle timber step-up into arched whale-tail spine'
+      spawnYOffset: 3.42, // On top of timber staging deck
+      desc: 'Red Bull mountain bike slopestyle course with timber step-ups, bridges, whale tail & wallride'
     },
     {
       id: 3,
-      name: 'Tabletop & Gap',
-      zone: 'Slickrock Bluff',
+      name: 'Slickrock Motocross',
+      zone: 'Slickrock Canyon MX',
       x: -58,
-      z: 26,
-      heading: Math.PI, // Facing North into tabletop and gap jumps
-      spawnYOffset: 0.22,
-      desc: '13-meter tabletop jump and canyon gap launcher'
+      z: 42,
+      heading: Math.PI, // Facing North into MX jump line
+      spawnYOffset: 3.22, // On top of MX starting mound
+      desc: 'High-speed motocross jump line with 16m monster dirt tabletop, rhythm whoops & canyon gap'
     },
     {
       id: 4,
@@ -473,6 +473,19 @@
       const ravineDist = Math.abs(x - 46);
       const ravine = ravineDist < 7 ? -Math.cos((ravineDist / 7) * Math.PI * 0.5) * 1.2 : 0;
       h = 1.6 + forestKnolls + ravine;
+
+      // Grade smooth downhill corridor under Pine Ridge Slopestyle course (x ~ 55, z: -28 to 45)
+      if (Math.abs(x - 55) < 8.0 && z >= -28 && z <= 45) {
+        const gradeT = (45 - z) / 73.0;
+        const trailFloor = THREE.MathUtils.lerp(2.2, 1.0, gradeT);
+        const distFromCenter = Math.abs(x - 55);
+        if (distFromCenter < 4.2) {
+          h = trailFloor;
+        } else {
+          const blend = (distFromCenter - 4.2) / 3.8;
+          h = THREE.MathUtils.lerp(trailFloor, h, blend);
+        }
+      }
     }
     // D. West: Slickrock Bluff (Tiered sandstone shelves, jump bowl)
     else if (x < -18 && Math.abs(z) <= Math.abs(x) * 1.6) {
@@ -481,6 +494,19 @@
       const bowlDist = Math.hypot(x - (-52), z);
       const bowl = bowlDist < 16 ? -Math.cos((bowlDist / 16) * Math.PI * 0.5) * 1.3 : 0;
       h = 1.4 + shelves + bowl;
+
+      // Grade smooth downhill corridor under Slickrock Motocross course (x ~ -58, z: -28 to 45)
+      if (Math.abs(x - (-58)) < 8.0 && z >= -28 && z <= 45) {
+        const gradeT = (45 - z) / 73.0;
+        const trailFloor = THREE.MathUtils.lerp(2.2, 1.0, gradeT);
+        const distFromCenter = Math.abs(x - (-58));
+        if (distFromCenter < 4.2) {
+          h = trailFloor;
+        } else {
+          const blend = (distFromCenter - 4.2) / 3.8;
+          h = THREE.MathUtils.lerp(trailFloor, h, blend);
+        }
+      }
     } else {
       // Diagonal corner transitions
       h = 0.8 + Math.sin(x * 0.09) * 0.7 + Math.cos(z * 0.09) * 0.7;
@@ -674,9 +700,9 @@
 
     // 5. Trail Signs
     createTrailSign('North: Thunder Peak', '[MEGA DROP]', -6.0, -18, 0, 0xf59e0b);
-    createTrailSign('South: Cactus Canyon', '[CHILL BERMS]', 0, 32, Math.PI, 0x14b8a6);
-    createTrailSign('East: Pine Ridge', '[WHALE TAIL]', 32, 0, Math.PI / 2, 0x10b981);
-    createTrailSign('West: Slickrock Bluff', '[TABLETOP & GAP]', -32, 0, -Math.PI / 2, 0xf59e0b);
+    createTrailSign('South: Cactus Canyon', '[DESERT BERMS]', 0, 20, Math.PI, 0x14b8a6);
+    createTrailSign('East: Pine Ridge', '[SLOPESTYLE TIMBER]', 20, 0, Math.PI / 2, 0x10b981);
+    createTrailSign('West: Slickrock Bluff', '[MOTOCROSS CANYON]', -20, 0, -Math.PI / 2, 0xf59e0b);
 
     // 6. Scenery (Trees, Rocks, Cacti placed on contour elevation)
     populateScenery();
@@ -952,6 +978,29 @@
     // Neon Violet Flatbar Rail
     createGrindRail(13.4, 0, 9.0, 0.38, 0xa855f7);
 
+    // =========================================================================
+    // 5. PLAZA STREET JUMP LINES (Tabletop, Quarter Spine & Hip Transfer)
+    // =========================================================================
+    // A. Concrete Street Tabletop / Launch Box (Northwest Plaza, x: -7.5, z: -7.5)
+    createTabletopJump(-7.5, -7.5, 7.0, 3.4, 0.62);
+
+    // B. Curved Launch Kicker to Bank Transfer (Northeast Plaza, x: 7.5, z: -7.5)
+    createKickerRamp(7.5, -7.5, 3.2, 3.4, 0.68, Math.PI * 0.75);
+
+    // C. Quarter Pipe Return Spine (Southeast Plaza, x: 7.5, z: 7.5)
+    const plazaQuarter = createQuarterBankMesh(5.2, 3.2, 0.78, -Math.PI * 0.25, bankMat);
+    plazaQuarter.position.set(7.5, 0.06, 7.5);
+    scene.add(plazaQuarter);
+    registerObstacle({
+      type: 'bank_z',
+      x: 7.5,
+      zStart: 5.9,
+      zEnd: 9.1,
+      width: 5.2,
+      yStart: 0.06,
+      yEnd: 0.84,
+    });
+
     // Curbs surrounding the plaza
     createCurbs();
   }
@@ -1028,31 +1077,27 @@
   // 5. Specialized Stunt Jumps (Tabletop, Gap, Whale Tail, Mega Drop)
   // ==========================================================================
   function createStuntJumpLines() {
-    // 1. TABLETOP JUMP (West: Slickrock Bluff - x=-58, z=14)
-    createTabletopJump(-58, 14, 13.0, 3.8, 1.6);
+    // 1. EAST: Pine Ridge Red Bull Mountain Bike / Slopestyle Timber Course
+    createPineRidgeTimberCourse(55, 42);
 
-    // 2. CANYON GAP JUMP (West: Slickrock Bluff - x=-58, z=-14)
-    createGapJump(-58, -14, 3.8, 3.6, 1.8, 6.5, 5.0, 1.5);
+    // 2. WEST: Slickrock Red Bull Hardline / Motocross Canyon Course
+    createSlickrockMotocrossCourse(-58, 42);
 
-    // 3. WHALE TAIL (East: Pine Ridge - x=55, z=8)
-    createWhaleTail(55, 8);
-
-    // 4. MEGA DROP ROLL-IN TOWER & SUPER JUMP (North: Thunder Peak - x=0, z=-72)
+    // 3. NORTH: Mega Drop Roll-In Tower & Super Jump (Thunder Peak)
     createMegaDropRamp(0, -72);
   }
 
-  // A. TABLETOP JUMP: Takeoff slope -> Flat elevated deck -> Landing transition
-  function createTabletopJump(x, z, length, width, height) {
+  // General Reusable Tabletop Jump (Used in Central Skatepark and Beyond)
+  function createTabletopJump(x, z, length, width, height, customDeckMat, customSideMat) {
     const baseY = getTerrainElevation(x, z);
     const group = new THREE.Group();
 
-    const takeoffLen = 4.0;
-    const deckLen = 5.0;
-    const landingLen = 4.0;
+    const takeoffLen = Math.min(4.0, length * 0.32);
+    const landingLen = Math.min(4.0, length * 0.32);
+    const deckLen = length - takeoffLen - landingLen;
 
-    // Wood & Sandstone Materials
-    const deckMat = new THREE.MeshStandardMaterial({ color: 0xcd853f, roughness: 0.65 });
-    const sideMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.85 });
+    const deckMat = customDeckMat || new THREE.MeshStandardMaterial({ color: 0xcd853f, roughness: 0.65 });
+    const sideMat = customSideMat || new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.85 });
 
     // 1. Takeoff Ramp (Wedge up)
     const takeoffShape = new THREE.Shape();
@@ -1111,7 +1156,7 @@
     });
   }
 
-  // B. GAP JUMP: Launch kicker -> Void chasm with warning markers -> Banked landing
+  // General Reusable Gap Jump Helper
   function createGapJump(x, z, kickerLen, width, kickerHeight, gapDist, landLen, landHeight) {
     const baseY = getTerrainElevation(x, z);
     const group = new THREE.Group();
@@ -1119,7 +1164,6 @@
     const rampMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.7 });
     const hazardMat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, emissiveIntensity: 0.5 });
 
-    // 1. Takeoff Kicker
     const shapeKicker = new THREE.Shape();
     shapeKicker.moveTo(0, 0);
     shapeKicker.lineTo(kickerLen, kickerHeight);
@@ -1135,7 +1179,6 @@
     kickerMesh.receiveShadow = true;
     group.add(kickerMesh);
 
-    // Hazard pylons flanking the gap
     [-width / 2 - 0.3, width / 2 + 0.3].forEach((px) => {
       const pylonGeo = new THREE.CylinderGeometry(0.1, 0.12, 1.2, 8);
       const pylon = new THREE.Mesh(pylonGeo, hazardMat);
@@ -1148,7 +1191,6 @@
       group.add(pylonLand);
     });
 
-    // 2. Landing Receiver Slope
     const shapeLand = new THREE.Shape();
     shapeLand.moveTo(0, landHeight);
     shapeLand.lineTo(landLen, 0);
@@ -1167,7 +1209,6 @@
     group.position.set(x, baseY, z);
     scene.add(group);
 
-    // Register launch kicker obstacle
     registerObstacle({
       type: 'gap_kicker',
       x: x,
@@ -1178,7 +1219,6 @@
       height: kickerHeight,
     });
 
-    // Register landing receiver obstacle
     registerObstacle({
       type: 'gap_landing',
       x: x,
@@ -1190,89 +1230,690 @@
     });
   }
 
-  // C. WHALE TAIL: Slopestyle curved wooden step-up -> arched spine deck -> drop kicker
-  function createWhaleTail(x, z) {
-    const baseY = getTerrainElevation(x, z);
+  // ==========================================================================
+  // TRAIL 1: PINE RIDGE RED BULL SLOPESTYLE TIMBER COURSE (East: x ~ 55, z: 42 to -23)
+  // Natural rustic wooden features linked into a continuous slopestyle flow trail
+  // ==========================================================================
+  function createPineRidgeTimberCourse(courseX = 55, startZ = 42) {
     const group = new THREE.Group();
 
-    const width = 3.2;
-    const height = 1.9;
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0xa16207, roughness: 0.6 });
-    const postMat = new THREE.MeshStandardMaterial({ color: 0x451a03, roughness: 0.9 });
+    // Natural Rustic Timber Materials
+    const cedarDeckMat = new THREE.MeshStandardMaterial({ color: 0x925c2b, roughness: 0.82 });
+    const darkWoodMat = new THREE.MeshStandardMaterial({ color: 0x4a2a11, roughness: 0.94 });
+    const logPostMat = new THREE.MeshStandardMaterial({ color: 0x3b220e, roughness: 0.95 });
+    const bannerMat = new THREE.MeshStandardMaterial({ color: 0xb45309, roughness: 0.5, metalness: 0.1 });
+    const flagMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.4 });
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9, flatShading: true });
 
-    // 1. Curved Step-Up Ramp
-    const stepUpLen = 4.5;
-    const stepUpShape = new THREE.Shape();
-    stepUpShape.moveTo(0, 0);
-    stepUpShape.quadraticCurveTo(stepUpLen * 0.7, 0.4, stepUpLen, height);
-    stepUpShape.lineTo(stepUpLen, 0);
-    stepUpShape.closePath();
+    // 1. TIMBER STAGING TOWER & ROLL-IN DROP CHUTE (z: 44 to 32)
+    const towerBaseY = getTerrainElevation(courseX, 42);
+    const towerH = 3.2;
+    const towerPlatformY = towerBaseY + towerH;
 
-    const stepUpGeom = new THREE.ExtrudeGeometry(stepUpShape, { depth: width, bevelEnabled: false });
-    stepUpGeom.center();
-    const stepUpMesh = new THREE.Mesh(stepUpGeom, woodMat);
-    stepUpMesh.position.set(0, height / 2, 5.5);
-    stepUpMesh.rotation.y = Math.PI / 2;
-    stepUpMesh.castShadow = true;
-    stepUpMesh.receiveShadow = true;
-    group.add(stepUpMesh);
+    // Platform Deck (5.4m x 4.0m at z: 40 to 44)
+    const platGeo = new THREE.BoxGeometry(5.4, 0.35, 4.0);
+    const platMesh = new THREE.Mesh(platGeo, cedarDeckMat);
+    platMesh.position.set(courseX, towerPlatformY - 0.175, 42);
+    platMesh.castShadow = true;
+    platMesh.receiveShadow = true;
+    group.add(platMesh);
 
-    // 2. Whale Tail Arched Spine Platform (Length 6m)
-    const spineLen = 6.0;
-    const spineGeo = new THREE.BoxGeometry(width, 0.25, spineLen);
-    const spineMesh = new THREE.Mesh(spineGeo, woodMat);
-    spineMesh.position.set(0, height + 0.12, 0);
-    spineMesh.castShadow = true;
-    spineMesh.receiveShadow = true;
-    group.add(spineMesh);
-
-    // Decorative side arches
-    const railMat = new THREE.MeshStandardMaterial({ color: 0xca8a04, metalness: 0.7 });
-    [-width / 2 + 0.08, width / 2 - 0.08].forEach((rx) => {
-      const sideCurb = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.22, spineLen), railMat);
-      sideCurb.position.set(rx, height + 0.25, 0);
-      group.add(sideCurb);
-    });
-
-    // Support timber pillars
-    [-2, 0, 2].forEach((pz) => {
-      [-width / 2 + 0.3, width / 2 - 0.3].forEach((px) => {
-        const pillar = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, height, 6), postMat);
-        pillar.position.set(px, height / 2, pz);
-        pillar.castShadow = true;
-        group.add(pillar);
+    // Supporting Log Pilings down to ground
+    [-2.4, 2.4].forEach((px) => {
+      [40.3, 43.7].forEach((pz) => {
+        const postH = towerPlatformY - getTerrainElevation(courseX + px, pz);
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.16, postH, 8), logPostMat);
+        post.position.set(courseX + px, towerPlatformY - postH / 2, pz);
+        post.castShadow = true;
+        group.add(post);
       });
     });
 
-    // 3. Drop-Down Transition Kicker
-    const dropLen = 4.0;
+    // Rustic Log Railings (Left, Right, and Back)
+    const railMat = logPostMat;
+    [-2.55, 2.55].forEach((rx) => {
+      const sideRail = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.0, 8), railMat);
+      sideRail.rotation.x = Math.PI / 2;
+      sideRail.position.set(courseX + rx, towerPlatformY + 0.55, 42);
+      sideRail.castShadow = true;
+      group.add(sideRail);
+    });
+    const backRail = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 5.2, 8), railMat);
+    backRail.rotation.z = Math.PI / 2;
+    backRail.position.set(courseX, towerPlatformY + 0.55, 43.85);
+    group.add(backRail);
+
+    // Start Gate Arch & Banner: "PINE RIDGE SLOPESTYLE"
+    [-2.6, 2.6].forEach((ax) => {
+      const archPost = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 5.0, 8), logPostMat);
+      archPost.position.set(courseX + ax, towerPlatformY + 2.5, 40.2);
+      archPost.castShadow = true;
+      group.add(archPost);
+    });
+    const archBeam = new THREE.Mesh(new THREE.BoxGeometry(5.6, 0.55, 0.18), bannerMat);
+    archBeam.position.set(courseX, towerPlatformY + 4.6, 40.2);
+    group.add(archBeam);
+
+    registerObstacle({
+      type: 'deck',
+      x: courseX,
+      z: 42,
+      width: 5.4,
+      length: 4.0,
+      height: towerPlatformY,
+    });
+
+    // Roll-In Downward Drop Runway (z: 40 to 32, drops from 3.2m down to 0.15m)
+    const dropRunwayLen = 8.0;
+    const dropBottomY = getTerrainElevation(courseX, 32) + 0.15;
+    const dropHeightDelta = towerPlatformY - dropBottomY;
+
     const dropShape = new THREE.Shape();
-    dropShape.moveTo(0, height);
-    dropShape.lineTo(dropLen, 0);
+    dropShape.moveTo(0, dropHeightDelta);
+    dropShape.lineTo(dropRunwayLen, 0);
     dropShape.lineTo(0, 0);
     dropShape.closePath();
 
-    const dropGeom = new THREE.ExtrudeGeometry(dropShape, { depth: width, bevelEnabled: false });
+    const dropGeom = new THREE.ExtrudeGeometry(dropShape, { depth: 4.4, bevelEnabled: false });
     dropGeom.center();
-    const dropMesh = new THREE.Mesh(dropGeom, woodMat);
-    dropMesh.position.set(0, height / 2, -5.2);
-    dropMesh.rotation.y = Math.PI / 2;
+    const dropMesh = new THREE.Mesh(dropGeom, cedarDeckMat);
+    dropMesh.position.set(courseX, dropBottomY + dropHeightDelta / 2, 36);
+    dropMesh.rotation.y = -Math.PI / 2; // High at South (+Z), Low at North (-Z)
     dropMesh.castShadow = true;
     dropMesh.receiveShadow = true;
     group.add(dropMesh);
 
-    group.position.set(x, baseY, z);
-    scene.add(group);
+    // Cross slat rungs along roll-in
+    for (let i = 0; i < 7; i++) {
+      const rz = 39.0 - i * 1.0;
+      const t = (39.0 - rz) / 7.0;
+      const ry = towerPlatformY - t * dropHeightDelta;
+      const slat = new THREE.Mesh(new THREE.BoxGeometry(4.4, 0.08, 0.12), darkWoodMat);
+      slat.position.set(courseX, ry + 0.04, rz);
+      group.add(slat);
+    }
 
     registerObstacle({
-      type: 'whaletail',
-      x: x,
-      z: z,
-      baseY: baseY,
-      width: width,
-      length: 15.0,
-      height: height,
+      type: 'slopestyle_rollin',
+      x: courseX,
+      zStart: 40.0,
+      zEnd: 32.0,
+      yStart: towerPlatformY,
+      yEnd: dropBottomY,
+      width: 4.4,
+      accelForce: 24.0,
     });
+
+    // 2. LADDER STEP-UP RAMP (z: 29.8 to 25.8)
+    const stepUpLen = 4.0;
+    const stepUpBaseY = getTerrainElevation(courseX, 27.8);
+    const stepUpTopY = stepUpBaseY + 1.85;
+    const stepUpHeight = 1.85;
+
+    const stepUpShape = new THREE.Shape();
+    stepUpShape.moveTo(0, 0);
+    stepUpShape.lineTo(stepUpLen, stepUpHeight);
+    stepUpShape.lineTo(stepUpLen, 0);
+    stepUpShape.closePath();
+
+    const stepUpGeom = new THREE.ExtrudeGeometry(stepUpShape, { depth: 3.6, bevelEnabled: false });
+    stepUpGeom.center();
+    const stepUpMesh = new THREE.Mesh(stepUpGeom, cedarDeckMat);
+    stepUpMesh.position.set(courseX, stepUpBaseY + stepUpHeight / 2, 27.8);
+    stepUpMesh.rotation.y = Math.PI / 2; // Low at South (+Z), High at North (-Z)
+    stepUpMesh.castShadow = true;
+    stepUpMesh.receiveShadow = true;
+    group.add(stepUpMesh);
+
+    // Ladder rungs
+    for (let i = 0; i < 5; i++) {
+      const rz = 29.2 - i * 0.8;
+      const t = (29.8 - rz) / 4.0;
+      const ry = stepUpBaseY + t * stepUpHeight;
+      const rung = new THREE.Mesh(new THREE.BoxGeometry(3.65, 0.07, 0.14), darkWoodMat);
+      rung.position.set(courseX, ry + 0.04, rz);
+      group.add(rung);
+    }
+
+    registerObstacle({
+      type: 'slopestyle_stepup',
+      x: courseX,
+      zStart: 29.8,
+      zEnd: 25.8,
+      yStart: stepUpBaseY + 0.15,
+      yEnd: stepUpTopY,
+      width: 3.6,
+    });
+
+    // 3. ELEVATED LOG BOARDWALK BRIDGE (z: 25.8 to 15.8)
+    const bridgeLen = 10.0;
+    const bridgeY = stepUpTopY;
+    const bridgeGeo = new THREE.BoxGeometry(3.4, 0.30, bridgeLen);
+    const bridgeMesh = new THREE.Mesh(bridgeGeo, cedarDeckMat);
+    bridgeMesh.position.set(courseX, bridgeY - 0.15, 20.8);
+    bridgeMesh.castShadow = true;
+    bridgeMesh.receiveShadow = true;
+    group.add(bridgeMesh);
+
+    // Side log curbs
+    [-1.6, 1.6].forEach((cx) => {
+      const curb = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, bridgeLen, 8), logPostMat);
+      curb.rotation.x = Math.PI / 2;
+      curb.position.set(courseX + cx, bridgeY + 0.08, 20.8);
+      curb.castShadow = true;
+      group.add(curb);
+    });
+
+    // Support pilings
+    [24.5, 21.0, 17.5].forEach((pz) => {
+      [-1.5, 1.5].forEach((px) => {
+        const postH = bridgeY - getTerrainElevation(courseX + px, pz);
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.13, postH, 8), logPostMat);
+        post.position.set(courseX + px, bridgeY - postH / 2, pz);
+        post.castShadow = true;
+        group.add(post);
+      });
+    });
+
+    registerObstacle({
+      type: 'bridge',
+      x: courseX,
+      z: 20.8,
+      width: 3.4,
+      length: bridgeLen,
+      height: bridgeY,
+    });
+
+    // 4. NATURAL CURVED WOODEN WHALE TAIL FEATURE (z: 15.0 to 1.0)
+    const wtBaseY = getTerrainElevation(courseX, 8.0);
+    const wtHeight = 2.2;
+    const wtWidth = 3.6;
+
+    // Stage 1: Curved Step-Up (z: 15.0 to 10.5, len: 4.5)
+    const wtStepShape = new THREE.Shape();
+    wtStepShape.moveTo(0, 0);
+    wtStepShape.quadraticCurveTo(3.2, 0.5, 4.5, wtHeight);
+    wtStepShape.lineTo(4.5, 0);
+    wtStepShape.closePath();
+
+    const wtStepGeom = new THREE.ExtrudeGeometry(wtStepShape, { depth: wtWidth, bevelEnabled: false });
+    wtStepGeom.center();
+    const wtStepMesh = new THREE.Mesh(wtStepGeom, cedarDeckMat);
+    wtStepMesh.position.set(courseX, wtBaseY + wtHeight / 2, 12.75);
+    wtStepMesh.rotation.y = Math.PI / 2; // Rises going North
+    wtStepMesh.castShadow = true;
+    wtStepMesh.receiveShadow = true;
+    group.add(wtStepMesh);
+
+    // Stage 2: Arched Whale Tail Spine Deck with Flared Wings (z: 10.5 to 5.5, len: 5.0)
+    const wtSpineGeo = new THREE.BoxGeometry(wtWidth, 0.28, 5.0);
+    const wtSpineMesh = new THREE.Mesh(wtSpineGeo, cedarDeckMat);
+    wtSpineMesh.position.set(courseX, wtBaseY + wtHeight + 0.14, 8.0);
+    wtSpineMesh.castShadow = true;
+    wtSpineMesh.receiveShadow = true;
+    group.add(wtSpineMesh);
+
+    // Flared "whale tail" side wings
+    [-wtWidth / 2 - 0.45, wtWidth / 2 + 0.45].forEach((wx, wIdx) => {
+      const wingGeo = new THREE.BoxGeometry(0.85, 0.2, 3.2);
+      const wing = new THREE.Mesh(wingGeo, darkWoodMat);
+      wing.position.set(courseX + wx, wtBaseY + wtHeight + 0.18, 8.0);
+      wing.rotation.z = (wIdx === 0 ? 1 : -1) * 0.18;
+      group.add(wing);
+    });
+
+    // Stage 3: Step-Down Drop Kicker (z: 5.5 to 1.0, len: 4.5)
+    const wtDropShape = new THREE.Shape();
+    wtDropShape.moveTo(0, wtHeight);
+    wtDropShape.lineTo(4.5, 0);
+    wtDropShape.lineTo(0, 0);
+    wtDropShape.closePath();
+
+    const wtDropGeom = new THREE.ExtrudeGeometry(wtDropShape, { depth: wtWidth, bevelEnabled: false });
+    wtDropGeom.center();
+    const wtDropMesh = new THREE.Mesh(wtDropGeom, cedarDeckMat);
+    wtDropMesh.position.set(courseX, wtBaseY + wtHeight / 2, 3.25);
+    wtDropMesh.rotation.y = -Math.PI / 2; // Drops going North
+    wtDropMesh.castShadow = true;
+    wtDropMesh.receiveShadow = true;
+    group.add(wtDropMesh);
+
+    // Timber support pilings under whale tail
+    [10.5, 8.0, 5.5].forEach((pz) => {
+      [-1.6, 1.6].forEach((px) => {
+        const postH = wtHeight + 0.2;
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, postH, 8), logPostMat);
+        post.position.set(courseX + px, wtBaseY + postH / 2, pz);
+        post.castShadow = true;
+        group.add(post);
+      });
+    });
+
+    registerObstacle({
+      type: 'timber_whaletail',
+      x: courseX,
+      zStart: 15.0,
+      zEnd: 1.0,
+      baseY: wtBaseY,
+      width: wtWidth,
+      height: wtHeight,
+    });
+
+    // 5. BANKED TIMBER WALLRIDE (z: 0.0 to -7.5)
+    const wallBaseY = getTerrainElevation(courseX, -3.75);
+    const wallLen = 7.5;
+    const wallW = 4.6;
+    const wallH = 2.4;
+
+    const wallGeo = new THREE.BoxGeometry(wallW, 0.22, wallLen);
+    const wallMesh = new THREE.Mesh(wallGeo, cedarDeckMat);
+    wallMesh.position.set(courseX, wallBaseY + 0.85, -3.75);
+    wallMesh.rotation.z = -0.42; // Banked: high on East side (+X), low on West (-X)
+    wallMesh.castShadow = true;
+    wallMesh.receiveShadow = true;
+    group.add(wallMesh);
+
+    // A-frame timber braces behind the high wall
+    [-1.8, -3.8, -5.8].forEach((bz) => {
+      const brace = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.12, 2.6, 8), logPostMat);
+      brace.position.set(courseX + 2.0, wallBaseY + 1.1, bz);
+      brace.rotation.z = 0.55;
+      brace.castShadow = true;
+      group.add(brace);
+    });
+
+    registerObstacle({
+      type: 'wallride',
+      x: courseX,
+      zStart: 0.0,
+      zEnd: -7.5,
+      baseY: wallBaseY,
+      width: wallW,
+      height: wallH,
+    });
+
+    // 6. FOREST RAVINE LOG ROAD GAP MEGA JUMP (z: -9.0 to -23.0)
+    const gapBaseY = getTerrainElevation(courseX, -16.0);
+    const kickerLen = 4.0;
+    const kickerW = 3.8;
+    const kickerH = 2.1;
+    const landLen = 5.0;
+    const landW = 4.4;
+    const landH = 1.9;
+
+    // Takeoff Kicker (z: -9.0 to -13.0, center z: -11.0)
+    const kShape = new THREE.Shape();
+    kShape.moveTo(0, 0);
+    kShape.quadraticCurveTo(kickerLen * 0.7, 0.4, kickerLen, kickerH);
+    kShape.lineTo(kickerLen, 0);
+    kShape.closePath();
+
+    const kGeom = new THREE.ExtrudeGeometry(kShape, { depth: kickerW, bevelEnabled: false });
+    kGeom.center();
+    const kMesh = new THREE.Mesh(kGeom, cedarDeckMat);
+    kMesh.position.set(courseX, gapBaseY + kickerH / 2, -11.0);
+    kMesh.rotation.y = Math.PI / 2; // Rises going North
+    kMesh.castShadow = true;
+    kMesh.receiveShadow = true;
+    group.add(kMesh);
+
+    // Hazard markers at kicker lip
+    [-kickerW / 2 - 0.25, kickerW / 2 + 0.25].forEach((px) => {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 1.6, 8), logPostMat);
+      post.position.set(courseX + px, gapBaseY + kickerH + 0.6, -13.0);
+      post.castShadow = true;
+      group.add(post);
+
+      const flag = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 0.04), flagMat);
+      flag.position.set(courseX + px + 0.18, gapBaseY + kickerH + 1.2, -13.0);
+      group.add(flag);
+    });
+
+    // Natural rocky ravine below the gap (z: -13.0 to -17.5)
+    for (let i = 0; i < 5; i++) {
+      const rk = new THREE.Mesh(new THREE.DodecahedronGeometry(0.7 + Math.random() * 0.6, 1), rockMat);
+      rk.position.set(courseX + (Math.random() - 0.5) * 4.0, gapBaseY + 0.3, -15.2 + (Math.random() - 0.5) * 2.5);
+      rk.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+      rk.castShadow = true;
+      group.add(rk);
+    }
+
+    // Banked Landing Receiver (z: -17.5 to -22.5, center z: -20.0)
+    const lShape = new THREE.Shape();
+    lShape.moveTo(0, landH);
+    lShape.lineTo(landLen, 0);
+    lShape.lineTo(0, 0);
+    lShape.closePath();
+
+    const lGeom = new THREE.ExtrudeGeometry(lShape, { depth: landW, bevelEnabled: false });
+    lGeom.center();
+    const lMesh = new THREE.Mesh(lGeom, cedarDeckMat);
+    lMesh.position.set(courseX, gapBaseY + landH / 2, -20.0);
+    lMesh.rotation.y = -Math.PI / 2; // Slopes down going North
+    lMesh.castShadow = true;
+    lMesh.receiveShadow = true;
+    group.add(lMesh);
+
+    registerObstacle({
+      type: 'gap_kicker',
+      x: courseX,
+      z: -11.0,
+      baseY: gapBaseY,
+      width: kickerW,
+      length: kickerLen,
+      height: kickerH,
+      dir: -1,
+    });
+
+    registerObstacle({
+      type: 'gap_landing',
+      x: courseX,
+      z: -20.0,
+      baseY: gapBaseY,
+      width: landW,
+      length: landLen,
+      height: landH,
+      dir: -1,
+    });
+
+    scene.add(group);
+  }
+
+  // ==========================================================================
+  // TRAIL 2: SLICKROCK MOTOCROSS CANYON COURSE (West: x ~ -58, z: 42 to -23)
+  // High-speed Red Bull Hardline / Motocross dirt jumps, rhythm whoops & canyon gaps
+  // ==========================================================================
+  function createSlickrockMotocrossCourse(courseX = -58, startZ = 42) {
+    const group = new THREE.Group();
+
+    // Red Sandstone & Terracotta Dirt Materials
+    const dirtMat = new THREE.MeshStandardMaterial({ color: 0xbd4b1e, roughness: 0.94 });
+    const darkDirtMat = new THREE.MeshStandardMaterial({ color: 0x8a3010, roughness: 0.96 });
+    const rockMat = new THREE.MeshStandardMaterial({ color: 0x6e240a, roughness: 0.95, flatShading: true });
+    const markerMat = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.35 });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.3 });
+
+    // 1. MOTOCROSS STARTING MOUND & DROP-IN (z: 44 to 33.5)
+    const moundBaseY = getTerrainElevation(courseX, 42);
+    const moundH = 3.0;
+    const moundTopY = moundBaseY + moundH;
+
+    // Starting Mound Flat Deck (5.6m x 4.0m at z: 40 to 44)
+    const moundGeo = new THREE.BoxGeometry(5.6, moundH, 4.0);
+    const moundMesh = new THREE.Mesh(moundGeo, dirtMat);
+    moundMesh.position.set(courseX, moundBaseY + moundH / 2, 42);
+    moundMesh.castShadow = true;
+    moundMesh.receiveShadow = true;
+    group.add(moundMesh);
+
+    // Starting Arch Truss: "RED BULL HARDLINE CANYON"
+    [-2.7, 2.7].forEach((ax) => {
+      const archPole = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.11, 4.8, 8), steelMat);
+      archPole.position.set(courseX + ax, moundTopY + 2.4, 40.2);
+      archPole.castShadow = true;
+      group.add(archPole);
+    });
+    const archBanner = new THREE.Mesh(new THREE.BoxGeometry(5.8, 0.65, 0.15), markerMat);
+    archBanner.position.set(courseX, moundTopY + 4.5, 40.2);
+    group.add(archBanner);
+
+    registerObstacle({
+      type: 'deck',
+      x: courseX,
+      z: 42,
+      width: 5.6,
+      length: 4.0,
+      height: moundTopY,
+    });
+
+    // Roll-In Steep Drop Chute (z: 40 to 33.5, len: 6.5)
+    const chuteLen = 6.5;
+    const chuteBottomY = getTerrainElevation(courseX, 33.5) + 0.15;
+    const chuteH = moundTopY - chuteBottomY;
+
+    const chuteShape = new THREE.Shape();
+    chuteShape.moveTo(0, chuteH);
+    chuteShape.lineTo(chuteLen, 0);
+    chuteShape.lineTo(0, 0);
+    chuteShape.closePath();
+
+    const chuteGeom = new THREE.ExtrudeGeometry(chuteShape, { depth: 5.0, bevelEnabled: false });
+    chuteGeom.center();
+    const chuteMesh = new THREE.Mesh(chuteGeom, dirtMat);
+    chuteMesh.position.set(courseX, chuteBottomY + chuteH / 2, 36.75);
+    chuteMesh.rotation.y = -Math.PI / 2; // Drops going North
+    chuteMesh.castShadow = true;
+    chuteMesh.receiveShadow = true;
+    group.add(chuteMesh);
+
+    registerObstacle({
+      type: 'mx_rollin',
+      x: courseX,
+      zStart: 40.0,
+      zEnd: 33.5,
+      yStart: moundTopY,
+      yEnd: chuteBottomY,
+      width: 5.0,
+      accelForce: 26.0,
+    });
+
+    // 2. 16-METER MONSTER DIRT TABLETOP (z: 32.0 to 16.0)
+    const ttBaseY = getTerrainElevation(courseX, 24.0);
+    const ttWidth = 5.0;
+    const ttHeight = 2.25;
+    const ttTakeoffLen = 5.0; // z: 32 to 27
+    const ttDeckLen = 6.0;    // z: 27 to 21
+    const ttLandLen = 5.0;    // z: 21 to 16
+
+    // Takeoff Ramp (z: 32 to 27, center z: 29.5)
+    const ttTkShape = new THREE.Shape();
+    ttTkShape.moveTo(0, 0);
+    ttTkShape.lineTo(ttTakeoffLen, ttHeight);
+    ttTkShape.lineTo(ttTakeoffLen, 0);
+    ttTkShape.closePath();
+
+    const ttTkGeom = new THREE.ExtrudeGeometry(ttTkShape, { depth: ttWidth, bevelEnabled: false });
+    ttTkGeom.center();
+    const ttTkMesh = new THREE.Mesh(ttTkGeom, dirtMat);
+    ttTkMesh.position.set(courseX, ttBaseY + ttHeight / 2, 29.5);
+    ttTkMesh.rotation.y = Math.PI / 2; // Rises going North
+    ttTkMesh.castShadow = true;
+    ttTkMesh.receiveShadow = true;
+    group.add(ttTkMesh);
+
+    // Tabletop Flat Deck (z: 27 to 21, center z: 24.0)
+    const ttDeckGeo = new THREE.BoxGeometry(ttWidth, ttHeight, ttDeckLen);
+    const ttDeckMesh = new THREE.Mesh(ttDeckGeo, dirtMat);
+    ttDeckMesh.position.set(courseX, ttBaseY + ttHeight / 2, 24.0);
+    ttDeckMesh.castShadow = true;
+    ttDeckMesh.receiveShadow = true;
+    group.add(ttDeckMesh);
+
+    // Landing Slope (z: 21 to 16, center z: 18.5)
+    const ttLdShape = new THREE.Shape();
+    ttLdShape.moveTo(0, ttHeight);
+    ttLdShape.lineTo(ttLandLen, 0);
+    ttLdShape.lineTo(0, 0);
+    ttLdShape.closePath();
+
+    const ttLdGeom = new THREE.ExtrudeGeometry(ttLdShape, { depth: ttWidth, bevelEnabled: false });
+    ttLdGeom.center();
+    const ttLdMesh = new THREE.Mesh(ttLdGeom, dirtMat);
+    ttLdMesh.position.set(courseX, ttBaseY + ttHeight / 2, 18.5);
+    ttLdMesh.rotation.y = -Math.PI / 2; // Slopes down going North
+    ttLdMesh.castShadow = true;
+    ttLdMesh.receiveShadow = true;
+    group.add(ttLdMesh);
+
+    // High-vis flex-marker pylons flanking the tabletop
+    [-ttWidth / 2 - 0.3, ttWidth / 2 + 0.3].forEach((mx) => {
+      [27.0, 24.0, 21.0].forEach((mz) => {
+        const marker = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 1.1, 8), markerMat);
+        marker.position.set(courseX + mx, ttBaseY + ttHeight + 0.55, mz);
+        marker.castShadow = true;
+        group.add(marker);
+      });
+    });
+
+    registerObstacle({
+      type: 'tabletop',
+      x: courseX,
+      z: 24.0,
+      baseY: ttBaseY,
+      width: ttWidth,
+      length: 16.0,
+      height: ttHeight,
+      takeoffLen: ttTakeoffLen,
+      deckLen: ttDeckLen,
+      landingLen: ttLandLen,
+      dir: -1,
+      zStart: 32.0,
+      zEnd: 16.0,
+    });
+
+    // 3. QUAD RHYTHM WHOOP ROLLERS (z: 15.0 to 1.0)
+    const whoopBaseY = getTerrainElevation(courseX, 8.0);
+    const whoopLen = 14.0;
+    const whoopW = 5.2;
+    const whoopH = 0.65;
+    const count = 4;
+    const wavelength = whoopLen / count;
+
+    // Solid base box
+    const whoopBaseGeo = new THREE.BoxGeometry(whoopW, 0.55, whoopLen);
+    const whoopBaseMesh = new THREE.Mesh(whoopBaseGeo, darkDirtMat);
+    whoopBaseMesh.position.set(courseX, whoopBaseY + 0.275, 8.0);
+    group.add(whoopBaseMesh);
+
+    // 4 undulating dirt rollers
+    for (let i = 0; i < count; i++) {
+      const rollerZ = 15.0 - (i + 0.5) * wavelength;
+      const rollerGeo = new THREE.CylinderGeometry(0.7, 0.7, whoopW, 16, 1, false, 0, Math.PI);
+      rollerGeo.rotateZ(Math.PI / 2);
+      const roller = new THREE.Mesh(rollerGeo, dirtMat);
+      roller.position.set(courseX, whoopBaseY + 0.55, rollerZ);
+      roller.castShadow = true;
+      roller.receiveShadow = true;
+      group.add(roller);
+    }
+
+    registerObstacle({
+      type: 'whoops',
+      x: courseX,
+      zStart: 15.0,
+      zEnd: 1.0,
+      baseY: whoopBaseY,
+      width: whoopW,
+      height: whoopH,
+      count: count,
+    });
+
+    // 4. CANYON MEGA-LAUNCHER GAP JUMP (z: -1.0 to -17.5)
+    const gapBaseY = getTerrainElevation(courseX, -9.25);
+    const kickerLen = 4.5;
+    const kickerW = 4.8;
+    const kickerH = 2.5;
+    const landLen = 5.0;
+    const landW = 5.4;
+    const landH = 2.3;
+
+    // Mega Takeoff Kicker (z: -1.0 to -5.5, center z: -3.25)
+    const mkShape = new THREE.Shape();
+    mkShape.moveTo(0, 0);
+    mkShape.quadraticCurveTo(kickerLen * 0.65, 0.4, kickerLen, kickerH);
+    mkShape.lineTo(kickerLen, 0);
+    mkShape.closePath();
+
+    const mkGeom = new THREE.ExtrudeGeometry(mkShape, { depth: kickerW, bevelEnabled: false });
+    mkGeom.center();
+    const mkMesh = new THREE.Mesh(mkGeom, dirtMat);
+    mkMesh.position.set(courseX, gapBaseY + kickerH / 2, -3.25);
+    mkMesh.rotation.y = Math.PI / 2; // Rises going North
+    mkMesh.castShadow = true;
+    mkMesh.receiveShadow = true;
+    group.add(mkMesh);
+
+    // Marker flags on kicker
+    [-kickerW / 2 - 0.25, kickerW / 2 + 0.25].forEach((px) => {
+      const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.4, 8), steelMat);
+      flagPole.position.set(courseX + px, gapBaseY + kickerH + 0.7, -5.5);
+      flagPole.castShadow = true;
+      group.add(flagPole);
+      const flagMesh = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.22, 0.02), markerMat);
+      flagMesh.position.set(courseX + px + 0.18, gapBaseY + kickerH + 1.25, -5.5);
+      group.add(flagMesh);
+    });
+
+    // Deep rocky chasm below the gap (z: -5.5 to -12.5)
+    for (let i = 0; i < 7; i++) {
+      const bld = new THREE.Mesh(new THREE.DodecahedronGeometry(0.85 + Math.random() * 0.7, 1), rockMat);
+      bld.position.set(courseX + (Math.random() - 0.5) * 5.0, gapBaseY + 0.35, -9.0 + (Math.random() - 0.5) * 3.5);
+      bld.rotation.set(Math.random() * Math.PI, Math.random() * Math.PI, 0);
+      bld.castShadow = true;
+      group.add(bld);
+    }
+
+    // Banked Landing Receiver (z: -12.5 to -17.5, center z: -15.0)
+    const mlShape = new THREE.Shape();
+    mlShape.moveTo(0, landH);
+    mlShape.lineTo(landLen, 0);
+    mlShape.lineTo(0, 0);
+    mlShape.closePath();
+
+    const mlGeom = new THREE.ExtrudeGeometry(mlShape, { depth: landW, bevelEnabled: false });
+    mlGeom.center();
+    const mlMesh = new THREE.Mesh(mlGeom, dirtMat);
+    mlMesh.position.set(courseX, gapBaseY + landH / 2, -15.0);
+    mlMesh.rotation.y = -Math.PI / 2; // Slopes down going North
+    mlMesh.castShadow = true;
+    mlMesh.receiveShadow = true;
+    group.add(mlMesh);
+
+    registerObstacle({
+      type: 'gap_kicker',
+      x: courseX,
+      z: -3.25,
+      baseY: gapBaseY,
+      width: kickerW,
+      length: kickerLen,
+      height: kickerH,
+      dir: -1,
+    });
+
+    registerObstacle({
+      type: 'gap_landing',
+      x: courseX,
+      z: -15.0,
+      baseY: gapBaseY,
+      width: landW,
+      length: landLen,
+      height: landH,
+      dir: -1,
+    });
+
+    // 5. HIGH-BANKED TERRACOTTA BERM BOWL (z: -19.0 to -26.0)
+    const bermBaseY = getTerrainElevation(courseX, -22.5);
+    const bermRadius = 4.8;
+    const bermH = 2.2;
+
+    const bermGeo = new THREE.CylinderGeometry(bermRadius, bermRadius + 1.2, bermH, 24, 1, true, 0, Math.PI);
+    bermGeo.rotateY(Math.PI / 2);
+    const bermMesh = new THREE.Mesh(bermGeo, dirtMat);
+    bermMesh.position.set(courseX, bermBaseY + bermH / 2, -22.5);
+    bermMesh.castShadow = true;
+    bermMesh.receiveShadow = true;
+    group.add(bermMesh);
+
+    registerObstacle({
+      type: 'berm_bowl',
+      x: courseX,
+      z: -22.5,
+      baseY: bermBaseY,
+      radius: bermRadius,
+      height: bermH,
+    });
+
+    scene.add(group);
   }
 
   // D. MEGA DROP ROLL-IN TOWER & CANYON LAUNCH KICKER
@@ -1486,10 +2127,10 @@
     if (Math.abs(x) < 22 && Math.abs(z) < 22) return true;
     // 2. North Mega Drop line (runway, kicker, landing, roll-out, tower)
     if (Math.abs(x) < 14 && z <= -16 && z >= -90) return true;
-    // 3. East Pine Ridge Whale Tail line (x ~ 55, z from -18 to +24)
-    if (Math.abs(x - 55) < 15 && z >= -18 && z <= 26) return true;
-    // 4. West Slickrock Tabletop & Canyon Gap jumps (x ~ -58, z from -26 to +26)
-    if (Math.abs(x - (-58)) < 15 && Math.abs(z) < 28) return true;
+    // 3. East Pine Ridge Timber Slopestyle course (x ~ 55, z from -28 to +48)
+    if (Math.abs(x - 55) < 18 && z >= -28 && z <= 48) return true;
+    // 4. West Slickrock Motocross Canyon course (x ~ -58, z from -28 to +48)
+    if (Math.abs(x - (-58)) < 18 && z >= -28 && z <= 48) return true;
     // 5. South Desert Berms trail circuit
     if (isDesertBermTrail(x, z) > 0.05) return true;
     return false;
@@ -1527,7 +2168,6 @@
         createPineTree(rx, rz, 1.0 + Math.random() * 0.7);
       }
     }
-    createBoardwalk(55, -8, 22, 3.2);
 
     // West (Slickrock boulders)
     for (let i = 0; i < 24; i++) {
@@ -2143,7 +2783,7 @@
 
     let activePointerId = null;
     let baseRect = null;
-    const maxRadius = 42;
+    const maxRadius = 65; // Expanded travel area (140px base) for analog precision
 
     function handleStart(clientX, clientY, pointerId, target) {
       activePointerId = pointerId;
@@ -2171,8 +2811,20 @@
       }
 
       joystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
-      state.input.joystickVector.x = dx / maxRadius;
-      state.input.joystickVector.y = -dy / maxRadius;
+
+      // Smooth exponential power curve with a gentle deadzone
+      const rawMag = Math.min(1.0, dist / maxRadius);
+      const deadzone = 0.05;
+      if (rawMag <= deadzone) {
+        state.input.joystickVector.x = 0;
+        state.input.joystickVector.y = 0;
+      } else {
+        const norm = (rawMag - deadzone) / (1 - deadzone);
+        const smoothMag = Math.pow(norm, 1.8);
+        const angle = Math.atan2(dy, dx);
+        state.input.joystickVector.x = Math.cos(angle) * smoothMag;
+        state.input.joystickVector.y = -Math.sin(angle) * smoothMag;
+      }
     }
 
     function handleEnd(pointerId, target) {
@@ -2223,7 +2875,7 @@
 
     let activePointerId = null;
     let baseRect = null;
-    const maxRadius = 42;
+    const maxRadius = 60; // Expanded travel area for balance & trick analog control
 
     function handleStart(clientX, clientY, pointerId, target) {
       activePointerId = pointerId;
@@ -2251,8 +2903,19 @@
       }
 
       rightJoystickThumb.style.transform = `translate(${dx}px, ${dy}px)`;
-      state.input.rightJoystickVector.x = dx / maxRadius;
-      state.input.rightJoystickVector.y = -dy / maxRadius;
+
+      const rawMag = Math.min(1.0, dist / maxRadius);
+      const deadzone = 0.05;
+      if (rawMag <= deadzone) {
+        state.input.rightJoystickVector.x = 0;
+        state.input.rightJoystickVector.y = 0;
+      } else {
+        const norm = (rawMag - deadzone) / (1 - deadzone);
+        const smoothMag = Math.pow(norm, 1.5);
+        const angle = Math.atan2(dy, dx);
+        state.input.rightJoystickVector.x = Math.cos(angle) * smoothMag;
+        state.input.rightJoystickVector.y = -Math.sin(angle) * smoothMag;
+      }
     }
 
     function handleEnd(pointerId, target) {
@@ -2426,10 +3089,12 @@
           surfaceH = Math.max(surfaceH, bankY);
         }
       }
-      // D. Tabletop
+      // D. Tabletop (Supports both Northbound and Southbound lines)
       else if (obs.type === 'tabletop') {
         if (Math.abs(x - obs.x) <= halfW) {
-          const relRun = (obs.z + halfL) - z;
+          const isSouthbound = obs.dir === -1 || (obs.zStart && obs.zStart > obs.zEnd);
+          const startZ = isSouthbound ? (obs.zStart || (obs.z + halfL)) : (obs.z - halfL);
+          const relRun = isSouthbound ? (startZ - z) : (z - startZ);
           if (relRun >= 0 && relRun <= obs.length) {
             let deckY = obs.baseY;
             if (relRun < obs.takeoffLen) {
@@ -2449,7 +3114,9 @@
         if (Math.abs(x - obs.x) <= halfW) {
           const relZ = z - obs.z;
           if (Math.abs(relZ) <= halfL) {
-            const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+            const ratio = obs.dir === -1
+              ? THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1)
+              : THREE.MathUtils.clamp((relZ + halfL) / obs.length, 0, 1);
             surfaceH = Math.max(surfaceH, obs.baseY + ratio * obs.height);
           }
         }
@@ -2457,31 +3124,86 @@
         if (Math.abs(x - obs.x) <= halfW) {
           const relZ = z - obs.z;
           if (Math.abs(relZ) <= halfL) {
-            const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+            const ratio = obs.dir === -1
+              ? THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1)
+              : THREE.MathUtils.clamp((relZ + halfL) / obs.length, 0, 1);
             surfaceH = Math.max(surfaceH, obs.baseY + (1 - ratio) * obs.height);
           }
         }
       }
-      // F. Whale Tail
-      else if (obs.type === 'whaletail') {
+      // F. Whale Tail (Both natural timber_whaletail and legacy whaletail)
+      else if (obs.type === 'timber_whaletail' || obs.type === 'whaletail') {
         if (Math.abs(x - obs.x) <= halfW) {
-          const relRun = (obs.z + halfL) - z;
-          if (relRun >= 0 && relRun <= obs.length) {
+          const isSouthbound = obs.zStart > obs.zEnd || obs.dir === -1 || obs.type === 'timber_whaletail';
+          const startZ = obs.zStart !== undefined ? obs.zStart : (obs.z + halfL);
+          const totalLen = obs.length || Math.abs(obs.zStart - obs.zEnd);
+          const relRun = isSouthbound ? (startZ - z) : (z - startZ);
+          if (relRun >= 0 && relRun <= totalLen) {
             let spineY = obs.baseY;
             if (relRun < 4.5) {
-              spineY += (relRun / 4.5) * obs.height;
-            } else if (relRun <= 10.5) {
-              const arch = Math.sin(((relRun - 4.5) / 6.0) * Math.PI) * 0.35;
+              spineY += Math.pow(relRun / 4.5, 1.25) * obs.height;
+            } else if (relRun <= 9.5) {
+              const arch = Math.sin(((relRun - 4.5) / 5.0) * Math.PI) * 0.35;
               spineY += obs.height + arch;
             } else {
-              const dropRatio = (relRun - 10.5) / (obs.length - 10.5);
+              const dropRatio = (relRun - 9.5) / (totalLen - 9.5);
               spineY += (1 - dropRatio) * obs.height;
             }
             surfaceH = Math.max(surfaceH, spineY);
           }
         }
       }
-      // G. Flat Decks, Ledges, Curbs, Rails, Boardwalks
+      // G. Slopestyle Roll-ins & Step-ups
+      else if (obs.type === 'slopestyle_rollin' || obs.type === 'mx_rollin') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, rampY);
+        }
+      } else if (obs.type === 'slopestyle_stepup') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + Math.pow(ratio, 1.25) * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, rampY);
+        }
+      }
+      // H. Bridges, Wallrides, Whoops, Berm Bowls
+      else if (obs.type === 'bridge') {
+        if (Math.abs(x - obs.x) <= halfW && Math.abs(z - obs.z) <= halfL) {
+          surfaceH = Math.max(surfaceH, obs.height);
+        }
+      } else if (obs.type === 'wallride') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const bankT = THREE.MathUtils.clamp((x - (obs.x - halfW)) / obs.width, 0, 1);
+          const wallY = obs.baseY + Math.pow(bankT, 1.3) * obs.height;
+          surfaceH = Math.max(surfaceH, wallY);
+        }
+      } else if (obs.type === 'whoops') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const totalLen = Math.abs(obs.zEnd - obs.zStart);
+          const relZ = Math.abs(z - obs.zStart);
+          const wavelength = totalLen / obs.count;
+          const phase = (relZ / wavelength) * Math.PI * 2;
+          const whoopY = obs.baseY + 0.55 + Math.sin(phase) * obs.height;
+          surfaceH = Math.max(surfaceH, whoopY);
+        }
+      } else if (obs.type === 'berm_bowl') {
+        const dist = Math.hypot(x - obs.x, z - obs.z);
+        if (dist <= obs.radius) {
+          const rimT = dist / obs.radius;
+          const bermY = obs.baseY + Math.pow(rimT, 2.0) * obs.height;
+          surfaceH = Math.max(surfaceH, bermY);
+        }
+      }
+      // I. Flat Decks, Ledges, Curbs, Rails, Boardwalks
       else if (obs.type === 'deck') {
         if (Math.abs(x - obs.x) <= halfW && Math.abs(z - obs.z) <= halfL) {
           surfaceH = Math.max(surfaceH, obs.height);
@@ -2554,14 +3276,22 @@
       const rollTarget = THREE.MathUtils.clamp(-angleDiff * 1.5, -0.15, 0.15);
       p.roll = THREE.MathUtils.lerp(p.roll, rollTarget, dt * 10);
 
-      // Motor thrust accelerates forward along heading (preserves downhill top speed)
+      // Motor thrust accelerates forward along heading (progressive analog torque curve)
       const targetSpeed = MAX_SPEED * inputMagnitude;
       if (vFwd < targetSpeed) {
-        vFwd = THREE.MathUtils.lerp(vFwd, targetSpeed, dt * 3.6);
+        // Progressive motor torque ramp curve (~3 sec to reach 45 MPH)
+        const speedRatio = THREE.MathUtils.clamp(vFwd / MAX_SPEED, 0, 1);
+        const torqueFactor = 1.0 - speedRatio * 0.52; // Tapers at high speed
+        const motorAccel = 11.5 * torqueFactor;
+        vFwd += motorAccel * dt;
+        if (vFwd > targetSpeed) vFwd = targetSpeed;
+      } else if (targetSpeed < vFwd - 0.5) {
+        // Regenerative braking when pulling back on throttle
+        vFwd = THREE.MathUtils.lerp(vFwd, targetSpeed, dt * 4.5);
       }
     } else {
-      // Coasting friction
-      vFwd = THREE.MathUtils.lerp(vFwd, 0, dt * 2.2);
+      // Smooth coasting friction roll-down
+      vFwd = THREE.MathUtils.lerp(vFwd, 0, dt * 1.8);
       p.roll = THREE.MathUtils.lerp(p.roll, 0, dt * 8);
     }
 
@@ -2600,11 +3330,11 @@
     p.vx = vFwd * fwdX + vLat * rightX;
     p.vz = vFwd * fwdZ + vLat * rightZ;
 
-    // Downhill top speed cap allows speed up to 18.5 m/s (~41 MPH!)
+    // Downhill top speed cap allows speed up to 26.8 m/s (~60.0 MPH!)
     const currentSpeed = Math.hypot(p.vx, p.vz);
-    if (currentSpeed > 18.5) {
-      p.vx = (p.vx / currentSpeed) * 18.5;
-      p.vz = (p.vz / currentSpeed) * 18.5;
+    if (currentSpeed > 26.8) {
+      p.vx = (p.vx / currentSpeed) * 26.8;
+      p.vz = (p.vz / currentSpeed) * 26.8;
     }
     p.speed = Math.hypot(p.vx, p.vz);
 
@@ -2911,6 +3641,157 @@
         continue;
       }
 
+      // 5. SLOPESTYLE & MOTOCROSS ROLL-IN CHUTES
+      if (obs.type === 'slopestyle_rollin' || obs.type === 'mx_rollin') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, rampY);
+
+          // Downhill gravity acceleration along runway direction
+          if (!p.isAirborne) {
+            const dirZ = Math.sign(obs.zEnd - obs.zStart);
+            p.vz += dirZ * (obs.accelForce || 24.0) * dt;
+            p.speed = Math.hypot(p.vx, p.vz);
+          }
+        }
+        continue;
+      }
+
+      // 6. LADDER STEP-UP
+      if (obs.type === 'slopestyle_stepup') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((p.z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + Math.pow(ratio, 1.25) * (obs.yEnd - obs.yStart);
+          targetGround = Math.max(targetGround, rampY);
+
+          if (ratio > 0.82 && p.speed > 3.0 && !p.isAirborne) {
+            p.vy = JUMP_VELOCITY * 1.25;
+            p.isAirborne = true;
+            p.airtime = 0;
+            state.aerial.airYaw = 0;
+            state.aerial.airPitch = 0;
+            state.aerial.spin180Done = false;
+            state.aerial.spin360Done = false;
+            state.aerial.flipDone = false;
+            showTrickToast('LADDER STEP-UP POP! 🪵 +200');
+          }
+        }
+        continue;
+      }
+
+      // 7. ELEVATED LOG BRIDGE
+      if (obs.type === 'bridge') {
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && Math.abs(p.z - obs.z) <= (obs.length || 0) / 2) {
+          targetGround = Math.max(targetGround, obs.height);
+        }
+        continue;
+      }
+
+      // 8. TIMBER WHALE TAIL
+      if (obs.type === 'timber_whaletail') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const totalLen = Math.abs(obs.zStart - obs.zEnd);
+          const run = obs.zStart > obs.zEnd ? (obs.zStart - p.z) : (p.z - obs.zStart);
+          let spineY = obs.baseY;
+          if (run < 4.5) {
+            const t = run / 4.5;
+            spineY += Math.pow(t, 1.25) * obs.height;
+            if (t > 0.85 && p.speed > 3.5 && !p.isAirborne) {
+              p.vy = JUMP_VELOCITY * 1.28;
+              p.isAirborne = true;
+              p.airtime = 0;
+              showTrickToast('WHALE TAIL STEP-UP! 🚀');
+            }
+          } else if (run <= 9.5) {
+            const archT = (run - 4.5) / 5.0;
+            const arch = Math.sin(archT * Math.PI) * 0.35;
+            spineY += obs.height + arch;
+            if (p.speed > 2.5) {
+              emitGrindSparks(p.x, spineY, p.z);
+              showTrickToast('WHALE TAIL SPINE! +300');
+            }
+          } else {
+            const dropT = (run - 9.5) / (totalLen - 9.5);
+            spineY += (1 - dropT) * obs.height;
+            if (!p.isAirborne && p.speed > 3.5 && dropT > 0.82) {
+              p.vy = JUMP_VELOCITY * 1.35;
+              p.isAirborne = true;
+              p.airtime = 0;
+              state.aerial.airYaw = 0;
+              state.aerial.airPitch = 0;
+              state.aerial.spin180Done = false;
+              state.aerial.spin360Done = false;
+              state.aerial.flipDone = false;
+              showTrickToast('WHALE TAIL DROP LAUNCH! 🌀 +350');
+            }
+          }
+          targetGround = Math.max(targetGround, spineY);
+        }
+        continue;
+      }
+
+      // 9. BANKED TIMBER WALLRIDE
+      if (obs.type === 'wallride') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const bankT = THREE.MathUtils.clamp((p.x - (obs.x - obs.width / 2)) / obs.width, 0, 1);
+          const wallY = obs.baseY + Math.pow(bankT, 1.3) * obs.height;
+          targetGround = Math.max(targetGround, wallY);
+          if (bankT > 0.65 && p.speed > 3.0) {
+            emitGrindSparks(p.x, wallY, p.z);
+            if (!p.wallToastTime || performance.now() - p.wallToastTime > 1200) {
+              p.wallToastTime = performance.now();
+              showTrickToast('TIMBER WALLRIDE! 🪵 +350');
+            }
+          }
+        }
+        continue;
+      }
+
+      // 10. MOTOCROSS RHYTHM WHOOPS
+      if (obs.type === 'whoops') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(p.x - obs.x) <= obs.width / 2 && p.z >= minZ && p.z <= maxZ) {
+          const totalLen = Math.abs(obs.zEnd - obs.zStart);
+          const relZ = Math.abs(p.z - obs.zStart);
+          const wavelength = totalLen / obs.count;
+          const phase = (relZ / wavelength) * Math.PI * 2;
+          const whoopY = obs.baseY + 0.55 + Math.sin(phase) * obs.height;
+          targetGround = Math.max(targetGround, whoopY);
+
+          // Skimming whoops rhythm boost
+          if (Math.sin(phase) > 0.7 && p.speed > 7.0) {
+            p.vz -= 9.0 * dt; // Forward pump impulse
+            p.speed = Math.hypot(p.vx, p.vz);
+            if (!p.whoopToastTime || performance.now() - p.whoopToastTime > 650) {
+              p.whoopToastTime = performance.now();
+              showTrickToast('WHOOP SKIM PUMP! ⚡ +150');
+            }
+          }
+        }
+        continue;
+      }
+
+      // 11. HIGH-BANKED BERM BOWL
+      if (obs.type === 'berm_bowl') {
+        const dist = Math.hypot(p.x - obs.x, p.z - obs.z);
+        if (dist <= obs.radius) {
+          const rimT = dist / obs.radius;
+          const bermY = obs.baseY + Math.pow(rimT, 2.0) * obs.height;
+          targetGround = Math.max(targetGround, bermY);
+        }
+        continue;
+      }
+
       // Standard AABB overlap check for non-rotated obstacles
       const effectiveHalfW = obs.type === 'rail' ? 0.65 : halfW;
       const effectiveHalfL = obs.type === 'rail' ? halfL + 0.35 : halfL;
@@ -2921,14 +3802,15 @@
         p.z <= obs.z + effectiveHalfL
       ) {
         if (obs.type === 'tabletop') {
-          // RelRun goes from 0 (takeoff) to length (landing)
-          const relRun = (obs.z + halfL) - p.z;
+          const isSouthbound = obs.dir === -1 || (obs.zStart && obs.zStart > obs.zEnd);
+          const startZ = isSouthbound ? (obs.zStart || (obs.z + halfL)) : (obs.z - halfL);
+          const relRun = isSouthbound ? (startZ - p.z) : (p.z - startZ);
           if (relRun >= 0 && relRun <= obs.length) {
             let deckY = obs.baseY;
             if (relRun < obs.takeoffLen) {
               deckY += (relRun / obs.takeoffLen) * obs.height;
               if (relRun > obs.takeoffLen * 0.85 && p.speed > 3.8 && !p.isAirborne) {
-                p.vy = JUMP_VELOCITY * 1.15;
+                p.vy = JUMP_VELOCITY * 1.3;
                 p.isAirborne = true;
                 p.inTabletop = true;
                 state.aerial.airYaw = 0;
@@ -2936,6 +3818,7 @@
                 state.aerial.spin180Done = false;
                 state.aerial.spin360Done = false;
                 state.aerial.flipDone = false;
+                showTrickToast('TABLETOP LAUNCH! 🚀');
               }
             } else if (relRun <= obs.takeoffLen + obs.deckLen) {
               deckY += obs.height;
@@ -2955,12 +3838,14 @@
           }
         } else if (obs.type === 'gap_kicker') {
           const relZ = (p.z - obs.z);
-          const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+          const ratio = obs.dir === -1
+            ? THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1)
+            : THREE.MathUtils.clamp((relZ + halfL) / obs.length, 0, 1);
           const rampY = obs.baseY + ratio * obs.height;
           targetGround = Math.max(targetGround, rampY);
 
           if (ratio > 0.85 && p.speed > 3.5 && !p.isAirborne) {
-            p.vy = JUMP_VELOCITY * 1.35;
+            p.vy = JUMP_VELOCITY * 1.45;
             p.isAirborne = true;
             p.inGap = true;
             state.aerial.airYaw = 0;
@@ -2968,17 +3853,19 @@
             state.aerial.spin180Done = false;
             state.aerial.spin360Done = false;
             state.aerial.flipDone = false;
-            showTrickToast('GAP LAUNCH! 🚀');
+            showTrickToast('GAP LAUNCH! 🚀 +350');
           }
         } else if (obs.type === 'gap_landing') {
           const relZ = (p.z - obs.z);
-          const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+          const ratio = obs.dir === -1
+            ? THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1)
+            : THREE.MathUtils.clamp((relZ + halfL) / obs.length, 0, 1);
           const rampY = obs.baseY + (1 - ratio) * obs.height;
           targetGround = Math.max(targetGround, rampY);
 
-          if (p.inGap && p.isAirborne && p.y <= rampY + 0.3) {
+          if (p.inGap && p.isAirborne && p.y <= rampY + 0.4) {
             p.inGap = false;
-            showTrickToast('CANYON GAP CLEARED! +350');
+            showTrickToast('CANYON GAP CLEARED! 🔥 +500');
           }
         } else if (obs.type === 'whaletail') {
           const relRun = (obs.z + halfL) - p.z;
@@ -2997,7 +3884,7 @@
               const dropRatio = (relRun - 10.5) / (obs.length - 10.5);
               spineY += (1 - dropRatio) * obs.height;
               if (!p.isAirborne && p.speed > 3.5 && dropRatio > 0.85) {
-                p.vy = JUMP_VELOCITY * 1.2;
+                p.vy = JUMP_VELOCITY * 1.25;
                 p.isAirborne = true;
                 state.aerial.airYaw = 0;
                 state.aerial.airPitch = 0;
@@ -3200,6 +4087,12 @@
     if (Math.abs(p.x) < 24 && Math.abs(p.z) < 24) {
       newZone = 'Central Town Square';
       newType = 'PLAZA';
+    } else if (Math.abs(p.x - 55) < 14 && p.z >= -26 && p.z <= 46) {
+      newZone = 'Pine Ridge Slopestyle';
+      newType = 'RED BULL SLOPESTYLE';
+    } else if (Math.abs(p.x - (-58)) < 14 && p.z >= -26 && p.z <= 46) {
+      newZone = 'Slickrock Motocross';
+      newType = 'MOTOCROSS MX';
     } else if (p.z < -26 && Math.abs(p.x) < Math.abs(p.z) * 1.5) {
       newZone = 'Thunder Peak';
       newType = 'JUMP LINE';
@@ -3227,7 +4120,7 @@
     if (!areaToast || !areaBadge || !areaName) return;
     areaName.textContent = name;
     areaBadge.textContent = badge;
-    areaBadge.className = 'exp9-area-badge ' + (badge.includes('JUMP') ? 'badge-jump' : 'badge-chill');
+    areaBadge.className = 'exp9-area-badge ' + (badge.includes('JUMP') || badge.includes('SLOPESTYLE') || badge.includes('MOTOCROSS') ? 'badge-jump' : 'badge-chill');
 
     areaToast.classList.add('visible');
     clearTimeout(toastTimeout);
@@ -3263,10 +4156,12 @@
 
     camera.lookAt(p.x, p.y + 0.3, p.z);
 
-    // Smooth camera zoom interpolation
+    // Smooth camera zoom interpolation with dynamic high-speed pullback
     const cs = state.camera;
-    if (Math.abs(cs.frustumSize - cs.targetFrustum) > 0.02) {
-      cs.frustumSize = THREE.MathUtils.lerp(cs.frustumSize, cs.targetFrustum, 0.16);
+    const speedZoom = THREE.MathUtils.clamp((p.speed - 10.0) * 0.28, 0, 6.0);
+    const targetWithSpeed = cs.targetFrustum + speedZoom;
+    if (Math.abs(cs.frustumSize - targetWithSpeed) > 0.02) {
+      cs.frustumSize = THREE.MathUtils.lerp(cs.frustumSize, targetWithSpeed, 0.12);
       updateCameraProjection();
     }
 
