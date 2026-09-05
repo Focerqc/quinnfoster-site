@@ -34,7 +34,7 @@
       name: 'Mega Drop',
       zone: 'Thunder Peak',
       x: 0,
-      z: -72,
+      z: -74,
       heading: 0, // Facing South down the runway
       spawnYOffset: 7.22, // On top of 7m tower deck
       desc: '7-meter tall drop-in tower into massive canyon launch kicker'
@@ -373,11 +373,50 @@
       const terrace = Math.floor(n / 16) * 0.75;
       h = 1.0 + 0.05 * n + ridge + terrace;
 
-      // Mega Drop hill crest around (x=0, z=-72)
-      const peakDist = Math.hypot(x, z - (-72));
-      if (peakDist < 18) {
-        const peakFactor = Math.cos((peakDist / 18) * Math.PI * 0.5);
-        h = Math.max(h, 4.2 + peakFactor * 2.8); // Peaks up to 7.0m
+      // Mountain peak backdrop behind the tower (z <= -80)
+      if (z <= -80) {
+        const peakDist = Math.hypot(x, z - (-88));
+        if (peakDist < 20) {
+          const peakFactor = Math.cos((peakDist / 20) * Math.PI * 0.5);
+          h = Math.max(h, 4.0 + peakFactor * 4.5);
+        }
+      }
+
+      // Carve Mega Drop Canyon Corridor (z from -90 to -17, perfectly clear below all ramps)
+      if (Math.abs(x) < 11.5 && z >= -90 && z <= -17) {
+        let targetFloor = 0.6;
+        if (z < -78) {
+          // Smooth mountain slope rising behind tower staging (z: -90 to -78)
+          const backT = (-78 - z) / 12.0;
+          targetFloor = THREE.MathUtils.lerp(2.5, 8.5, Math.min(1.0, backT));
+        } else if (z <= -71.5) {
+          // Under tower staging platform (z: -78 to -71.5)
+          targetFloor = 2.5; // Platform is at 7.0m (4.5m elevated on pillars!)
+        } else if (z <= -49.5) {
+          // Under roll-in runway (z: -71.5 to -49.5, runway drops from 7.0m to 2.0m)
+          const t = (z - (-71.5)) / 22.0;
+          targetFloor = 2.5 - t * 1.8; // drops 2.5m to 0.7m, staying 1.3m to 4.5m below runway!
+        } else if (z <= -43.5) {
+          // Under launch kicker (z: -49.5 to -43.5, kicker rises 2.0m to 4.8m)
+          targetFloor = 0.7; // 1.3m to 4.1m below kicker!
+        } else if (z <= -35.5) {
+          // Under canyon jump gap chasm (z: -43.5 to -35.5)
+          targetFloor = 0.4;
+        } else {
+          // Under landing transition (z: -35.5 to -17, landing slopes 3.6m to 0.12m)
+          const t = (z - (-35.5)) / 18.5;
+          targetFloor = THREE.MathUtils.lerp(0.35, 0.08, THREE.MathUtils.clamp(t, 0, 1));
+        }
+
+        // Smooth canyon profile: perfectly flat 10m wide floor (|x| <= 5.0m), smooth walls up to 11.5m
+        let canyonH = targetFloor;
+        const absX = Math.abs(x);
+        if (absX > 5.0) {
+          const wallT = (absX - 5.0) / 6.5;
+          const smoothWall = wallT * wallT * (3 - 2 * wallT);
+          canyonH = targetFloor + smoothWall * 4.5;
+        }
+        h = Math.min(h, canyonH);
       }
     }
     // B. South: Cactus Canyon & Banked Berms Trail Circuit
@@ -634,7 +673,7 @@
     createStuntJumpLines();
 
     // 5. Trail Signs
-    createTrailSign('North: Thunder Peak', '[MEGA DROP]', 0, -32, 0, 0xf59e0b);
+    createTrailSign('North: Thunder Peak', '[MEGA DROP]', -6.0, -18, 0, 0xf59e0b);
     createTrailSign('South: Cactus Canyon', '[CHILL BERMS]', 0, 32, Math.PI, 0x14b8a6);
     createTrailSign('East: Pine Ridge', '[WHALE TAIL]', 32, 0, Math.PI / 2, 0x10b981);
     createTrailSign('West: Slickrock Bluff', '[TABLETOP & GAP]', -32, 0, -Math.PI / 2, 0xf59e0b);
@@ -645,27 +684,28 @@
 
   // Solid mathematical 3D wedge prism (zero rotation/centroid distortion)
   function createWedgeMesh(width, length, yStart, yEnd, mat) {
+    mat.side = THREE.DoubleSide;
     const halfW = width / 2;
     const geo = new THREE.BufferGeometry();
     const vertices = new Float32Array([
-      // Top slope (2 triangles)
-      -halfW, yStart, 0,   halfW, yStart, 0,   halfW, yEnd, length,
-      -halfW, yStart, 0,   halfW, yEnd, length, -halfW, yEnd, length,
+      // Top slope (2 triangles, CCW upward normals)
+      -halfW, yStart, 0,   -halfW, yEnd, length,  halfW, yEnd, length,
+      -halfW, yStart, 0,   halfW, yEnd, length,   halfW, yStart, 0,
       // Bottom face
-      -halfW, 0, length,   halfW, 0, length,   halfW, 0, 0,
-      -halfW, 0, length,   halfW, 0, 0,        -halfW, 0, 0,
+      -halfW, 0, 0,        halfW, 0, 0,           halfW, 0, length,
+      -halfW, 0, 0,        halfW, 0, length,      -halfW, 0, length,
       // Left side face
-      -halfW, 0, 0,        -halfW, yStart, 0,  -halfW, yEnd, length,
-      -halfW, 0, 0,        -halfW, yEnd, length, -halfW, 0, length,
+      -halfW, 0, 0,        -halfW, yEnd, length,  -halfW, yStart, 0,
+      -halfW, 0, 0,        -halfW, 0, length,     -halfW, yEnd, length,
       // Right side face
-      halfW, 0, length,    halfW, yEnd, length, halfW, yStart, 0,
-      halfW, 0, length,    halfW, yStart, 0,   halfW, 0, 0,
+      halfW, 0, 0,         halfW, yStart, 0,      halfW, yEnd, length,
+      halfW, 0, 0,         halfW, yEnd, length,   halfW, 0, length,
       // Front face (at 0)
-      halfW, 0, 0,         halfW, yStart, 0,   -halfW, yStart, 0,
-      halfW, 0, 0,         -halfW, yStart, 0,  -halfW, 0, 0,
+      -halfW, 0, 0,        -halfW, yStart, 0,     halfW, yStart, 0,
+      -halfW, 0, 0,        halfW, yStart, 0,      halfW, 0, 0,
       // Back face (at length)
-      -halfW, 0, length,   -halfW, yEnd, length, halfW, yEnd, length,
-      -halfW, 0, length,   halfW, yEnd, length,  halfW, 0, length,
+      -halfW, 0, length,   halfW, 0, length,      halfW, yEnd, length,
+      -halfW, 0, length,   halfW, yEnd, length,   -halfW, yEnd, length,
     ]);
     geo.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     geo.computeVertexNormals();
@@ -677,6 +717,7 @@
 
   // Curved Quarter Bank Mesh with Steel Coping
   function createQuarterBankMesh(width, length, height, facingAngle, mat) {
+    mat.side = THREE.DoubleSide;
     const group = new THREE.Group();
     const halfW = width / 2;
     const segments = 10;
@@ -691,18 +732,18 @@
       const y0 = Math.pow(t0, 1.6) * height;
       const y1 = Math.pow(t1, 1.6) * height;
 
-      // Top curved face
-      pos.push(-halfW, y0, z0,  halfW, y0, z0,  halfW, y1, z1);
-      pos.push(-halfW, y0, z0,  halfW, y1, z1, -halfW, y1, z1);
+      // Top curved face (CCW upward normals)
+      pos.push(-halfW, y0, z0,  halfW, y1, z1,   halfW, y0, z0);
+      pos.push(-halfW, y0, z0, -halfW, y1, z1,   halfW, y1, z1);
       // Bottom face
-      pos.push(-halfW, 0, z1,   halfW, 0, z1,   halfW, 0, z0);
-      pos.push(-halfW, 0, z1,   halfW, 0, z0,  -halfW, 0, z0);
+      pos.push(-halfW, 0, z0,   halfW, 0, z0,    halfW, 0, z1);
+      pos.push(-halfW, 0, z0,   halfW, 0, z1,   -halfW, 0, z1);
       // Left side
-      pos.push(-halfW, 0, z0,  -halfW, y0, z0, -halfW, y1, z1);
-      pos.push(-halfW, 0, z0,  -halfW, y1, z1, -halfW, 0, z1);
+      pos.push(-halfW, 0, z0,  -halfW, y1, z1,  -halfW, y0, z0);
+      pos.push(-halfW, 0, z0,  -halfW, 0, z1,   -halfW, y1, z1);
       // Right side
-      pos.push(halfW, 0, z1,    halfW, y1, z1,  halfW, y0, z0);
-      pos.push(halfW, 0, z1,    halfW, y0, z0,  halfW, 0, z0);
+      pos.push(halfW, 0, z0,    halfW, y0, z0,   halfW, y1, z1);
+      pos.push(halfW, 0, z0,    halfW, y1, z1,   halfW, 0, z1);
     }
     // Back wall at length
     pos.push(-halfW, 0, length, -halfW, height, length, halfW, height, length);
@@ -1242,7 +1283,7 @@
     const kickerBottomY = 2.0;
     const kickerLipY = 4.8;
     const landingTopY = 3.6;
-    const landingBottomY = 0.4;
+    const landingBottomY = 0.12;
 
     const scaffoldMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.7, roughness: 0.35 });
     const runwayMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.45, metalness: 0.15 });
@@ -1443,8 +1484,8 @@
   function isExcludedSceneryZone(x, z) {
     // 1. Central Skatepark
     if (Math.abs(x) < 22 && Math.abs(z) < 22) return true;
-    // 2. North Mega Drop line (runway, kicker, landing, roll-out)
-    if (Math.abs(x) < 14 && z <= -16 && z >= -82) return true;
+    // 2. North Mega Drop line (runway, kicker, landing, roll-out, tower)
+    if (Math.abs(x) < 14 && z <= -16 && z >= -90) return true;
     // 3. East Pine Ridge Whale Tail line (x ~ 55, z from -18 to +24)
     if (Math.abs(x - 55) < 15 && z >= -18 && z <= 26) return true;
     // 4. West Slickrock Tabletop & Canyon Gap jumps (x ~ -58, z from -26 to +26)
@@ -2313,6 +2354,153 @@
   }
 
   // ==========================================================================
+  // Unified Surface Elevation Query (Terrain + All Stunt Obstacles & Ramps)
+  // ==========================================================================
+  function getSurfaceElevation(x, z) {
+    let surfaceH = getTerrainElevation(x, z);
+
+    for (let i = 0; i < state.obstacles.length; i++) {
+      const obs = state.obstacles[i];
+      const halfW = obs.width / 2;
+      const halfL = (obs.length || 0) / 2;
+
+      // A. Mega Drop Obstacles
+      if (obs.type === 'megadrop_platform') {
+        if (Math.abs(x - obs.x) <= halfW && Math.abs(z - obs.z) <= halfL) {
+          surfaceH = Math.max(surfaceH, obs.height);
+        }
+      } else if (obs.type === 'megadrop_runway') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const dropY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, dropY);
+        }
+      } else if (obs.type === 'megadrop_kicker') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const rampY = obs.yStart + Math.pow(ratio, 1.35) * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, rampY);
+        }
+      } else if (obs.type === 'megadrop_landing') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const landY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, landY);
+        }
+      }
+      // B. Rotated Kickers
+      else if (obs.type === 'kicker') {
+        const dx = x - obs.x;
+        const dz = z - obs.z;
+        const cosR = Math.cos(-obs.rotation);
+        const sinR = Math.sin(-obs.rotation);
+        const localX = dx * cosR + dz * sinR;
+        const localZ = -dx * sinR + dz * cosR;
+        if (Math.abs(localX) <= halfW && Math.abs(localZ) <= halfL) {
+          const ratio = THREE.MathUtils.clamp((halfL - localZ) / obs.length, 0, 1);
+          const rampY = obs.baseY + Math.pow(ratio, 1.25) * obs.height;
+          surfaceH = Math.max(surfaceH, rampY);
+        }
+      }
+      // C. Banked Ramps
+      else if (obs.type === 'bank_z') {
+        const minZ = Math.min(obs.zStart, obs.zEnd);
+        const maxZ = Math.max(obs.zStart, obs.zEnd);
+        if (Math.abs(x - obs.x) <= halfW && z >= minZ && z <= maxZ) {
+          const ratio = THREE.MathUtils.clamp((z - obs.zStart) / (obs.zEnd - obs.zStart), 0, 1);
+          const bankY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, bankY);
+        }
+      } else if (obs.type === 'bank_x') {
+        const minX = Math.min(obs.xStart, obs.xEnd);
+        const maxX = Math.max(obs.xStart, obs.xEnd);
+        if (Math.abs(z - obs.z) <= halfL && x >= minX && x <= maxX) {
+          const ratio = THREE.MathUtils.clamp((x - obs.xStart) / (obs.xEnd - obs.xStart), 0, 1);
+          const bankY = obs.yStart + ratio * (obs.yEnd - obs.yStart);
+          surfaceH = Math.max(surfaceH, bankY);
+        }
+      }
+      // D. Tabletop
+      else if (obs.type === 'tabletop') {
+        if (Math.abs(x - obs.x) <= halfW) {
+          const relRun = (obs.z + halfL) - z;
+          if (relRun >= 0 && relRun <= obs.length) {
+            let deckY = obs.baseY;
+            if (relRun < obs.takeoffLen) {
+              deckY += (relRun / obs.takeoffLen) * obs.height;
+            } else if (relRun <= obs.takeoffLen + obs.deckLen) {
+              deckY += obs.height;
+            } else {
+              const landRatio = (relRun - obs.takeoffLen - obs.deckLen) / obs.landingLen;
+              deckY += (1 - landRatio) * obs.height;
+            }
+            surfaceH = Math.max(surfaceH, deckY);
+          }
+        }
+      }
+      // E. Gap Kicker & Landing
+      else if (obs.type === 'gap_kicker') {
+        if (Math.abs(x - obs.x) <= halfW) {
+          const relZ = z - obs.z;
+          if (Math.abs(relZ) <= halfL) {
+            const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+            surfaceH = Math.max(surfaceH, obs.baseY + ratio * obs.height);
+          }
+        }
+      } else if (obs.type === 'gap_landing') {
+        if (Math.abs(x - obs.x) <= halfW) {
+          const relZ = z - obs.z;
+          if (Math.abs(relZ) <= halfL) {
+            const ratio = THREE.MathUtils.clamp((halfL - relZ) / obs.length, 0, 1);
+            surfaceH = Math.max(surfaceH, obs.baseY + (1 - ratio) * obs.height);
+          }
+        }
+      }
+      // F. Whale Tail
+      else if (obs.type === 'whaletail') {
+        if (Math.abs(x - obs.x) <= halfW) {
+          const relRun = (obs.z + halfL) - z;
+          if (relRun >= 0 && relRun <= obs.length) {
+            let spineY = obs.baseY;
+            if (relRun < 4.5) {
+              spineY += (relRun / 4.5) * obs.height;
+            } else if (relRun <= 10.5) {
+              const arch = Math.sin(((relRun - 4.5) / 6.0) * Math.PI) * 0.35;
+              spineY += obs.height + arch;
+            } else {
+              const dropRatio = (relRun - 10.5) / (obs.length - 10.5);
+              spineY += (1 - dropRatio) * obs.height;
+            }
+            surfaceH = Math.max(surfaceH, spineY);
+          }
+        }
+      }
+      // G. Flat Decks, Ledges, Curbs, Rails, Boardwalks
+      else if (obs.type === 'deck') {
+        if (Math.abs(x - obs.x) <= halfW && Math.abs(z - obs.z) <= halfL) {
+          surfaceH = Math.max(surfaceH, obs.height);
+        }
+      } else if (obs.type === 'rail' || obs.type === 'ledge' || obs.type === 'curb' || obs.type === 'boardwalk') {
+        const effHalfW = obs.type === 'rail' ? 0.65 : halfW;
+        const effHalfL = obs.type === 'rail' ? halfL + 0.35 : halfL;
+        if (Math.abs(x - obs.x) <= effHalfW && Math.abs(z - obs.z) <= effHalfL) {
+          if (state.player.y >= obs.height - 0.28) {
+            surfaceH = Math.max(surfaceH, obs.height);
+          }
+        }
+      }
+    }
+
+    return surfaceH;
+  }
+
+  // ==========================================================================
   // 10. Physics Simulation & Movement Loop
   // ==========================================================================
   function updatePhysics(dt) {
@@ -2366,9 +2554,11 @@
       const rollTarget = THREE.MathUtils.clamp(-angleDiff * 1.5, -0.15, 0.15);
       p.roll = THREE.MathUtils.lerp(p.roll, rollTarget, dt * 10);
 
-      // Motor thrust accelerates forward along heading
+      // Motor thrust accelerates forward along heading (preserves downhill top speed)
       const targetSpeed = MAX_SPEED * inputMagnitude;
-      vFwd = THREE.MathUtils.lerp(vFwd, targetSpeed, dt * 3.6);
+      if (vFwd < targetSpeed) {
+        vFwd = THREE.MathUtils.lerp(vFwd, targetSpeed, dt * 3.6);
+      }
     } else {
       // Coasting friction
       vFwd = THREE.MathUtils.lerp(vFwd, 0, dt * 2.2);
@@ -2376,13 +2566,13 @@
     }
 
     // 3. Downhill Slope Gravity & Counter-Steering ("Fight Gravity")
-    // Gravity acts continuously whether touching controls or not!
+    // Gravity acts continuously across terrain, hills, and elevated stunt ramps!
     if (!p.isAirborne && !state.grind.active) {
       const epsG = 0.45;
-      const hE = getTerrainElevation(p.x + epsG, p.z);
-      const hW = getTerrainElevation(p.x - epsG, p.z);
-      const hS = getTerrainElevation(p.x, p.z + epsG);
-      const hN = getTerrainElevation(p.x, p.z - epsG);
+      const hE = getSurfaceElevation(p.x + epsG, p.z);
+      const hW = getSurfaceElevation(p.x - epsG, p.z);
+      const hS = getSurfaceElevation(p.x, p.z + epsG);
+      const hN = getSurfaceElevation(p.x, p.z - epsG);
 
       const gradX = (hE - hW) / (2 * epsG);
       const gradZ = (hS - hN) / (2 * epsG);
@@ -2427,13 +2617,13 @@
       taillightLens.material.emissiveIntensity = THREE.MathUtils.lerp(taillightLens.material.emissiveIntensity, targetEmissive, dt * 10);
     }
 
-    // 4. Terrain Slope Pitch & Carving Roll Alignment
+    // 4. Terrain & Ramp Slope Pitch & Carving Roll Alignment
     if (!p.isAirborne && !state.grind.active) {
       const eps = 0.45;
-      const hForward = getTerrainElevation(p.x + Math.sin(p.heading) * eps, p.z + Math.cos(p.heading) * eps);
-      const hBackward = getTerrainElevation(p.x - Math.sin(p.heading) * eps, p.z - Math.cos(p.heading) * eps);
-      const hRight = getTerrainElevation(p.x + Math.cos(p.heading) * eps, p.z - Math.sin(p.heading) * eps);
-      const hLeft = getTerrainElevation(p.x - Math.cos(p.heading) * eps, p.z + Math.sin(p.heading) * eps);
+      const hForward = getSurfaceElevation(p.x + Math.sin(p.heading) * eps, p.z + Math.cos(p.heading) * eps);
+      const hBackward = getSurfaceElevation(p.x - Math.sin(p.heading) * eps, p.z - Math.cos(p.heading) * eps);
+      const hRight = getSurfaceElevation(p.x + Math.cos(p.heading) * eps, p.z - Math.sin(p.heading) * eps);
+      const hLeft = getSurfaceElevation(p.x - Math.cos(p.heading) * eps, p.z + Math.sin(p.heading) * eps);
 
       // In Three.js with 'YXZ' rotation order, local +Z is forward.
       // Negative rotation around local X elevates the front nose (+Y).
@@ -2552,8 +2742,16 @@
         state.aerial.flipDone = false;
       }
     } else {
-      // Ground elevation clamping
-      p.y = THREE.MathUtils.lerp(p.y, p.groundY, dt * 20);
+      // Ground elevation clamping (NEVER sink below ground or ramps!)
+      if (p.y < p.groundY) {
+        p.y = p.groundY; // Solid contact: never sink below surface
+      } else if (p.y > p.groundY + 0.22 && p.speed > 3.0) {
+        // Rode off a drop or crest at speed: smoothly become airborne!
+        p.isAirborne = true;
+        p.vy = 0;
+      } else {
+        p.y = p.groundY;
+      }
     }
 
     // 7. Update 3D Board Transforms
@@ -2590,7 +2788,7 @@
   // Handle Ground Elevation & Stunt Obstacle Collisions
   function handleObstaclesAndGround(dt) {
     const p = state.player;
-    let targetGround = getTerrainElevation(p.x, p.z);
+    let targetGround = getSurfaceElevation(p.x, p.z);
     p.isGrinding = false;
 
     for (const obs of state.obstacles) {
@@ -2967,8 +3165,8 @@
     const tailX = p.x - Math.sin(p.heading) * bumperDist;
     const tailZ = p.z - Math.cos(p.heading) * bumperDist;
 
-    const hNose = getTerrainElevation(noseX, noseZ);
-    const hTail = getTerrainElevation(tailX, tailZ);
+    const hNose = getSurfaceElevation(noseX, noseZ);
+    const hTail = getSurfaceElevation(tailX, tailZ);
 
     // Height offset of nose/tail relative to center axle:
     // With rotation order 'YXZ', pitch < 0 is nose up (+Y), tail down (-Y).
