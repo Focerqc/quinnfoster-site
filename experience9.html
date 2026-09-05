@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Experience 9 — 2.5D Isometric PEV / Onewheel Free-Roam Trail Carve & Street Park Game | Quinn Foster">
+  <title>Experience 9 — Isometric PEV Trail Carve & Street Park | Quinn Foster</title>
+
+  <!-- Preconnect Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Three.js 3D Engine & Loaders -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+
+  <!-- Main Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css?v=9.6">
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo">
+        <div class="brand-badge">QF</div>
+        <span>Quinn Foster</span>
+      </a>
+
+      <!-- Navigation Tabs -->
+      <nav class="nav-tabs" id="navTabs">
+        <a href="index.html" class="tab-btn">
+          <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          Bio
+        </a>
+
+        <!-- Archive Dropdown Folder -->
+        <div class="nav-dropdown" id="navOldExperiencesDropdown">
+          <button type="button" class="tab-btn nav-dropdown-toggle" id="navOldExperiencesBtn" aria-expanded="false" aria-haspopup="true">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 012-2h10a2 2 0 012 2v10a2 2 0 01-2 2H7a2 2 0 01-2-2V8z" />
+            </svg>
+            <span>Archive</span>
+            <svg class="dropdown-chevron" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <div class="nav-dropdown-menu" id="navOldExperiencesMenu">
+            <a href="experience1.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L5.605 15.13a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+              </svg>
+              <span>Experience 1 (Beginner)</span>
+            </a>
+            <a href="experience2.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              <span>Experience 2 (Standard)</span>
+            </a>
+            <a href="experience3.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <span>Experience 3 (Intermediate)</span>
+            </a>
+            <a href="experience4.html" class="nav-dropdown-item">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              </svg>
+              <span>Experience 4 (Expert)</span>
+            </a>
+          </div>
+        </div>
+
+        <a href="experience5.html" class="tab-btn tab-btn-num" title="Experience 5 (Dual Mode)">
+          <span class="num-badge">5</span>
+          <span class="tab-btn-full-label">Experience 5 (Dual Mode)</span>
+        </a>
+        <a href="experience6.html" class="tab-btn tab-btn-num" title="Experience 6 (Window Cutouts)">
+          <span class="num-badge">6</span>
+          <span class="tab-btn-full-label">Experience 6 (Window Cutouts)</span>
+        </a>
+        <a href="experience7.html" class="tab-btn tab-btn-num" title="Experience 7 (Winding Tool)">
+          <span class="num-badge">7</span>
+          <span class="tab-btn-full-label">Experience 7 (Winding Tool)</span>
+        </a>
+        <a href="experience8.html" class="tab-btn tab-btn-num" title="Experience 8 (3D Real Winding)">
+          <span class="num-badge">8</span>
+          <span class="tab-btn-full-label">Experience 8 (3D Winding)</span>
+        </a>
+        <a href="experience9.html" class="tab-btn tab-btn-num active" title="Experience 9 (PEV Trail Carve)">
+          <span class="num-badge">9</span>
+          <span class="tab-btn-full-label">Experience 9 (PEV Trail Carve)</span>
+        </a>
+      </nav>
+
+      <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle Navigation">
+        <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container" style="padding-top: 0.5rem;">
+    <div class="experience-card exp9-card-wrapper">
+
+      <!-- Header Banner -->
+      <div class="exp9-header-banner">
+        <div class="exp9-title-col">
+          <div class="viewport-badge" style="display: inline-flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem;">
+            <span class="pulse-dot"></span>
+            Fungineers Funwheel X7 Onewheel · 2.5D Isometric Physics Engine
+          </div>
+          <h1 class="exp9-title">Experience 9: Isometric PEV Trail Carve & Street Park</h1>
+          <p class="exp9-subtitle">
+            Hop on Quinn's custom Funwheel X7 build in free-roam. Carve through the central town square, hit grind rails, ledges, and kicker ramps, then cruise out into 4 distinct wilderness trailheads.
+          </p>
+        </div>
+
+        <div class="exp9-quick-stats">
+          <div class="exp9-stat-pill">
+            <span class="exp9-stat-label">Terrain</span>
+            <span class="exp9-stat-val" id="hudTerrainVal">Central Plaza</span>
+          </div>
+          <div class="exp9-stat-pill">
+            <span class="exp9-stat-label">Board</span>
+            <span class="exp9-stat-val">X7 Superflux</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Game Viewport Frame -->
+      <div class="exp9-viewport-container" id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+
+        <!-- Dynamic Game HUD Overlay -->
+        <div class="exp9-hud-layer">
+          
+          <!-- Top Left: Speedometer & Compass -->
+          <div class="exp9-hud-top-left">
+            <div class="exp9-speedo-card">
+              <div class="exp9-speedo-num" id="hudSpeedVal">0.0</div>
+              <div class="exp9-speedo-unit">MPH</div>
+              <div class="exp9-speedo-bar-track">
+                <div class="exp9-speedo-bar-fill" id="hudSpeedBar"></div>
+              </div>
+            </div>
+
+            <!-- Compass / Town Pointer -->
+            <div class="exp9-compass-card" id="compassCard" title="Points toward Town Square center">
+              <svg class="exp9-compass-arrow" id="compassArrow" viewBox="0 0 24 24" width="20" height="20">
+                <polygon points="12,2 17,20 12,16 7,20" fill="#6366f1" />
+              </svg>
+              <span class="exp9-compass-text" id="compassDist">0m</span>
+            </div>
+          </div>
+
+          <!-- Top Center: Trail / Area Announcement Banner -->
+          <div class="exp9-area-toast" id="areaToast">
+            <span class="exp9-area-badge" id="areaBadge">CHILL</span>
+            <span class="exp9-area-name" id="areaName">Central Town Square</span>
+          </div>
+
+          <!-- Top Right: Action Controls (Reset, Sound, Fullscreen) -->
+          <div class="exp9-hud-top-right">
+            <button type="button" class="exp9-hud-btn" id="btnRespawn" title="Respawn at Town Square (Key: R)">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              <span>Reset (R)</span>
+            </button>
+            <button type="button" class="exp9-hud-btn" id="btnFullscreen" title="Toggle Fullscreen">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- Center Float: Trick / Action Toast (Grind, Gap, Air) -->
+          <div class="exp9-trick-toast" id="trickToast">
+            <span class="exp9-trick-text" id="trickText"></span>
+          </div>
+
+          <!-- Mobile Virtual Joystick (Bottom Left) -->
+          <div class="exp9-joystick-zone" id="joystickZone">
+            <div class="exp9-joystick-base" id="joystickBase">
+              <div class="exp9-joystick-thumb" id="joystickThumb"></div>
+            </div>
+          </div>
+
+          <!-- Mobile Jump Button (Bottom Right) -->
+          <div class="exp9-jump-btn-zone">
+            <button type="button" class="exp9-jump-btn" id="btnTouchJump" aria-label="Jump / Bunny Hop">
+              <span>JUMP</span>
+              <small>Space</small>
+            </button>
+          </div>
+
+          <!-- Quick Controls Hint Legend (Desktop) -->
+          <div class="exp9-desktop-controls-hint">
+            <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd><kbd>◄</kbd><kbd>▼</kbd><kbd>►</kbd> Steer & Carve</span>
+            <span><kbd>Space</kbd> Bunny Hop</span>
+            <span><kbd>R</kbd> Reset</span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Trails & Park Features Breakdown -->
+      <div class="exp9-info-grid">
+        
+        <!-- Trailhead Directory Card -->
+        <div class="exp9-info-card">
+          <div class="exp9-card-header">
+            <div class="feature-icon" style="font-size: 1.25rem;">🌲</div>
+            <div>
+              <h3>Wilderness Trailheads</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Ride roughly 2 blocks out from the town square to enter:</p>
+            </div>
+          </div>
+
+          <div class="exp9-trail-list">
+            <div class="exp9-trail-item">
+              <div class="exp9-trail-tag badge-jump">NORTH · JUMP LINE</div>
+              <div class="exp9-trail-title">⛰️ Thunder Peak</div>
+              <div class="exp9-trail-desc">Rugged granite switchbacks, stepped cliff drop-offs, and wooden kickers.</div>
+            </div>
+
+            <div class="exp9-trail-item">
+              <div class="exp9-trail-tag badge-chill">SOUTH · CHILL TRAIL</div>
+              <div class="exp9-trail-title">🌵 Cactus Canyon</div>
+              <div class="exp9-trail-desc">Warm terracotta desert sand, red rock hoodoos, and sweeping high-speed cruise berms.</div>
+            </div>
+
+            <div class="exp9-trail-item">
+              <div class="exp9-trail-tag badge-chill">EAST · CHILL TRAIL</div>
+              <div class="exp9-trail-title">🌲 Pine Ridge Singletrack</div>
+              <div class="exp9-trail-desc">Deep forest loam, evergreen pines, and elevated wooden boardwalk bridges over water.</div>
+            </div>
+
+            <div class="exp9-trail-item">
+              <div class="exp9-trail-tag badge-jump">WEST · JUMP LINE</div>
+              <div class="exp9-trail-title">🪨 Slickrock Bluff</div>
+              <div class="exp9-trail-desc">Technical sandstone bowl, high-speed launch ramps, and gap transfers.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Street Park & Hardware Card -->
+        <div class="exp9-info-card">
+          <div class="exp9-card-header">
+            <div class="feature-icon" style="font-size: 1.25rem;">🛹</div>
+            <div>
+              <h3>Street Park Obstacles & Vehicle Specs</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Central Town Square features & CAD model breakdown</p>
+            </div>
+          </div>
+
+          <div class="exp9-features-list">
+            <div class="exp9-feat-row">
+              <strong>Low Grind Rail:</strong>
+              <span>Hop with <kbd>Space</kbd> onto the coping to initiate a continuous grind with spark particles.</span>
+            </div>
+            <div class="exp9-feat-row">
+              <strong>Skate Ledges & Curbs:</strong>
+              <span>Drive up curb-cuts or bunny-hop onto 0.35m curbs and concrete plaza boxes.</span>
+            </div>
+            <div class="exp9-feat-row">
+              <strong>Kicker Launchers & Gaps:</strong>
+              <span>Hit ramps at speed for airtime bonuses, pitch control, and shadow-assisted landing.</span>
+            </div>
+            <div class="exp9-feat-row">
+              <strong>Fungineers X7 Model:</strong>
+              <span>Custom CNC aluminum rails, Superflux hub motor, QDIY Thunder tire, DANG bumpers, and stompie footpads optimized into a game-ready GLB asset.</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container footer-content">
+      <div class="footer-text">
+        © <span id="year">2026</span> Quinn Foster. Hosted on Cloudflare Pages.
+      </div>
+      <div class="social-links">
+        <a href="https://github.com" target="_blank" class="social-icon" aria-label="GitHub">
+          <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Main Navigation & Menu Script -->
+  <script src="js/main.js?v=1.2"></script>
+  <!-- Game Logic Engine -->
+  <script src="js/experience9.js?v=1.0"></script>
+</body>
+</html>

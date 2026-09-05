@@ -4224,3 +4224,538 @@ input:checked + .slider-round:before {
   }
 }
 
+/* ==========================================================================
+   Experience 9: Isometric PEV Trail Carve & Street Park Game Styles
+   ========================================================================== */
+
+.exp9-card-wrapper {
+  padding: 1.5rem;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  margin-bottom: 2rem;
+}
+
+.exp9-header-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.exp9-title-col {
+  flex: 1 1 500px;
+}
+
+.exp9-title {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #f8fafc;
+  margin-bottom: 0.35rem;
+  line-height: 1.25;
+}
+
+.exp9-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.exp9-quick-stats {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.exp9-stat-pill {
+  display: flex;
+  flex-direction: column;
+  padding: 0.45rem 0.85rem;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  min-width: 110px;
+}
+
+.exp9-stat-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.exp9-stat-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #a5b4fc;
+}
+
+/* Game Viewport Container */
+.exp9-viewport-container {
+  position: relative;
+  width: 100%;
+  height: 640px;
+  background: #090e17;
+  border: 1px solid rgba(99, 102, 241, 0.25);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.7), 0 10px 30px -10px rgba(0, 0, 0, 0.6);
+  user-select: none;
+  touch-action: none;
+}
+
+#gameCanvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* HUD Overlay Layer */
+.exp9-hud-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* Top Left Speedo & Compass */
+.exp9-hud-top-left {
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.exp9-speedo-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 86px;
+  height: 86px;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  padding: 0.4rem;
+}
+
+.exp9-speedo-num {
+  font-family: var(--font-mono);
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #38bdf8;
+  line-height: 1;
+}
+
+.exp9-speedo-unit {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  margin-bottom: 0.35rem;
+}
+
+.exp9-speedo-bar-track {
+  width: 80%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.exp9-speedo-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #38bdf8, #818cf8, #f43f5e);
+  transition: width 0.08s ease;
+}
+
+.exp9-compass-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  background: rgba(15, 23, 42, 0.78);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.exp9-compass-arrow {
+  transition: transform 0.1s linear;
+}
+
+.exp9-compass-text {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #94a3b8;
+  margin-top: 0.15rem;
+}
+
+/* Top Center Area Toast Banner */
+.exp9-area-toast {
+  position: absolute;
+  top: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(-30px);
+  opacity: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.5rem 1.1rem;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-full);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.exp9-area-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.exp9-area-badge {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-full);
+}
+
+.badge-jump {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-chill {
+  background: rgba(20, 184, 166, 0.2);
+  color: #14b8a6;
+  border: 1px solid rgba(20, 184, 166, 0.4);
+}
+
+.exp9-area-name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+/* Top Right Action Buttons */
+.exp9-hud-top-right {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: flex;
+  gap: 0.5rem;
+  pointer-events: auto;
+}
+
+.exp9-hud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.8rem;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  color: #cbd5e1;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.exp9-hud-btn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+/* Trick Toast Notification */
+.exp9-trick-toast {
+  position: absolute;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.85);
+  opacity: 0;
+  padding: 0.5rem 1.25rem;
+  background: rgba(245, 158, 11, 0.25);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.exp9-trick-toast.visible {
+  transform: translate(-50%, -50%) scale(1);
+  opacity: 1;
+}
+
+.exp9-trick-text {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #fef08a;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+}
+
+/* Virtual Joystick Zone (Bottom Left) */
+.exp9-joystick-zone {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  width: 120px;
+  height: 120px;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp9-joystick-base {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(8px);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.exp9-joystick-thumb {
+  width: 44px;
+  height: 44px;
+  background: radial-gradient(circle, #6366f1 0%, #4338ca 100%);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.5);
+  pointer-events: none;
+  transition: transform 0.04s linear;
+}
+
+/* Touch Jump Button (Bottom Right) */
+.exp9-jump-btn-zone {
+  position: absolute;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  pointer-events: auto;
+}
+
+.exp9-jump-btn {
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #8b5cf6 0%, #6d28d9 100%);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 6px 18px rgba(139, 92, 246, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.exp9-jump-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.6);
+}
+
+.exp9-jump-btn small {
+  font-size: 0.65rem;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+/* Desktop Controls Helper Legend */
+.exp9-desktop-controls-hint {
+  position: absolute;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 1.25rem;
+  padding: 0.45rem 1rem;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.exp9-desktop-controls-hint kbd {
+  display: inline-block;
+  padding: 0.12rem 0.38rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  margin: 0 0.15rem;
+}
+
+/* Trails Breakdown Grid */
+.exp9-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.75rem;
+}
+
+.exp9-info-card {
+  background: rgba(15, 23, 42, 0.65);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--radius-md);
+  padding: 1.35rem;
+}
+
+.exp9-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.15rem;
+  padding-bottom: 0.85rem;
+  border-bottom: 1px solid var(--surface-border);
+}
+
+.exp9-card-header h3 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+}
+
+.exp9-trail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.exp9-trail-item {
+  padding: 0.75rem 0.9rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-sm);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.exp9-trail-item:hover {
+  background: rgba(99, 102, 241, 0.05);
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.exp9-trail-tag {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 0.12rem 0.45rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.25rem;
+}
+
+.exp9-trail-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f1f5f9;
+  margin-bottom: 0.2rem;
+}
+
+.exp9-trail-desc {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.exp9-features-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.exp9-feat-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.025);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.exp9-feat-row strong {
+  color: #a5b4fc;
+}
+
+.exp9-feat-row kbd {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.72rem;
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+  .exp9-viewport-container {
+    height: 480px;
+  }
+  .exp9-desktop-controls-hint {
+    display: none;
+  }
+  .exp9-speedo-card {
+    width: 72px;
+    height: 72px;
+  }
+  .exp9-speedo-num {
+    font-size: 1.35rem;
+  }
+  .exp9-compass-card {
+    width: 50px;
+    height: 50px;
+  }
+  .exp9-header-banner {
+    flex-direction: column;
+  }
+  .exp9-title {
+    font-size: 1.4rem;
+  }
+}
+
