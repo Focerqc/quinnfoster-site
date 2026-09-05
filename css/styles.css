@@ -4460,14 +4460,93 @@ input:checked + .slider-round:before {
   color: #f8fafc;
 }
 
+/* Top Row: Speedo & Compass (Left), Checkpoints Bar (Center), Action Controls (Right) */
+.exp9-hud-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 0.75rem;
+  pointer-events: none;
+  z-index: 10;
+}
+
+/* Checkpoint Jump Line Navigation Bar */
+.exp9-checkpoints-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(15, 23, 42, 0.88);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  padding: 0.25rem 0.4rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  pointer-events: auto;
+  max-width: calc(100% - 240px);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.exp9-checkpoints-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.exp9-cp-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  color: #94a3b8;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  white-space: nowrap;
+}
+
+.exp9-cp-btn:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.exp9-cp-btn.active {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.4), rgba(168, 85, 247, 0.4));
+  border-color: rgba(99, 102, 241, 0.7);
+  color: #ffffff;
+  box-shadow: 0 0 14px rgba(99, 102, 241, 0.4);
+}
+
+.exp9-cp-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.exp9-cp-btn.active .exp9-cp-num {
+  background: #6366f1;
+  color: #ffffff;
+}
+
+.exp9-cp-label {
+  letter-spacing: 0.02em;
+}
+
 /* Top Right Action Buttons */
 .exp9-hud-top-right {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
   display: flex;
   gap: 0.5rem;
   pointer-events: auto;
+  align-items: center;
 }
 
 .exp9-hud-btn {
@@ -4756,6 +4835,21 @@ input:checked + .slider-round:before {
   }
   .exp9-title {
     font-size: 1.4rem;
+  }
+  .exp9-hud-top-row {
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+  .exp9-checkpoints-bar {
+    order: 3;
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-start;
+    padding: 0.2rem 0.3rem;
+  }
+  .exp9-cp-btn {
+    padding: 0.2rem 0.45rem;
+    font-size: 0.7rem;
   }
 }
 

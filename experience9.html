@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
   <!-- Main Stylesheet -->
-  <link rel="stylesheet" href="css/styles.css?v=9.6">
+  <link rel="stylesheet" href="css/styles.css?v=9.7">
 </head>
 <body>
 
@@ -142,44 +142,71 @@
         <!-- Dynamic Game HUD Overlay -->
         <div class="exp9-hud-layer">
           
-          <!-- Top Left: Speedometer & Compass -->
-          <div class="exp9-hud-top-left">
-            <div class="exp9-speedo-card">
-              <div class="exp9-speedo-num" id="hudSpeedVal">0.0</div>
-              <div class="exp9-speedo-unit">MPH</div>
-              <div class="exp9-speedo-bar-track">
-                <div class="exp9-speedo-bar-fill" id="hudSpeedBar"></div>
+          <!-- Top Row: Speedo & Compass (Left), Checkpoints Bar (Center), Action Controls (Right) -->
+          <div class="exp9-hud-top-row">
+            <!-- Top Left: Speedometer & Compass -->
+            <div class="exp9-hud-top-left">
+              <div class="exp9-speedo-card">
+                <div class="exp9-speedo-num" id="hudSpeedVal">0.0</div>
+                <div class="exp9-speedo-unit">MPH</div>
+                <div class="exp9-speedo-bar-track">
+                  <div class="exp9-speedo-bar-fill" id="hudSpeedBar"></div>
+                </div>
+              </div>
+
+              <!-- Compass / Town Pointer -->
+              <div class="exp9-compass-card" id="compassCard" title="Points toward Town Square center">
+                <svg class="exp9-compass-arrow" id="compassArrow" viewBox="0 0 24 24" width="20" height="20">
+                  <polygon points="12,2 17,20 12,16 7,20" fill="#6366f1" />
+                </svg>
+                <span class="exp9-compass-text" id="compassDist">0m</span>
               </div>
             </div>
 
-            <!-- Compass / Town Pointer -->
-            <div class="exp9-compass-card" id="compassCard" title="Points toward Town Square center">
-              <svg class="exp9-compass-arrow" id="compassArrow" viewBox="0 0 24 24" width="20" height="20">
-                <polygon points="12,2 17,20 12,16 7,20" fill="#6366f1" />
-              </svg>
-              <span class="exp9-compass-text" id="compassDist">0m</span>
+            <!-- Top Center: Checkpoints Quick Bar -->
+            <div class="exp9-checkpoints-bar" id="checkpointsBar">
+              <button type="button" class="exp9-cp-btn active" data-cp="0" title="Central Plaza (Key: 1)">
+                <span class="exp9-cp-num">1</span>
+                <span class="exp9-cp-label">Plaza</span>
+              </button>
+              <button type="button" class="exp9-cp-btn" data-cp="1" title="Mega Drop & Giant Jump (Key: 2)">
+                <span class="exp9-cp-num">2</span>
+                <span class="exp9-cp-label">Mega Drop</span>
+              </button>
+              <button type="button" class="exp9-cp-btn" data-cp="2" title="Whale Tail Slopestyle (Key: 3)">
+                <span class="exp9-cp-num">3</span>
+                <span class="exp9-cp-label">Whale Tail</span>
+              </button>
+              <button type="button" class="exp9-cp-btn" data-cp="3" title="Tabletop & Gap Transfers (Key: 4)">
+                <span class="exp9-cp-num">4</span>
+                <span class="exp9-cp-label">Tabletop & Gap</span>
+              </button>
+              <button type="button" class="exp9-cp-btn" data-cp="4" title="Desert Berms (Key: 5)">
+                <span class="exp9-cp-num">5</span>
+                <span class="exp9-cp-label">Desert Berms</span>
+              </button>
+            </div>
+
+            <!-- Top Right: Action Controls (Reset, Sound, Fullscreen) -->
+            <div class="exp9-hud-top-right">
+              <button type="button" class="exp9-hud-btn" id="btnRespawn" title="Respawn at Town Square (Key: R)">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                <span>Reset (R)</span>
+              </button>
+              <button type="button" class="exp9-hud-btn" id="btnFullscreen" title="Toggle Fullscreen">
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              </button>
             </div>
           </div>
 
-          <!-- Top Center: Trail / Area Announcement Banner -->
+          <!-- Trail / Area Announcement Banner -->
           <div class="exp9-area-toast" id="areaToast">
             <span class="exp9-area-badge" id="areaBadge">CHILL</span>
             <span class="exp9-area-name" id="areaName">Central Town Square</span>
-          </div>
-
-          <!-- Top Right: Action Controls (Reset, Sound, Fullscreen) -->
-          <div class="exp9-hud-top-right">
-            <button type="button" class="exp9-hud-btn" id="btnRespawn" title="Respawn at Town Square (Key: R)">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-              <span>Reset (R)</span>
-            </button>
-            <button type="button" class="exp9-hud-btn" id="btnFullscreen" title="Toggle Fullscreen">
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-              </svg>
-            </button>
           </div>
 
           <!-- Center Float: Trick / Action Toast (Grind, Gap, Air) -->
@@ -206,6 +233,7 @@
           <div class="exp9-desktop-controls-hint">
             <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> or <kbd>▲</kbd><kbd>◄</kbd><kbd>▼</kbd><kbd>►</kbd> Steer & Carve</span>
             <span><kbd>Space</kbd> Bunny Hop</span>
+            <span><kbd>1</kbd>–<kbd>5</kbd> Checkpoints</span>
             <span><kbd>R</kbd> Reset</span>
           </div>
 
@@ -220,34 +248,34 @@
           <div class="exp9-card-header">
             <div class="feature-icon" style="font-size: 1.25rem;">🌲</div>
             <div>
-              <h3>Wilderness Trailheads</h3>
-              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Ride roughly 2 blocks out from the town square to enter:</p>
+              <h3>Wilderness Trailheads & Jump Lines</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Ride outward or press 1–5 to warp instantly to jump lines:</p>
             </div>
           </div>
 
           <div class="exp9-trail-list">
             <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-jump">NORTH · JUMP LINE</div>
-              <div class="exp9-trail-title">⛰️ Thunder Peak</div>
-              <div class="exp9-trail-desc">Rugged granite switchbacks, stepped cliff drop-offs, and wooden kickers.</div>
+              <div class="exp9-trail-tag badge-jump">NORTH · CP 2</div>
+              <div class="exp9-trail-title">🚀 Thunder Peak Mega Drop</div>
+              <div class="exp9-trail-desc">7-meter tall scaffold roll-in tower accelerating downhill into a massive canyon kicker launch.</div>
             </div>
 
             <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-chill">SOUTH · CHILL TRAIL</div>
-              <div class="exp9-trail-title">🌵 Cactus Canyon</div>
-              <div class="exp9-trail-desc">Warm terracotta desert sand, red rock hoodoos, and sweeping high-speed cruise berms.</div>
+              <div class="exp9-trail-tag badge-jump">EAST · CP 3</div>
+              <div class="exp9-trail-title">🐋 Pine Ridge Whale Tail</div>
+              <div class="exp9-trail-desc">Wooden slopestyle step-up ramp leading onto an arched spine whale-tail transition and drop kicker.</div>
             </div>
 
             <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-chill">EAST · CHILL TRAIL</div>
-              <div class="exp9-trail-title">🌲 Pine Ridge Singletrack</div>
-              <div class="exp9-trail-desc">Deep forest loam, evergreen pines, and elevated wooden boardwalk bridges over water.</div>
+              <div class="exp9-trail-tag badge-jump">WEST · CP 4</div>
+              <div class="exp9-trail-title">🛹 Slickrock Tabletop & Gap</div>
+              <div class="exp9-trail-desc">Full 13m tabletop jump (takeoff, deck, transition) and canyon gap transfer with hazard markers.</div>
             </div>
 
             <div class="exp9-trail-item">
-              <div class="exp9-trail-tag badge-jump">WEST · JUMP LINE</div>
-              <div class="exp9-trail-title">🪨 Slickrock Bluff</div>
-              <div class="exp9-trail-desc">Technical sandstone bowl, high-speed launch ramps, and gap transfers.</div>
+              <div class="exp9-trail-tag badge-chill">SOUTH · CP 5</div>
+              <div class="exp9-trail-title">🌵 Cactus Canyon Berms</div>
+              <div class="exp9-trail-desc">Rolling desert dunes, high-speed banked berm carving bowls, and step-down drop ramps.</div>
             </div>
           </div>
         </div>
@@ -257,27 +285,27 @@
           <div class="exp9-card-header">
             <div class="feature-icon" style="font-size: 1.25rem;">🛹</div>
             <div>
-              <h3>Street Park Obstacles & Vehicle Specs</h3>
-              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Central Town Square features & CAD model breakdown</p>
+              <h3>Contoured Terrain & Obstacle Stunts</h3>
+              <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 0;">Physics engine features & 3D hardware alignment</p>
             </div>
           </div>
 
           <div class="exp9-features-list">
             <div class="exp9-feat-row">
-              <strong>Low Grind Rail:</strong>
-              <span>Hop with <kbd>Space</kbd> onto the coping to initiate a continuous grind with spark particles.</span>
+              <strong>Contoured 3D Terrain:</strong>
+              <span>Non-flat rolling hills, mountain ridges, and curved berms dynamically tilt the Onewheel's pitch and roll as you carve.</span>
             </div>
             <div class="exp9-feat-row">
-              <strong>Skate Ledges & Curbs:</strong>
-              <span>Drive up curb-cuts or bunny-hop onto 0.35m curbs and concrete plaza boxes.</span>
+              <strong>Tabletops, Gaps & Whale Tails:</strong>
+              <span>Hit ramps with speed for automatic launch boosts, trick bonuses, and clean transition landings.</span>
             </div>
             <div class="exp9-feat-row">
-              <strong>Kicker Launchers & Gaps:</strong>
-              <span>Hit ramps at speed for airtime bonuses, pitch control, and shadow-assisted landing.</span>
+              <strong>Mega Drop Runway:</strong>
+              <span>Drop in from the 7m peak for 35+ MPH downhill acceleration straight into the biggest launch kicker in the park.</span>
             </div>
             <div class="exp9-feat-row">
-              <strong>Fungineers X7 Model:</strong>
-              <span>Custom CNC aluminum rails, Superflux hub motor, QDIY Thunder tire, DANG bumpers, and stompie footpads optimized into a game-ready GLB asset.</span>
+              <strong>Horizontal Fungineers X7 CAD:</strong>
+              <span>Aligned along the horizontal wheelbase with forward white LED projector beam and rear red taillight.</span>
             </div>
           </div>
         </div>
@@ -304,6 +332,6 @@
   <!-- Main Navigation & Menu Script -->
   <script src="js/main.js?v=1.2"></script>
   <!-- Game Logic Engine -->
-  <script src="js/experience9.js?v=1.0"></script>
+  <script src="js/experience9.js?v=2.0"></script>
 </body>
 </html>
